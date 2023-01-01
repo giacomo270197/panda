@@ -1,4 +1,9 @@
-a = 1
-b = 2
-c = a + b
-d = 1
+var this_is_a_var = "hello";
+var this_is_another = 2;
+var c = this_is_a_var + b;
+if(c == b){
+    this_is_another + 2;
+} else {
+    a + 2;
+    print(this_is_another);
+}
