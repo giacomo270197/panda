@@ -1,9 +1,7 @@
-var this_is_a_var = "hello";
-var this_is_another = 2;
-var c = this_is_a_var + b;
-if(c == b){
-    this_is_another + 2;
-} else {
-    a + 2;
-    print(this_is_another);
+int fn main() {
+    int ret = 2;
+    int a = 3;
+    ret = a + b;
+    string c = "Hello";
+    return ret;
 }

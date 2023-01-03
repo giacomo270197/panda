@@ -1,0 +1,25 @@
+%import common.WS
+%import common.CNAME
+%import common.SIGNED_NUMBER
+%import common.ESCAPED_STRING 
+
+LITERAL: SIGNED_NUMBER | ESCAPED_STRING 
+IDENTIFIER: CNAME
+TYPE: "int" | "string"
+
+!expr: LITERAL | IDENTIFIER | ["("] statement [")"] 
+
+!declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
+!assign_stmt: IDENTIFIER "=" expr ";"
+!addition_stmt: expr "+" expr [";"]
+!return_stmt: "return" expr ";"
+
+?statement: declaration_stmt | assign_stmt | addition_stmt | return_stmt
+
+!block: "{" statement* "}"
+
+func_def: IDENTIFIER "fn" IDENTIFIER "(" (IDENTIFIER IDENTIFIER)? ("," IDENTIFIER IDENTIFIER)*  ")" block
+
+program: func_def+
+
+%ignore WS

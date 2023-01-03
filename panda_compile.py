@@ -1,5 +1,5 @@
 import argparse
-from lexer import Lexer
+from parser.code_parser import Parser
 
 def main():
 
@@ -7,13 +7,15 @@ def main():
     parser.add_argument('--source', type=str, help="The source file")
     args = parser.parse_args()
     
-    # Tokenize
+    # Parse source code into a list of ASTs
     source = open(args.source)
     text = source.read()
     source.close()
-    lexer = Lexer(text)
-    tokens = lexer.tokenize()
-    print(tokens)
+    parser = Parser(text)
+    parser.parse()
+    parser.display_parsed()
+    parser.build_ast()
+    parser.display_ast()
 
 if __name__ == "__main__":
     main()
