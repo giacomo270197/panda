@@ -1,0 +1,3 @@
+Panda is a programming language meant to write complex, position-independent, shellcode without having to bother with Assembly.
+It had a Go-like syntax and uses all the most common data types.
+For now, it mainly focuses on Windows.
