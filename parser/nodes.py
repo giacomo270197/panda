@@ -34,6 +34,16 @@ class AdditionStatementNode(StatementNode):
         self.left_hand = left_hand
         self.right_hand = right_hand
 
+class SubtractionStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+class MultiplicationStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
 class ReturnStatementNode(StatementNode):
     def __init__(self, expr):
         self.expr = expr

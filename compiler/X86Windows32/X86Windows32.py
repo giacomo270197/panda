@@ -7,6 +7,7 @@ class BinaryOperator:
 
 class FunctionAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, function_name, num_of_variables):
+        num_of_variables *= 4
         assembly = [
             "{}:".format(function_name),
             "mov ebp, esp;",
@@ -26,8 +27,10 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
 
 class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, variable_offset, value):
+        if isinstance(value, int):
+            value = hex(value)
         assembly = [
-                "mov [ebp+{}], {};".format(hex(variable_offset), hex(value))
+                "mov [ebp+{}], {};".format(hex(variable_offset), value)
             ]
         return assembly
 
@@ -38,10 +41,29 @@ class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperat
         ]
         return assembly
 
+class SubtractionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+    def generate_assembly(self, left_hand, right_hand):
+        assembly = [
+            "sub {}, {};".format(left_hand, right_hand)
+        ]
+        return assembly
+
+class MultiplicationStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+    def generate_assembly(self, left_hand, right_hand):
+        assembly = [
+            "mul {}, {};".format(left_hand, right_hand)
+        ]
+        return assembly
+
 class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, value):
-        assembly = [
-            "mov eax, {};".format(value),
-            "ret        ;"
-        ]
+        if value == "eax":
+            assembly = [
+                "ret        ;"
+            ]
+        else:
+            assembly = [
+                "mov eax, {};".format(value),
+                "ret        ;"
+            ]
         return assembly

@@ -36,6 +36,16 @@ class AstTransformer(Transformer):
         right_hand = items[0]
         left_hand = items[2]
         return nodes.AdditionStatementNode(right_hand, left_hand)
+    
+    def subtraction_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.SubtractionStatementNode(right_hand, left_hand)
+
+    def multiplication_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.MultiplicationStatementNode(right_hand, left_hand)
 
     def return_stmt(self, items):
         expr = items[1]

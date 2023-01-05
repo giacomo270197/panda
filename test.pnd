@@ -1,5 +1,6 @@
 int fn main() {
     int ret = 2;
     int a = 3;
+    ret = ret - a;
     return ret;
 }

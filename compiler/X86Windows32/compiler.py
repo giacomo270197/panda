@@ -17,45 +17,47 @@ class X86Windows32Compiler:
         if isinstance(expr, IdentifierExprNode):
             name = expr.value
             if name not in list_of_variables:
+                print(name)
                 exit("Error: variable {} not declared".format(name))
             for key in state_of_registers.keys():
                 if state_of_registers[key][0] == name:
                     return key
-            idx = list_of_variables.index(name) * 4
+            idx = (list_of_variables.index(name) + 1) * 4
             available_register = None
             for key in state_of_registers.keys():
-                if state_of_registers[key][0]:
+                if state_of_registers[key][1]:
                     available_register = key
                     break
-            self.assembly.append = "mov {}, [ebp+{}];".format(available_register, hex(idx))
+            self.assembly.append("mov {}, [ebp+{}];".format(available_register, hex(idx)))
             state_of_registers[available_register][0] = name
             state_of_registers[available_register][1] = False
             return available_register
-        if isinstance(expr.value, StatementNode):
-            return self.process_statement(expr.value)
+        if isinstance(expr, StatementNode):
+            return self.process_statement(expr, list_of_variables, state_of_registers)
 
     def process_statement(self, statement, list_of_variables, state_of_registers):
-        print(list_of_variables)
         assembly_builder = node_to_builder_map[type(statement).__name__]()
         if isinstance(assembly_builder, DeclarationStatementAssemblyBuilder):
-            value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
+            value = None
+            if statement.expr.value:
+                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(len(list_of_variables), value)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
-            list_of_variables.append(statement.identifier)
+            list_of_variables.append(statement.identifier.value)
         if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
-            name = statement.identifier
+            name = statement.identifier.value
             if not name in list_of_variables:
                 exit("Error: variable {} not declared".format(name))
             idx = (list_of_variables.index(name) + 1) * 4
-            value = self.analyze_expression(statement.expr)
+            value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(idx, value)
         if isinstance(assembly_builder, ReturnStatementAssemblyBuilder):
             value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(value)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
-            list_of_variables.append(statement.identifier)
+            #list_of_variables.append(statement.identifier)
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
             second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
@@ -69,17 +71,16 @@ class X86Windows32Compiler:
         num_of_variables = 0
         list_of_variables = []
         state_of_registers = {
-            "eax": (None, True),
-            "ebx": (None, True),
-            "ecx": (None, True),
-            "edx": (None, True),
-            "edi": (None, True),
-            "esi": (None, True)
+            "eax": [None, True],
+            "ebx": [None, True],
+            "ecx": [None, True],
+            "edx": [None, True],
+            "edi": [None, True],
+            "esi": [None, True]
         }
         for statement in statements:
             if isinstance(statement, DeclarationStatementNode):
                 num_of_variables += 1
-                list_of_variables.append(self.analyze_expression(statement.identifier, list_of_variables, state_of_registers))
         assembly = FunctionAssemblyBuilder().generate_assembly(function.identifier, num_of_variables)
         self.assembly += assembly
         for statement in statements:
@@ -91,3 +92,4 @@ class X86Windows32Compiler:
             if function.identifier == "main":
                 main_func = function
                 self.process_function(function)
+        return self.assembly
