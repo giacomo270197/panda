@@ -28,7 +28,7 @@ class X86Windows32Compiler:
                 if state_of_registers[key][1]:
                     available_register = key
                     break
-            self.assembly.append("mov {}, [ebp+{}];".format(available_register, hex(idx)))
+            self.assembly.append("       mov {}, [ebp-{}];".format(available_register, hex(idx)))
             state_of_registers[available_register][0] = name
             state_of_registers[available_register][1] = False
             return available_register
