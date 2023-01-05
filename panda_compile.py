@@ -1,5 +1,6 @@
 import argparse
 from parser.code_parser import Parser
+from compiler.compiler import Compiler
 
 def main():
 
@@ -16,6 +17,11 @@ def main():
     parser.display_parsed()
     parser.build_ast()
     parser.display_ast()
+
+    # Transform the AST into Assembly
+    compiler = Compiler("x86Windows32", parser.ast)
+    compiler.compile()
+    compiler.show_assembly()
 
 if __name__ == "__main__":
     main()

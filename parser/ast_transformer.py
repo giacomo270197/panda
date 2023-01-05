@@ -8,9 +8,11 @@ class AstTransformer(Transformer):
     def LITERAL(self, item):
         return nodes.LiteralExprNode(item.value)
     
+    def IDENTIFIER(self, item):
+        return nodes.IdentifierExprNode(item.value)
+    
     def expr(self, items):
-        print(items)
-        if isinstance(items[0], nodes.LiteralExprNode):
+        if isinstance(items[0], nodes.ExprNode):
             return items[0]
         else:
             for item in items:
@@ -18,7 +20,6 @@ class AstTransformer(Transformer):
                     return item
 
     def declaration_stmt(self, items):
-        print(items)
         type = items[0]
         identifier = items[1]
         expr = None

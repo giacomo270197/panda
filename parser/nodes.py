@@ -10,6 +10,10 @@ class LiteralExprNode(ExprNode):
     def __init__(self, value):
         self.value = value
 
+class IdentifierExprNode(ExprNode):
+    def __init__(self, value):
+        self.value = value
+
 class StatementNode(Node):
     pass
 

@@ -1,7 +1,5 @@
 int fn main() {
     int ret = 2;
     int a = 3;
-    ret = a + b;
-    string c = "Hello";
     return ret;
 }

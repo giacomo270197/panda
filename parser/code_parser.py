@@ -8,7 +8,7 @@ class Parser():
     lark_obj = None
     parsed = None
     text = None
-    ast_obj = None
+    ast = None
 
     def __init__(self, text):
         grammar_file = open("parser/grammar.lark", "rt")
@@ -25,7 +25,7 @@ class Parser():
 
     def build_ast(self):
         transformer = AstTransformer()
-        self.ast_obj = transformer.transform(self.parsed)
+        self.ast = transformer.transform(self.parsed)
     
     def display_ast(self):
-        rich.print(self.ast_obj)
+        rich.print(self.ast)
