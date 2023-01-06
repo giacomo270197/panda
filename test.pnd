@@ -1,4 +1,4 @@
 int fn main() {
-    int p = 100000;
-    int k = -10000000;
+    string text = "Hello there sir";
+    return text;
 }
