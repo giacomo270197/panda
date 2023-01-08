@@ -63,7 +63,8 @@ class X86Windows32Compiler:
             target = statement.target.value
             statement_assembly = assembly_builder.generate_assembly(parameters, target)
             for instructon in statement_assembly:
-                self.assembly.append(instructon)            
+                self.assembly.append(instructon)    
+            return "eax"
         if isinstance(assembly_builder, ReturnStatementAssemblyBuilder):
             value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(value)

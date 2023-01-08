@@ -5,6 +5,5 @@ int fn add(int a, int b) {
 int fn main() {
     int a = 2;
     int b = 3;
-    int c = add(a, b);
-    return c;
+    return add(a, b);
 }
