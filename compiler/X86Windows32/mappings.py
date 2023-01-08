@@ -8,5 +8,9 @@ node_to_builder_map = {
     "ReturnStatementNode":          ReturnStatementAssemblyBuilder,
     "AssignmentStatementNode":      AssignmentStatementAssemblyBuilder,
     "SubtractionStatementNode":     SubtractionStatementAssemblyBuilder,
-    "MultiplicationStatementNode" : MultiplicationStatementAssemblyBuilder
+    "MultiplicationStatementNode" : MultiplicationStatementAssemblyBuilder,
+    "DivisionStatementNode":        DivisionStatementAssemblyBuilder,
+    "BitwiseAndStatementNode":      BitwiseAndStatementAssemblyBuilder,
+    "BitwiseOrStatementNode":       BitwiseOrStatementAssemblyBuilder,
+    "FunctionCallStatementNode":    FunctionCallStatementAssemblyBuilder
 }

@@ -46,6 +46,31 @@ class AstTransformer(Transformer):
         right_hand = items[0]
         left_hand = items[2]
         return nodes.MultiplicationStatementNode(right_hand, left_hand)
+    
+    def division_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.DivisionStatementNode(right_hand, left_hand)
+    
+    def bitwiseand_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.BitwiseAndStatementNode(right_hand, left_hand)
+    
+    def bitwiseor_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.BitwiseOrStatementNode(right_hand, left_hand)
+
+    def functioncall_stmt(self, items):
+        target = items[0]
+        parameters = []
+        idx = 1
+        while items[idx] != ")":
+            if items[idx] != "," and items[idx] != "(":
+                parameters.append(items[idx])
+            idx += 1
+        return nodes.FunctionCallStatementNode(target, parameters)
 
     def return_stmt(self, items):
         expr = items[1]
@@ -58,8 +83,9 @@ class AstTransformer(Transformer):
     def func_def(self, items):
         type = items[0].value
         identifier = items[1].value
-        body = items[2]
-        return nodes.FunctionNode(type, identifier, body)
+        parameters = items[2:-1]
+        body = items[-1]
+        return nodes.FunctionNode(type, identifier, parameters, body)
     
     def program(self, items):
         return nodes.ProgramNode(items)

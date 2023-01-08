@@ -1,4 +1,10 @@
+int fn add(int a, int b) {
+    return a + b;
+}
+
 int fn main() {
-    string text = "Hello there sir";
-    return text;
+    int a = 2;
+    int b = 3;
+    int c = add(a, b);
+    return c;
 }

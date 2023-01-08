@@ -44,6 +44,26 @@ class MultiplicationStatementNode(StatementNode):
         self.left_hand = left_hand
         self.right_hand = right_hand
 
+class DivisionStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+class BitwiseAndStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+class BitwiseOrStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+class FunctionCallStatementNode(StatementNode):
+    def __init__(self, target, parameters):
+        self.target = target
+        self.parameters = parameters
+
 class ReturnStatementNode(StatementNode):
     def __init__(self, expr):
         self.expr = expr
@@ -55,9 +75,10 @@ class BlockNode(Node):
 
 # Function node, one per function in the program
 class FunctionNode(Node):
-    def __init__(self, type, identifier, body):
+    def __init__(self, type, identifier, parameters, body):
         self.type = type
         self.identifier = identifier
+        self.parameters = parameters
         self.body = body
 
 # Top level program node, one per program

@@ -3,3 +3,4 @@
 - Add shellcode preamble
 - Implement control flow (if and for)
 - Implement other unary and binary operators
+- Adjust register usage
