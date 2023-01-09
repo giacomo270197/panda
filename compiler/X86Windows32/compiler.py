@@ -8,6 +8,13 @@ class X86Windows32Compiler:
         self.ast = ast
         self.assembly = []
 
+    class Variables:
+        parameters = {}
+        variables = {}
+
+        def __init__(self, parameters):
+            self.parameters = parameters
+
     def analyze_expression(self, expr, list_of_variables, state_of_registers):
         if isinstance(expr, LiteralExprNode):
             try:
@@ -16,18 +23,26 @@ class X86Windows32Compiler:
                 return expr.value
         if isinstance(expr, IdentifierExprNode):
             name = expr.value
-            if name not in list(list_of_variables.keys()):
+            if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
                 exit("Error: variable {} not declared".format(name))
             for key in state_of_registers.keys():
                 if state_of_registers[key][0] == name:
                     return key
-            idx = (list(list_of_variables.keys()).index(name) + 1) * 4
+            in_params = False
+            try:
+                idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
+            except ValueError:
+                idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
+                in_params = True
             available_register = None
             for key in state_of_registers.keys():
                 if state_of_registers[key][1]:
                     available_register = key
                     break
-            self.assembly.append("       mov {}, [ebp-{}];".format(available_register, hex(idx)))
+            if in_params:
+                self.assembly.append("       mov {}, [ebp+{}];".format(available_register, hex(idx)))
+            else:
+                self.assembly.append("       mov {}, [ebp-{}];".format(available_register, hex(idx)))
             state_of_registers[available_register][0] = name
             state_of_registers[available_register][1] = False
             return available_register
@@ -43,17 +58,21 @@ class X86Windows32Compiler:
                     value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             except AttributeError:
                 pass
-            statement_assembly = assembly_builder.generate_assembly(len(list_of_variables), statement.type, value)
+            statement_assembly = assembly_builder.generate_assembly(len(list_of_variables.variables), statement.type, value)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
-            list_of_variables[statement.identifier.value] = statement.type
+            list_of_variables.variables[statement.identifier.value] = statement.type
         if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
             name = statement.identifier.value
-            if not name in list(list_of_variables.keys()):
+            if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
                 exit("Error: variable {} not declared".format(name))
-            idx = (list(list_of_variables.keys()).index(name) + 1) * 4
+            try:
+                idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
+            except ValueError:
+                idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
+                in_params = True
             value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
-            statement_assembly = assembly_builder.generate_assembly(idx, value)
+            statement_assembly = assembly_builder.generate_assembly(idx, value, in_params)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
         if isinstance(assembly_builder, FunctionCallStatementAssemblyBuilder):
@@ -78,7 +97,10 @@ class X86Windows32Compiler:
             def get_type(operand):
                 if isinstance(operand, str):
                     if operand in state_of_registers.keys():
-                        return list_of_variables[state_of_registers[operand][0]]
+                        try:
+                            return list_of_variables.variables[state_of_registers[operand][0]]
+                        except KeyError:
+                            return list_of_variables.parameters[state_of_registers[operand][0]]
                     else:
                         return "string"
                 else:
@@ -111,9 +133,10 @@ class X86Windows32Compiler:
                 num_of_variables += 1
         assembly = FunctionAssemblyBuilder().generate_assembly(function.identifier, num_of_variables)
         self.assembly += assembly
+        parameters = {}
         for x in range(0, len(function.parameters), 2):
-            print(function.parameters[x+1].value, function.parameters[x])
-            list_of_variables[function.parameters[x+1].value] = function.parameters[x]
+            parameters[function.parameters[x+1].value] = function.parameters[x]
+        list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())[::-1]})
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)

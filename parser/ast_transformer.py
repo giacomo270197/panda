@@ -62,6 +62,11 @@ class AstTransformer(Transformer):
         left_hand = items[2]
         return nodes.BitwiseOrStatementNode(right_hand, left_hand)
 
+    def equality_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.BitwiseOrStatementNode(right_hand, left_hand)
+
     def functioncall_stmt(self, items):
         target = items[0]
         parameters = []

@@ -11,6 +11,7 @@ TYPE: "int" | "string"
 
 !declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
 !assign_stmt: IDENTIFIER "=" expr ";"
+!if_stmt: "if" "(" expr ")" block ["else" block]
 !functioncall_stmt: IDENTIFIER "(" (expr)? ("," expr)*  ")" [";"]
 !addition_stmt: expr "+" expr [";"]
 !subtraction_stmt: expr "-" expr [";"]
@@ -18,6 +19,7 @@ TYPE: "int" | "string"
 !division_stmt: expr "/" expr [";"]
 !bitwiseand_stmt: expr "&" expr [";"]
 !bitwiseor_stmt: expr "|" expr [";"]
+!equality_stmt = expr "==" expr [";"]
 
 !return_stmt: "return" expr ";"
 

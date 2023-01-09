@@ -64,6 +64,17 @@ class FunctionCallStatementNode(StatementNode):
         self.target = target
         self.parameters = parameters
 
+class EqualityStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+class IfStatementNode(StatementNode):
+    def __init__(self, if_body, else_body=None):
+        self.if_body = if_body
+        if else_body:
+            self.else_body = else_body
+
 class ReturnStatementNode(StatementNode):
     def __init__(self, expr):
         self.expr = expr

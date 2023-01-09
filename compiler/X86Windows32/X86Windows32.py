@@ -41,12 +41,14 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         return assembly
 
 class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
-    def generate_assembly(self, variable_offset, value):
+    def generate_assembly(self, variable_offset, value, in_params):
+        assembly = []
         if isinstance(value, int):
             value = hex(value)
-        assembly = [
-                "       mov [ebp-{}], {}        ;".format(hex(variable_offset), value)
-            ]
+        if in_params:
+            assembly.append("       mov [ebp+{}], {}        ;".format(hex(variable_offset), value))
+        else:
+            assembly.append("       mov [ebp-{}], {}        ;".format(hex(variable_offset), value))
         return assembly
 
 class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
