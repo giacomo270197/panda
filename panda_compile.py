@@ -5,7 +5,7 @@ from compiler.compiler import Compiler
 def main():
 
     parser = argparse.ArgumentParser(prog = 'Panda shellcode compiler', description = 'Converts your Panda files to Assembly or machine code')
-    parser.add_argument('--source', type=str, help="The source file")
+    parser.add_argument('--source', '-s', type=str, help="The source file")
     args = parser.parse_args()
     
     # Parse source code into a list of ASTs

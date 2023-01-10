@@ -116,6 +116,9 @@ class X86Windows32Compiler:
         for key in registers.keys():
             registers[key][1] = True
 
+    def process_block(self):
+        pass
+
     def process_function(self, function):
         statements = function.body.statements
         num_of_variables = 0
