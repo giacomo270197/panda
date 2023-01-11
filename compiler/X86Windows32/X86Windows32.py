@@ -129,10 +129,27 @@ class EqualityStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperat
             exit("Comparison not available for strings")      
         return assembly  
 
+class GreaterStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == right_hand_type:
+            exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
+        if left_hand_type == "int":
+            assembly.append("       cmp {}, {}       ;".format(format_int(left_hand), format_int(right_hand)))
+        elif left_hand_type == "string":
+            exit("Comparison not available for strings")      
+        return assembly  
+
 class IfStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, instruction, label):
         assembly = []
         assembly.append("       {} if_stmt{}       ;".format(instruction, str(label)))
+        return assembly
+
+class WhileStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, instruction, label):
+        assembly = []
+        assembly.append("       {} while_stmt{}_end       ;".format(instruction, str(label)))
         return assembly
 
 class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):

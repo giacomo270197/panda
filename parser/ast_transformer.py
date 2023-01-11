@@ -67,11 +67,21 @@ class AstTransformer(Transformer):
         left_hand = items[2]
         return nodes.EqualityStatementNode(right_hand, left_hand)
 
+    def greater_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.GreaterStatementNode(right_hand, left_hand)
+
     def if_stmt(self, items):
         test = items[2]
         if_body = items[4]
         else_body = items[6]
         return nodes.IfStatementNode(test, if_body, else_body)
+
+    def while_stmt(self, items):
+        test = items[2]
+        body = items[4]
+        return nodes.WhileStatementNode(test, body)
 
     def functioncall_stmt(self, items):
         target = items[0]

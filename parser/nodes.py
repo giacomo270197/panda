@@ -69,12 +69,22 @@ class EqualityStatementNode(StatementNode):
         self.left_hand = left_hand
         self.right_hand = right_hand
 
+class GreaterStatementNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
 class IfStatementNode(StatementNode):
     def __init__(self, test, if_body, else_body=None):
         self.test = test
         self.if_body = if_body
         if else_body:
             self.else_body = else_body
+
+class WhileStatementNode(StatementNode):
+    def __init__(self, test, body):
+        self.test = test
+        self.if_body = body
 
 class ReturnStatementNode(StatementNode):
     def __init__(self, expr):

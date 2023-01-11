@@ -12,6 +12,7 @@ TYPE: "int" | "string"
 !declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
 !assign_stmt: IDENTIFIER "=" expr ";"
 !if_stmt: "if" "(" test_stmt ")" block ["else" block]
+!while_stmt: "while" "(" test_stmt ")" block
 !functioncall_stmt: IDENTIFIER "(" (expr)? ("," expr)*  ")" [";"]
 !addition_stmt: expr "+" expr [";"]
 !subtraction_stmt: expr "-" expr [";"]
@@ -21,9 +22,10 @@ TYPE: "int" | "string"
 !bitwiseor_stmt: expr "|" expr [";"]
 !return_stmt: "return" expr ";"
 !equality_stmt: expr "==" expr [";"]
+!greater_stmt: expr ">" expr [";"]
 
-?test_stmt: equality_stmt
-?statement: declaration_stmt | assign_stmt | functioncall_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | return_stmt | test_stmt | if_stmt
+?test_stmt: equality_stmt | greater_stmt
+?statement: declaration_stmt | assign_stmt | functioncall_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | return_stmt | test_stmt | if_stmt | while_stmt
 
 !block: "{" statement* "}"
 
