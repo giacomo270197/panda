@@ -10,8 +10,9 @@ class FunctionAssemblyBuilder(X86Windows32AssemblyBuilder):
         num_of_variables *= 4
         assembly = [
             "   {}:".format(function_name),
-            "       mov ebp, esp;",
-            "       sub esp, {};".format(hex(num_of_variables))
+            "       push ebp        ;",
+            "       mov ebp, esp    ;",
+            "       sub esp, {}     ;".format(hex(num_of_variables))
         ]
         return assembly
 
@@ -20,6 +21,12 @@ def to_hex(s):
     for char in s:
         retval.append(hex(ord(char)).replace("0x", ""))
     return "".join(retval)
+
+def format_int(num):
+    try:
+        return hex(int(num))
+    except ValueError:
+        return num
 
 class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, num_of_variables, type, init_value=None):
@@ -110,6 +117,24 @@ class BitwiseOrStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOpera
         elif left_hand_type == "string":
             exit("Bitwise OR not available for strings")
         return assembly
+    
+class EqualityStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        print(left_hand, left_hand_type, right_hand, right_hand_type)
+        assembly = []
+        if not left_hand_type == right_hand_type:
+            exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
+        if left_hand_type == "int":
+            assembly.append("       cmp {}, {}       ;".format(format_int(left_hand), format_int(right_hand)))
+        elif left_hand_type == "string":
+            exit("Comparison not available for strings")      
+        return assembly  
+
+class IfStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, instruction, label):
+        assembly = []
+        assembly.append("       {} if_stmt{}       ;".format(instruction, str(label)))
+        return assembly
 
 class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, parameters, target):
@@ -123,11 +148,15 @@ class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, value):
         if value == "eax":
             assembly = [
-                "       ret             ;"
+                "       mov esp, ebp    ;",
+                "       pop ebp         ;",
+                "       ret             ;",
             ]
         else:
             assembly = [
                 "       mov eax, {}     ;".format(value),
-                "       ret             ;"
+                "       mov esp, ebp    ;",
+                "       pop ebp         ;",
+                "       ret             ;",
             ]
         return assembly

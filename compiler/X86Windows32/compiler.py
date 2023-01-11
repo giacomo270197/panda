@@ -1,5 +1,7 @@
+import copy
+
 from compiler.X86Windows32.X86Windows32 import *
-from compiler.X86Windows32.mappings import node_to_builder_map
+from compiler.X86Windows32.mappings import node_to_builder_map, test_to_jmp_instruction
 from parser.nodes import *
 
 class X86Windows32Compiler:
@@ -7,6 +9,7 @@ class X86Windows32Compiler:
     def __init__(self, ast):
         self.ast = ast
         self.assembly = []
+        self.current_if = 0
 
     class Variables:
         parameters = {}
@@ -89,6 +92,19 @@ class X86Windows32Compiler:
             statement_assembly = assembly_builder.generate_assembly(value)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
+        if isinstance(assembly_builder, IfStatementAssemblyBuilder):
+            self.current_if += 1
+            self.process_statement(statement.test, list_of_variables, state_of_registers)
+            jmp_intruction = test_to_jmp_instruction[type(statement.test).__name__]
+            statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_if)
+            for instructon in statement_assembly:
+                self.assembly.append(instructon)
+            self.process_block(statement.if_body, copy.deepcopy(list_of_variables))
+            self.assembly.append("  if_stmt{}:      ;".format(str(self.current_if)))
+            try:
+                self.process_block(statement.else_body, copy.deepcopy(list_of_variables))
+            except AttributeError:
+                pass
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
             second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
@@ -104,7 +120,7 @@ class X86Windows32Compiler:
                     else:
                         return "string"
                 else:
-                    return type(operand).__class__
+                    return type(operand).__name__
             first_operator_type = get_type(first_operator)
             second_operator_type = get_type(second_operator)
             statement_assembly = assembly_builder.generate_assembly(first_operator, first_operator_type, second_operator, second_operator_type)
@@ -116,9 +132,37 @@ class X86Windows32Compiler:
         for key in registers.keys():
             registers[key][1] = True
 
-    def process_block(self):
-        pass
+    def process_block(self, block, list_of_variables):
+        state_of_registers = {
+            "eax": [None, True],
+            "ebx": [None, True],
+            "ecx": [None, True],
+            "edx": [None, True],
+            "edi": [None, True],
+            "esi": [None, True]
+        }
+        statements = block.statements
+        for statement in statements:
+            self.reset_registers(state_of_registers)
+            self.process_statement(statement, list_of_variables, state_of_registers)
 
+    def resolve_num_variables(self, body, num_of_variables):
+        statements = body.statements
+        blocks = []
+        for statement in statements:
+            if isinstance(statement, DeclarationStatementNode):
+                num_of_variables += 1
+            if isinstance(statement, IfStatementNode):
+                blocks.append(statement.if_body)
+                try:
+                    blocks.append(statement.else_body)
+                except AttributeError:
+                    pass
+        for block in blocks:
+            num_of_variables = self.resolve_num_variables(block, num_of_variables)
+        return num_of_variables
+
+            
     def process_function(self, function):
         statements = function.body.statements
         num_of_variables = 0
@@ -131,9 +175,7 @@ class X86Windows32Compiler:
             "edi": [None, True],
             "esi": [None, True]
         }
-        for statement in statements:
-            if isinstance(statement, DeclarationStatementNode):
-                num_of_variables += 1
+        num_of_variables = self.resolve_num_variables(function.body, 0)
         assembly = FunctionAssemblyBuilder().generate_assembly(function.identifier, num_of_variables)
         self.assembly += assembly
         parameters = {}

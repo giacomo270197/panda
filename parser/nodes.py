@@ -70,7 +70,8 @@ class EqualityStatementNode(StatementNode):
         self.right_hand = right_hand
 
 class IfStatementNode(StatementNode):
-    def __init__(self, if_body, else_body=None):
+    def __init__(self, test, if_body, else_body=None):
+        self.test = test
         self.if_body = if_body
         if else_body:
             self.else_body = else_body
