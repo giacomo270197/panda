@@ -15,11 +15,17 @@ node_to_builder_map = {
     "FunctionCallStatementNode":    FunctionCallStatementAssemblyBuilder,
     "EqualityStatementNode":        EqualityStatementAssemblyBuilder,
     "GreaterStatementNode":         GreaterStatementAssemblyBuilder,
+    "GreaterEqualStatementNode":    GreaterEqualStatementAssemblyBuilder,
+    "LowerStatementNode":           LowerStatementAssemblyBuilder,
+    "LowerEqualStatementNode":      LowerEqualStatementAssemblyBuilder,
     "IfStatementNode":              IfStatementAssemblyBuilder,
     "WhileStatementNode":           WhileStatementAssemblyBuilder
 }
 
 test_to_jmp_instruction = {
-    "EqualityStatementNode":    "jne",
-    "GreaterStatementNode":     "jle"     
+    "EqualityStatementNode":        "jne",
+    "GreaterStatementNode":         "jle",
+    "GreaterEqualStatementNode":    "jl",
+    "LowerStatementNode":           "jg",
+    "LowerEqualStatementNode":      "jge"   
 }

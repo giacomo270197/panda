@@ -23,8 +23,11 @@ TYPE: "int" | "string"
 !return_stmt: "return" expr ";"
 !equality_stmt: expr "==" expr [";"]
 !greater_stmt: expr ">" expr [";"]
+!greatereq_stmt: expr ">=" expr [";"]
+!lower_stmt: expr "<" expr [";"]
+!lowereq_stmt: expr "<=" expr [";"]
 
-?test_stmt: equality_stmt | greater_stmt
+?test_stmt: equality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
 ?statement: declaration_stmt | assign_stmt | functioncall_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | return_stmt | test_stmt | if_stmt | while_stmt
 
 !block: "{" statement* "}"

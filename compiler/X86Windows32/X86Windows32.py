@@ -5,6 +5,18 @@ class X86Windows32AssemblyBuilder:
 class BinaryOperator:
     pass
 
+class TestStatement(X86Windows32AssemblyBuilder, BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == right_hand_type:
+            exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
+        if left_hand_type == "int":
+            assembly.append("       cmp {}, {}       ;".format(format_int(left_hand), format_int(right_hand)))
+        elif left_hand_type == "string":
+            exit("Comparison not available for strings")      
+        return assembly  
+
+
 class FunctionAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, function_name, num_of_variables):
         num_of_variables *= 4
@@ -118,16 +130,25 @@ class BitwiseOrStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOpera
             exit("Bitwise OR not available for strings")
         return assembly
     
-class EqualityStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class EqualityStatementAssemblyBuilder(TestStatement):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
-        assembly = []
-        if not left_hand_type == right_hand_type:
-            exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
-        if left_hand_type == "int":
-            assembly.append("       cmp {}, {}       ;".format(format_int(left_hand), format_int(right_hand)))
-        elif left_hand_type == "string":
-            exit("Comparison not available for strings")      
-        return assembly  
+        return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
+
+class GreaterStatementAssemblyBuilder(TestStatement):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
+
+class GreaterEqualStatementAssemblyBuilder(TestStatement):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)    
+
+class LowerStatementAssemblyBuilder(TestStatement):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
+
+class LowerEqualStatementAssemblyBuilder(TestStatement):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type) 
 
 class GreaterStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):

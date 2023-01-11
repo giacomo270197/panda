@@ -72,6 +72,21 @@ class AstTransformer(Transformer):
         left_hand = items[2]
         return nodes.GreaterStatementNode(right_hand, left_hand)
 
+    def greatereq_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.GreaterEqualStatementNode(right_hand, left_hand)
+
+    def lower_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.LowerStatementNode(right_hand, left_hand)
+
+    def lowereq_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.LowerEqualStatementNode(right_hand, left_hand)
+
     def if_stmt(self, items):
         test = items[2]
         if_body = items[4]
