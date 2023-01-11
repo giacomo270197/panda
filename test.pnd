@@ -5,10 +5,8 @@ int fn add(int a, int b) {
 int fn main() {
     int a = 2;
     int b = 3;
-    if(a == 2) {
+    if(a) {
         int c = 4;
-    } else {
-        int d = 5;
     }
-    return add(a, b);
+    return 0;
 }

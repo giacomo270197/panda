@@ -1,4 +1,5 @@
 import argparse
+from parser.preprocessor import Preprocessor
 from parser.code_parser import Parser
 from compiler.compiler import Compiler
 
@@ -12,6 +13,8 @@ def main():
     source = open(args.source)
     text = source.read()
     source.close()
+    preprocessor = Preprocessor(text)
+    text = preprocessor.preprocess()
     parser = Parser(text)
     parser.parse()
     parser.display_parsed()

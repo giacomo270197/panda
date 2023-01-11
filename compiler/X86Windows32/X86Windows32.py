@@ -120,7 +120,6 @@ class BitwiseOrStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOpera
     
 class EqualityStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
-        print(left_hand, left_hand_type, right_hand, right_hand_type)
         assembly = []
         if not left_hand_type == right_hand_type:
             exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
