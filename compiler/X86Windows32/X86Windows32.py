@@ -11,7 +11,7 @@ class TestStatement(X86Windows32AssemblyBuilder, BinaryOperator):
         if not left_hand_type == right_hand_type:
             exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
-            assembly.append("       cmp {}, {}       ;".format(format_int(left_hand), format_int(right_hand)))
+            assembly.append("       cmp {}, {};".format(format_int(left_hand), format_int(right_hand)))
         elif left_hand_type == "string":
             exit("Comparison not available for strings")      
         return assembly  
@@ -22,9 +22,9 @@ class FunctionAssemblyBuilder(X86Windows32AssemblyBuilder):
         num_of_variables *= 4
         assembly = [
             "   {}:".format(function_name),
-            "       push ebp        ;",
-            "       mov ebp, esp    ;",
-            "       sub esp, {}     ;".format(hex(num_of_variables))
+            "       push ebp;",
+            "       mov ebp, esp;",
+            "       sub esp, {};".format(hex(num_of_variables))
         ]
         return assembly
 
@@ -56,7 +56,7 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
             for offset in range(0, len(tmp), 4):
                 sub_string = "0x" + "".join([hex(x).replace("0x", "") for x in tmp[offset:offset+4]])
                 assembly.append("       push {}".format(sub_string))
-            assembly.append("       mov [ebp-{}], esp       ;".format(hex(current_var)))
+            assembly.append("       mov [ebp-{}], esp;".format(hex(current_var)))
         return assembly
 
 class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
@@ -65,9 +65,9 @@ class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         if isinstance(value, int):
             value = hex(value)
         if in_params:
-            assembly.append("       mov [ebp+{}], {}        ;".format(hex(variable_offset), value))
+            assembly.append("       mov [ebp+{}], {};".format(hex(variable_offset), value))
         else:
-            assembly.append("       mov [ebp-{}], {}        ;".format(hex(variable_offset), value))
+            assembly.append("       mov [ebp-{}], {};".format(hex(variable_offset), value))
         return assembly
 
 class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
@@ -76,7 +76,7 @@ class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperat
         if not left_hand_type == right_hand_type:
             exit("Cannot add operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
-            assembly.append("       add {}, {}      ;".format(left_hand, right_hand))
+            assembly.append("       add {}, {};".format(left_hand, right_hand))
         elif left_hand_type == "string":
             exit("String concatenation not implemented yet")
         return assembly
@@ -87,7 +87,7 @@ class SubtractionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOpe
         if not left_hand_type == right_hand_type:
             exit("Cannot subtract operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
-            assembly.append("       sub {}, {}      ;".format(left_hand, right_hand))
+            assembly.append("       sub {}, {};".format(left_hand, right_hand))
         elif left_hand_type == "string":
             exit("Subtraction not available for strings")
         return assembly
@@ -98,7 +98,7 @@ class MultiplicationStatementAssemblyBuilder(X86Windows32AssemblyBuilder, Binary
         if right_hand_type != "int":
             exit("Cannot multiply by {}".format(right_hand))
         if left_hand_type == "int":
-            pass
+            assembly.append("       mul {};".format(format_int(right_hand)))
         elif left_hand_type == "string":
             exit("String multiplication not implemented yet")
         return assembly
@@ -106,6 +106,12 @@ class MultiplicationStatementAssemblyBuilder(X86Windows32AssemblyBuilder, Binary
 class DivisionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
+        if right_hand_type != "int":
+            exit("Cannot multiply by {}".format(right_hand))
+        if left_hand_type == "int":
+            assembly.append("       div {};".format(format_int(right_hand)))
+        elif left_hand_type == "string":
+            exit("String multiplication not implemented yet")
         return assembly
 
 class BitwiseAndStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
@@ -114,7 +120,7 @@ class BitwiseAndStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOper
         if not left_hand_type == right_hand_type:
             exit("Cannot peform bitwise AND on operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
-            assembly.append("       and {}, {}      ;".format(left_hand, right_hand))
+            assembly.append("       and {}, {};".format(left_hand, right_hand))
         elif left_hand_type == "string":
             exit("Bitwise AND not available for strings")
         return assembly
@@ -125,7 +131,7 @@ class BitwiseOrStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOpera
         if not left_hand_type == right_hand_type:
             exit("Cannot peform bitwise OR on operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
-            assembly.append("       or {}, {}       ;".format(left_hand, right_hand))
+            assembly.append("       or {}, {};".format(left_hand, right_hand))
         elif left_hand_type == "string":
             exit("Bitwise OR not available for strings")
         return assembly
@@ -156,7 +162,7 @@ class GreaterStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperato
         if not left_hand_type == right_hand_type:
             exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
-            assembly.append("       cmp {}, {}       ;".format(format_int(left_hand), format_int(right_hand)))
+            assembly.append("       cmp {}, {};".format(format_int(left_hand), format_int(right_hand)))
         elif left_hand_type == "string":
             exit("Comparison not available for strings")      
         return assembly  
@@ -164,36 +170,36 @@ class GreaterStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperato
 class IfStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, instruction, label):
         assembly = []
-        assembly.append("       {} if_stmt{}       ;".format(instruction, str(label)))
+        assembly.append("       {} if_stmt{};".format(instruction, str(label)))
         return assembly
 
 class WhileStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, instruction, label):
         assembly = []
-        assembly.append("       {} while_stmt{}_end       ;".format(instruction, str(label)))
+        assembly.append("       {} while_stmt{}_end;".format(instruction, str(label)))
         return assembly
 
 class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, parameters, target):
         assembly = []
         for param in parameters:
-            assembly.append("       push {}     ;".format(param))
-        assembly.append("       call {}     ;".format(target))
+            assembly.append("       push {};".format(param))
+        assembly.append("       call {};".format(target))
         return assembly
 
 class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, value):
         if value == "eax":
             assembly = [
-                "       mov esp, ebp    ;",
-                "       pop ebp         ;",
-                "       ret             ;",
+                "       mov esp, ebp;",
+                "       pop ebp;",
+                "       ret;",
             ]
         else:
             assembly = [
-                "       mov eax, {}     ;".format(value),
-                "       mov esp, ebp    ;",
-                "       pop ebp         ;",
-                "       ret             ;",
+                "       mov eax, {};".format(value),
+                "       mov esp, ebp;",
+                "       pop ebp;",
+                "       ret;",
             ]
         return assembly

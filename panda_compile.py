@@ -15,6 +15,7 @@ def main():
     source.close()
     preprocessor = Preprocessor(text)
     text = preprocessor.preprocess()
+    print(text)
     parser = Parser(text)
     parser.parse()
     parser.display_parsed()

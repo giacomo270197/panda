@@ -102,22 +102,22 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables))
-            self.assembly.append("  if_stmt{}:      ;".format(str(self.current_if)))
+            self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
             try:
                 self.process_block(statement.else_body, copy.deepcopy(list_of_variables))
             except AttributeError:
                 pass
         if isinstance(assembly_builder, WhileStatementAssemblyBuilder):
             self.current_while += 1
-            self.assembly.append("   while_stmt{}:       ;".format(str(self.current_while)))
+            self.assembly.append("   while_stmt{}:".format(str(self.current_while)))
             self.process_statement(statement.test, list_of_variables, state_of_registers)
             jmp_intruction = test_to_jmp_instruction[type(statement.test).__name__]
             statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_while)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables))
-            self.assembly.append("       jmp while_stmt{}       ;".format(str(self.current_while))) 
-            self.assembly.append("   while_stmt{}_end:       ;".format(str(self.current_while)))     
+            self.assembly.append("       jmp while_stmt{}:".format(str(self.current_while))) 
+            self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
             second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
@@ -140,7 +140,6 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             return first_operator
-    
     def reset_registers(self, registers):
         for key in registers.keys():
             registers[key][1] = True
@@ -201,8 +200,8 @@ class X86Windows32Compiler:
 
     def create_preamble(self):
         preamble = [
-            "start                    ;",
-            "   call main             ;"
+            "start;",
+            "   call main;"
         ]
         return preamble
 
