@@ -116,7 +116,7 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables))
-            self.assembly.append("       jmp while_stmt{}:".format(str(self.current_while))) 
+            self.assembly.append("       jmp while_stmt{};".format(str(self.current_while))) 
             self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
