@@ -47,7 +47,7 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         if init_value and type == "int":
             if isinstance(init_value, int):
                 init_value = hex(init_value)
-            assembly.append("       mov [ebp-{}], {};".format(hex(current_var), init_value))
+            assembly.append("       mov dword [ebp-{}], {};".format(hex(current_var), init_value))
         elif init_value and type == "string":
             init_value = init_value[1:-1]
             tmp = bytes(init_value, "ascii")

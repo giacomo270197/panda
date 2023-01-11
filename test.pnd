@@ -6,7 +6,7 @@ int fn main() {
     int a = 5;
     int b = 3;
     while(a < 10) {
-        b *= 5;
+        b *= a;
     }
     return b;
 }

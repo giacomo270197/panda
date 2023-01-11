@@ -1,4 +1,6 @@
 import copy
+import keystone as ks
+import struct
 
 from compiler.X86Windows32.X86Windows32 import *
 from compiler.X86Windows32.mappings import node_to_builder_map, test_to_jmp_instruction
@@ -200,13 +202,25 @@ class X86Windows32Compiler:
 
     def create_preamble(self):
         preamble = [
-            "start;",
+            "start:",
             "   call main;"
         ]
         return preamble
 
-    def compile(self):
+    def create_assembly(self):
         for function in self.ast.func_defs:
             self.process_function(function)
         self.assembly = self.create_preamble() + self.assembly
         return self.assembly
+    
+    def compile(self, assembly):
+        eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
+        try:
+            encoding, count = eng.asm(assembly)
+        except ks.KsError as e:
+            print("ERROR: %s" %e)
+            exit()
+        for e in encoding:
+            sh += struct.pack("B", e)
+        packed_code = bytearray(sh)
+        return packed_code

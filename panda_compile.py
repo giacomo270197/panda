@@ -24,8 +24,9 @@ def main():
 
     # Transform the AST into Assembly
     compiler = Compiler("x86Windows32", parser.ast)
-    compiler.compile()
+    compiler.create_assembly()
     compiler.show_assembly()
+    print(compiler.compile())
 
 if __name__ == "__main__":
     main()
