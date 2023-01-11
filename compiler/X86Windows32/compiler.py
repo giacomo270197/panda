@@ -103,12 +103,14 @@ class X86Windows32Compiler:
             statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_if)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
-            self.process_block(statement.if_body, copy.deepcopy(list_of_variables))
-            self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
+            self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
             try:
-                self.process_block(statement.else_body, copy.deepcopy(list_of_variables))
+                self.assembly.append("      jmp if_stmt{}_else;".format(str(self.current_if)))
+                self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
+                self.process_block(statement.else_body, copy.deepcopy(list_of_variables), state_of_registers)
+                self.assembly.append("  if_stmt{}_else:".format(str(self.current_if)))
             except AttributeError:
-                pass
+                self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
         if isinstance(assembly_builder, WhileStatementAssemblyBuilder):
             self.current_while += 1
             self.assembly.append("   while_stmt{}:".format(str(self.current_while)))
@@ -117,7 +119,7 @@ class X86Windows32Compiler:
             statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_while)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
-            self.process_block(statement.if_body, copy.deepcopy(list_of_variables))
+            self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
             self.assembly.append("       jmp while_stmt{};".format(str(self.current_while))) 
             self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
         if isinstance(assembly_builder, BinaryOperator):
@@ -142,23 +144,18 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             return first_operator
+
     def reset_registers(self, registers):
         for key in registers.keys():
+            registers[key][0] = None
             registers[key][1] = True
 
-    def process_block(self, block, list_of_variables):
-        state_of_registers = {
-            "eax": [None, True],
-            "ebx": [None, True],
-            "ecx": [None, True],
-            "edx": [None, True],
-            "edi": [None, True],
-            "esi": [None, True]
-        }
+    def process_block(self, block, list_of_variables, state_of_registers):
         statements = block.statements
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
+        self.reset_registers(state_of_registers)
 
     def resolve_num_variables(self, body, num_of_variables):
         statements = body.statements
@@ -203,7 +200,7 @@ class X86Windows32Compiler:
     def create_preamble(self):
         preamble = [
             "start:",
-            "   call main;"
+            "       jmp main;"
         ]
         return preamble
 
@@ -220,7 +217,8 @@ class X86Windows32Compiler:
         except ks.KsError as e:
             print("ERROR: %s" %e)
             exit()
+        bytecode = b""
         for e in encoding:
-            sh += struct.pack("B", e)
-        packed_code = bytearray(sh)
+            bytecode += struct.pack("B", e)
+        packed_code = bytearray(bytecode)
         return packed_code

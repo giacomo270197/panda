@@ -1,12 +1,18 @@
-int fn add(int a, int b) {
-    return a + b;
+string fn cutie(int start_int) {
+    string return_str= "This panda is cute.";
+    int sad = 5;
+    while (start_int <= 2) {
+        if (start_int == 0) {
+            sad -= 5;
+        }
+        else {
+            sad += 5;
+        }
+        start_int -= 1;
+    }
+    return return_str;
 }
 
 int fn main() {
-    int a = 5;
-    int b = 3;
-    while(a < 10) {
-        b *= a;
-    }
-    return b;
+   return cutie(2);
 }

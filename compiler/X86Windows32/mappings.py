@@ -26,6 +26,6 @@ test_to_jmp_instruction = {
     "EqualityStatementNode":        "jne",
     "GreaterStatementNode":         "jle",
     "GreaterEqualStatementNode":    "jl",
-    "LowerStatementNode":           "jg",
-    "LowerEqualStatementNode":      "jge"   
+    "LowerStatementNode":           "jge",
+    "LowerEqualStatementNode":      "jg"   
 }
