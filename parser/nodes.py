@@ -110,6 +110,12 @@ class FunctionNode(Node):
         self.parameters = parameters
         self.body = body
 
+class SyscallNode(Node):
+    def __init__(self, function_name, module_name):
+        self.function_name = function_name
+        self.module_name = module_name
+
 class ProgramNode(Node):
-    def __init__(self, functions):        
+    def __init__(self, syscalls, functions): 
+        self.syscalls = syscalls       
         self.func_defs = functions

@@ -32,8 +32,9 @@ TYPE: "int" | "string"
 
 !block: "{" statement* "}"
 
+syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" ";"
 func_def: TYPE "fn" IDENTIFIER "(" (TYPE IDENTIFIER)? ("," TYPE IDENTIFIER)*  ")" block
 
-program: func_def+
+program: syscall_def* func_def+
 
 %ignore WS

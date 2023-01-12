@@ -122,6 +122,18 @@ class AstTransformer(Transformer):
         parameters = items[2:-1]
         body = items[-1]
         return nodes.FunctionNode(type, identifier, parameters, body)
+
+    def syscall_def(self, items):
+        function_name = items[0]
+        module_name = items[1]
+        return nodes.SyscallNode(function_name, module_name)
     
     def program(self, items):
-        return nodes.ProgramNode(items)
+        syscalls = []
+        functions = []
+        for item in items:
+            if isinstance(item, nodes.SyscallNode):
+                syscalls.append(item)
+            elif isinstance(item, nodes.FunctionNode):
+                functions.append(item)
+        return nodes.ProgramNode(syscalls, functions)

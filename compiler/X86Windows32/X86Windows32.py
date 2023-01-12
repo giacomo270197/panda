@@ -180,11 +180,14 @@ class WhileStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         return assembly
 
 class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
-    def generate_assembly(self, parameters, target):
+    def generate_assembly(self, parameters, target, syscall_idx):
         assembly = []
         for param in parameters:
             assembly.append("       push {};".format(param))
-        assembly.append("       call {};".format(target))
+        if syscall_idx:
+            assembly.append("       call dword ptr [esi+{}]".format(hex(0x14 + (syscall_idx * 4))))
+        else:
+            assembly.append("       call {};".format(target))
         return assembly
 
 class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
@@ -202,4 +205,103 @@ class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
                 "       pop ebp;",
                 "       ret;",
             ]
+        return assembly
+    
+class SyscallResolverAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, syscall_nums):
+        assembly = [
+        "       mov ebp, esp;",
+        "       add esp, {};".format(hex(syscall_nums * 4 + 12)),
+        "   find_kernel32:                       ",
+        "       xor ecx,ecx                     ;",  # ECX = 0
+        "       mov esi,fs:[ecx+30h]            ;",  # ESI = &(PEB) ([FS:0x30])
+        "       mov esi,[esi+0Ch]               ;",  # ESI = PEB->Ldr
+        "       mov esi,[esi+1Ch]               ;",  # ESI = PEB->Ldr.InInitOrder
+        "   next_module:                         ",
+        "       mov ebx, [esi+8h]               ;",  # EBX = InInitOrder[X].base_address
+        "       mov edi, [esi+20h]              ;",  # EDI = InInitOrder[X].module_name
+        "       mov esi, [esi]                  ;",  # ESI = InInitOrder[X].flink (next)
+        "       cmp [edi+12*2], cx              ;",  # (unicode) modulename[12] == 0x00?
+        "       jne next_module                 ;",  # No: try next module.
+        "   find_function_shorten:               ",
+        "       jmp find_function_shorten_bnc   ;",  # Short jump
+        "   find_function_ret:                   ",
+        "       pop edi                         ;",  # POP the return address from the stack
+        "       mov esi, ebp;",
+        "       mov [esi+0x04], edi             ;",  # Save find_function address for later usage
+        "       jmp resolve_symbols_kernel32    ;",  #
+        "   find_function_shorten_bnc:           ",
+        "       call find_function_ret          ;",  # Relative CALL with negative offset
+        "   find_function:                       ",
+        "       pushad                          ;",  # Save all registers from Base address of kernel32 is in EBX Previous step (find_kernel32)
+        "       mov eax, [ebx+0x3c]             ;",  # Offset to PE Signature
+        "       mov edi, [ebx+eax+0x78]         ;",  # Export Table Directory RVA
+        "       add edi, ebx                    ;",  # Export Table Directory VMA
+        "       mov ecx, [edi+0x18]             ;",  # NumberOfNames
+        "       mov eax, [edi+0x20]             ;",  # AddressOfNames RVA
+        "       add eax, ebx                    ;",  # AddressOfNames VMA
+        "       mov [ebp-4], eax                ;",  # Save AddressOfNames VMA for later
+        "   find_function_loop:                  ",
+        "       jecxz find_function_finished    ;",  # Jump to the end if ECX is 0
+        "       dec ecx                         ;",  # Decrement our names counter
+        "       mov eax, [ebp-4]                ;",  # Restore AddressOfNames VMA
+        "       mov edi, [eax+ecx*4]            ;",  # Get the RVA of the symbol name
+        "       add edi, ebx                    ;",  # Set ESI to the VMA of the current
+        "   compute_hash:                        ",
+        "       xor eax, eax                    ;",  # NULL EAX
+        "       cdq                             ;",  # NULL EDX
+        "       cld                             ;",  # Clear direction
+        "   compute_hash_again:                  ",
+        "       lodsb                           ;",  # Load the next byte from esi into al
+        "       test al, al                     ;",  # Check for NULL terminator
+        "       jz compute_hash_finished        ;",  # If the ZF is set, we've hit the NULL term
+        "       ror edx, 0x0d                   ;",  # Rotate edx 13 bits to the right
+        "       add edx, eax                    ;",  # Add the new byte to the accumulator
+        "       jmp compute_hash_again          ;",  # Next iteration
+        "   compute_hash_finished:               ",
+        "   find_function_compare:               ",
+        "       cmp edx, [esp+0x24]             ;",  # Compare the computed hash with the requested hash
+        "       jnz find_function_loop          ;",  # If it doesn't match go back to find_function_loop
+        "       mov edx, [edi+0x24]             ;",  # AddressOfNameOrdinals RVA
+        "       add edx, ebx                    ;",  # AddressOfNameOrdinals VMA
+        "       mov cx, [edx+2*ecx]             ;",  # Extrapolate the function's ordinal
+        "       mov edx, [edi+0x1c]             ;",  # AddressOfFunctions RVA
+        "       add edx, ebx                    ;",  # AddressOfFunctions VMA
+        "       mov eax, [edx+4*ecx]            ;",  # Get the function RVA
+        "       add eax, ebx                    ;",  # Get the function VMA
+        "       mov [esp+0x1c], eax             ;",  # Overwrite stack version of eax from pushad
+        "   find_function_finished:              ",
+        "       popad                           ;",  # Restore registers
+        "       ret                             ;",  #
+        "   resolve_symbols_kernel32:            ",
+        "       push 0x78b5b983;",                   # TerminateProcess hash
+        "       call dword ptr [esi+0x04]       ;",  # Call find_function
+        "       mov [esi+0x10], eax             ;",  # Save TerminateProcess address for later
+        "       push 0xec0e4e8e;",                # LoadLibraryA hash
+        "       call dword ptr [esi+0x04]       ;",  # Call find_function
+        "       mov [esi+0x14], eax             ;",  # Save LoadLibraryA address for later
+        ]
+        return assembly
+
+class LoadLibraryAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, module_name):
+        assembly = []
+        module_name = module_name[1:-1]
+        tmp = bytes(module_name, "ascii")
+        tmp = tmp + b"\x00" * (4 - (len(tmp) % 4))
+        tmp = tmp[::-1]
+        for offset in range(0, len(tmp), 4):
+            sub_string = "0x" + "".join([hex(x).replace("0x", "") for x in tmp[offset:offset+4]])
+            assembly.append("       push {}".format(sub_string))
+        assembly.append("       push esp;")
+        assembly.append("       call dword ptr [ebp+0x14]")
+        assembly.append("       mov ebx, eax")
+        return assembly
+
+class FindFunctionPointerAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, idx):
+        assembly = [
+            "       call dword ptr [esi+0x04];",
+            "       mov [esi+{}], eax".format(hex(0x14 + (idx*4)))
+        ]
         return assembly

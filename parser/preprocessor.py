@@ -29,7 +29,7 @@ class Preprocessor:
     def division_shorthand(self):
         r = r'((.)*?)\/=(.)*?;'
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "/" + m.groups()[2] + ";", self.source)
-    
+
     def preprocess(self):
         for heuristic in self.heuristics:
             heuristic()

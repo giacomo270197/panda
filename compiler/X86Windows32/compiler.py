@@ -13,6 +13,9 @@ class X86Windows32Compiler:
         self.assembly = []
         self.current_if = 0
         self.current_while = 0
+        self.syscall_defs_num = 2
+        self.syscall_defs = {}
+        self.loaded_modules = ["kernel32.dll"]
 
     class Variables:
         parameters = {}
@@ -87,7 +90,10 @@ class X86Windows32Compiler:
             for expr in statement.parameters:
                 parameters.append(self.analyze_expression(expr, list_of_variables, state_of_registers))
             target = statement.target.value
-            statement_assembly = assembly_builder.generate_assembly(parameters, target)
+            syscall_idx = None
+            if target in list(self.syscall_defs.keys()):
+                syscall_idx = self.syscall_defs[target]
+            statement_assembly = assembly_builder.generate_assembly(parameters, target, syscall_idx)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)    
             return "eax"
@@ -184,7 +190,6 @@ class X86Windows32Compiler:
             "ecx": [None, True],
             "edx": [None, True],
             "edi": [None, True],
-            "esi": [None, True]
         }
         num_of_variables = self.resolve_num_variables(function.body, 0)
         assembly = FunctionAssemblyBuilder().generate_assembly(function.identifier, num_of_variables)
@@ -197,23 +202,56 @@ class X86Windows32Compiler:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
 
-    def create_preamble(self):
-        preamble = [
-            "start:",
-            "       jmp main;"
-        ]
-        return preamble
+    def ror_str(self, b, count):
+        b = "{0:b}".format(b)
+        binb = (32 - len(b)) * '0' + b
+        while count > 0:
+            binb = binb[-1] + binb[0:-1]
+            count -= 1
+        return (int(binb, 2))
+
+    def push_function_hash(self, function_name):
+        edx = 0x00
+        ror_count = 0
+        for eax in function_name:
+            edx = edx + ord(eax)
+            if ror_count < len(function_name)-1:
+                edx = self.ror_str(edx, 0xd)
+            ror_count += 1
+        return ("push " + hex(edx))
+
+    def process_syscall(self, syscall, idx):
+        if syscall.module_name in self.loaded_modules:
+            statement_assembly = LoadLibraryAssemblyBuilder().generate_assembly(syscall.module_name)
+            for instructon in statement_assembly:
+                self.assembly.append(instructon)
+        key = syscall.function_name.value.replace("\"", "")
+        self.syscall_defs[key] = idx
+        self.assembly.append("      " + self.push_function_hash(syscall.function_name))
+        statement_assembly = FindFunctionPointerAssemblyBuilder().generate_assembly(idx)
+        for instructon in statement_assembly:
+                self.assembly.append(instructon)
 
     def create_assembly(self):
+        self.assembly.append("start:")
+        self.syscall_defs_num += len(self.ast.syscalls)
+        self.ast.syscalls.sort(key=lambda x: x.module_name)
+        statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
+        for instructon in statement_assembly:
+            self.assembly.append(instructon)
+        idx = 0       
+        for syscall in self.ast.syscalls:
+            idx += 1
+            self.process_syscall(syscall, idx)
+        self.assembly.append("       jmp main;")
         for function in self.ast.func_defs:
             self.process_function(function)
-        self.assembly = self.create_preamble() + self.assembly
         return self.assembly
     
     def compile(self, assembly):
         eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
         try:
-            encoding, count = eng.asm(assembly)
+            encoding, _ = eng.asm(assembly)
         except ks.KsError as e:
             print("ERROR: %s" %e)
             exit()
