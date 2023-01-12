@@ -221,13 +221,13 @@ class X86Windows32Compiler:
         return ("push " + hex(edx))
 
     def process_syscall(self, syscall, idx):
-        if syscall.module_name in self.loaded_modules:
+        if syscall.module_name not in self.loaded_modules:
             statement_assembly = LoadLibraryAssemblyBuilder().generate_assembly(syscall.module_name)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
         key = syscall.function_name.value.replace("\"", "")
         self.syscall_defs[key] = idx
-        self.assembly.append("      " + self.push_function_hash(syscall.function_name))
+        self.assembly.append("       " + self.push_function_hash(key))
         statement_assembly = FindFunctionPointerAssemblyBuilder().generate_assembly(idx)
         for instructon in statement_assembly:
                 self.assembly.append(instructon)
@@ -243,6 +243,7 @@ class X86Windows32Compiler:
         for syscall in self.ast.syscalls:
             idx += 1
             self.process_syscall(syscall, idx)
+        self.assembly.append("       mov esi, ebp;")
         self.assembly.append("       jmp main;")
         for function in self.ast.func_defs:
             self.process_function(function)

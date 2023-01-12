@@ -211,7 +211,7 @@ class SyscallResolverAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, syscall_nums):
         assembly = [
         "       mov ebp, esp;",
-        "       add esp, {};".format(hex(syscall_nums * 4 + 12)),
+        "       sub esp, {};".format(hex(syscall_nums * 4 + 1552)),
         "   find_kernel32:                       ",
         "       xor ecx,ecx                     ;",  # ECX = 0
         "       mov esi,fs:[ecx+30h]            ;",  # ESI = &(PEB) ([FS:0x30])
@@ -226,9 +226,8 @@ class SyscallResolverAssemblyBuilder(X86Windows32AssemblyBuilder):
         "   find_function_shorten:               ",
         "       jmp find_function_shorten_bnc   ;",  # Short jump
         "   find_function_ret:                   ",
-        "       pop edi                         ;",  # POP the return address from the stack
-        "       mov esi, ebp;",
-        "       mov [esi+0x04], edi             ;",  # Save find_function address for later usage
+        "       pop esi                         ;",  # POP the return address from the stack
+        "       mov [ebp+0x04], esi             ;",  # Save find_function address for later usage
         "       jmp resolve_symbols_kernel32    ;",  #
         "   find_function_shorten_bnc:           ",
         "       call find_function_ret          ;",  # Relative CALL with negative offset
@@ -245,8 +244,8 @@ class SyscallResolverAssemblyBuilder(X86Windows32AssemblyBuilder):
         "       jecxz find_function_finished    ;",  # Jump to the end if ECX is 0
         "       dec ecx                         ;",  # Decrement our names counter
         "       mov eax, [ebp-4]                ;",  # Restore AddressOfNames VMA
-        "       mov edi, [eax+ecx*4]            ;",  # Get the RVA of the symbol name
-        "       add edi, ebx                    ;",  # Set ESI to the VMA of the current
+        "       mov esi, [eax+ecx*4]            ;",  # Get the RVA of the symbol name
+        "       add esi, ebx                    ;",  # Set ESI to the VMA of the current
         "   compute_hash:                        ",
         "       xor eax, eax                    ;",  # NULL EAX
         "       cdq                             ;",  # NULL EDX
@@ -275,11 +274,11 @@ class SyscallResolverAssemblyBuilder(X86Windows32AssemblyBuilder):
         "       ret                             ;",  #
         "   resolve_symbols_kernel32:            ",
         "       push 0x78b5b983;",                   # TerminateProcess hash
-        "       call dword ptr [esi+0x04]       ;",  # Call find_function
-        "       mov [esi+0x10], eax             ;",  # Save TerminateProcess address for later
+        "       call dword ptr [ebp+0x04]       ;",  # Call find_function
+        "       mov [ebp+0x10], eax             ;",  # Save TerminateProcess address for later
         "       push 0xec0e4e8e;",                # LoadLibraryA hash
-        "       call dword ptr [esi+0x04]       ;",  # Call find_function
-        "       mov [esi+0x14], eax             ;",  # Save LoadLibraryA address for later
+        "       call dword ptr [ebp+0x04]       ;",  # Call find_function
+        "       mov [ebp+0x14], eax             ;",  # Save TerminateProcess address for later
         ]
         return assembly
 
@@ -301,7 +300,7 @@ class LoadLibraryAssemblyBuilder(X86Windows32AssemblyBuilder):
 class FindFunctionPointerAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, idx):
         assembly = [
-            "       call dword ptr [esi+0x04];",
-            "       mov [esi+{}], eax".format(hex(0x14 + (idx*4)))
+            "       call dword ptr [ebp+0x04];",
+            "       mov [ebp+{}], eax".format(hex(0x14 + (idx*4)))
         ]
         return assembly
