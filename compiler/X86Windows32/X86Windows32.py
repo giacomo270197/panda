@@ -54,11 +54,11 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, num_of_variables, type, init_value=None):
         current_var = (num_of_variables + 1) * 4
         assembly = []
-        if init_value and type == "int":
+        if init_value != None and type == "int":
             if isinstance(init_value, int):
                 init_value = hex(init_value)
             assembly.append("       mov dword ptr [ebp-{}], {};".format(hex(current_var), init_value))
-        elif init_value and type == "string":
+        elif init_value != None and type == "string":
             init_value = init_value[1:-1]
             tmp = bytes(init_value, "ascii")
             tmp = tmp + b"\x00" * (4 - (len(tmp) % 4))
