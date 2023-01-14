@@ -1,7 +1,5 @@
-declare("MessageBoxA", "User32.dll");
-
 int fn main() {
-   string a = "test";
-   string b = "test";
-   MessageBoxA(0, a, b, 48);
+   int a = 0;
+   array int b = {1, 2, 3, a};
+   return b;
 }

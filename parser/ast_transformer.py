@@ -11,6 +11,16 @@ class AstTransformer(Transformer):
     def IDENTIFIER(self, item):
         return nodes.IdentifierExprNode(item.value)
     
+    def array(self, items):
+        new_items = []
+        for item in items:
+            if isinstance(item, str):
+                if item not in "\{\},":
+                    new_items.append(item)
+            else:
+                new_items.append(item)
+        return nodes.ArrayNode(new_items)
+
     def expr(self, items):
         if isinstance(items[0], nodes.ExprNode):
             return items[0]

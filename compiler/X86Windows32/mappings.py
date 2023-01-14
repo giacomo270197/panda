@@ -3,6 +3,7 @@ from compiler.X86Windows32.X86Windows32 import *
 
 node_to_builder_map = {
     "FunctionNode":                 FunctionAssemblyBuilder,
+    "ArrayNode":                    ArrayNodeAssemblyBuilder,
     "DeclarationStatementNode":     DeclarationStatementAssemblyBuilder,
     "AdditionStatementNode":        AdditionStatementAssemblyBuilder,
     "ReturnStatementNode":          ReturnStatementAssemblyBuilder,

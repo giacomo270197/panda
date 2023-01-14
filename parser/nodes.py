@@ -22,6 +22,10 @@ class BinaryOperationNode(Node):
 class StatementNode(Node):
     pass
 
+class ArrayNode(StatementNode):
+    def __init__(self, items):
+        self.items = items
+
 class DeclarationStatementNode(StatementNode):
     def __init__(self, type, identifier, expr=None):
         self.type = type

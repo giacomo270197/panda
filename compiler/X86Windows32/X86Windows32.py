@@ -40,6 +40,16 @@ def format_int(num):
     except ValueError:
         return num
 
+class ArrayNodeAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, items):
+        assembly = []
+        for item in items:
+            try:
+                assembly.append("       push {};".format(hex(int(item))))
+            except ValueError:
+                assembly.append("       push {}".format(item))
+        return assembly
+
 class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, num_of_variables, type, init_value=None):
         current_var = (num_of_variables + 1) * 4
@@ -57,6 +67,8 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
                 sub_string = "0x" + "".join([hex(x).replace("0x", "") for x in tmp[offset:offset+4]])
                 assembly.append("       push {}".format(sub_string))
             assembly.append("       mov [ebp-{}], esp;".format(hex(current_var)))
+        elif init_value and type == "array int":
+            assembly.append("       mov [ebp-{}], {};".format(hex(current_var), init_value))
         return assembly
 
 class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):

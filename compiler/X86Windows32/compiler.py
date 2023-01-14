@@ -60,6 +60,17 @@ class X86Windows32Compiler:
 
     def process_statement(self, statement, list_of_variables, state_of_registers):
         assembly_builder = node_to_builder_map[type(statement).__name__]()
+        if isinstance(assembly_builder, ArrayNodeAssemblyBuilder):
+            items = []
+            for item in statement.items:
+                if isinstance(item, ExprNode):
+                    items.append(self.analyze_expression(item, list_of_variables, state_of_registers))
+                else:
+                    items.append(item.value)
+            statement_assembly = assembly_builder.generate_assembly(items)
+            for instructon in statement_assembly:
+                self.assembly.append(instructon)
+            return "esp"            
         if isinstance(assembly_builder, DeclarationStatementAssemblyBuilder):
             value = None
             try:
