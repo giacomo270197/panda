@@ -85,12 +85,15 @@ class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
 class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
-        if not left_hand_type == right_hand_type:
+        if not right_hand_type == "int":
             exit("Cannot add operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
             assembly.append("       add {}, {};".format(left_hand, right_hand))
         elif left_hand_type == "string":
             exit("String concatenation not implemented yet")
+        elif left_hand_type == "array":
+            assembly.append("       add {}, {}".format(left_hand, hex(int(right_hand) * 4)))
+            assembly.append("       mov {}, dword ptr [{}]".format(left_hand, left_hand))
         return assembly
 
 class SubtractionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):

@@ -8,7 +8,7 @@ class Preprocessor:
     def __init__(self, source):
         self.source = source
         self.heuristics = [self.implicit_test_statements, self.increment_shorthand, self.decrement_shorthand,
-        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays]
+        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.array_index]
 
     def implicit_test_statements(self):
         r = r'if\([^=]+?\)(\))?'
@@ -33,6 +33,10 @@ class Preprocessor:
     def expand_arrays(self):
         r = r'array\s(\w+)\[(\d)+\]'
         self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = {" + ("0, ") * (int(m.groups()[1]) - 1) + "0}", self.source)
+
+    def array_index(self):
+        r = r'(\w+)\[(\d)+\]'
+        self.source = re.sub(r, lambda m: m.groups()[0] + " + " + m.groups()[1], self.source)
 
     def preprocess(self):
         for heuristic in self.heuristics:
