@@ -67,7 +67,7 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
                 sub_string = "0x" + "".join([hex(x).replace("0x", "") for x in tmp[offset:offset+4]])
                 assembly.append("       push {}".format(sub_string))
             assembly.append("       mov [ebp-{}], esp;".format(hex(current_var)))
-        elif init_value and type == "array int":
+        elif init_value and type == "array":
             assembly.append("       mov [ebp-{}], {};".format(hex(current_var), init_value))
         return assembly
 

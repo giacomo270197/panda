@@ -5,7 +5,7 @@
 
 LITERAL: SIGNED_NUMBER | ESCAPED_STRING 
 IDENTIFIER: CNAME
-TYPE: "int" | "string" | "array int"
+TYPE: "int" | "string" | "array"
 
 !expr: LITERAL | IDENTIFIER | array | ["("] statement [")"] 
 !array: "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"

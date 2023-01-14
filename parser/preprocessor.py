@@ -31,8 +31,8 @@ class Preprocessor:
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "/" + m.groups()[2] + ";", self.source)
 
     def expand_arrays(self):
-        r = r'(\w+)\[(\d)+\]'
-        self.source = re.sub(r, lambda m: " " + m.groups()[0] + " = {" + ("0, ") * (int(m.groups()[1]) - 1) + "0}", self.source)
+        r = r'array\s(\w+)\[(\d)+\]'
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = {" + ("0, ") * (int(m.groups()[1]) - 1) + "0}", self.source)
 
     def preprocess(self):
         for heuristic in self.heuristics:
