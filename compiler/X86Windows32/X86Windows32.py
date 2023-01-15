@@ -113,7 +113,8 @@ class MultiplicationStatementAssemblyBuilder(X86Windows32AssemblyBuilder, Binary
         if right_hand_type != "int":
             exit("Cannot multiply by {}".format(right_hand))
         if left_hand_type == "int":
-            assembly.append("       mul {};".format(format_int(right_hand)))
+            assembly.append("       mov ecx, {}".format(format_int(right_hand)))
+            assembly.append("       mul ecx;")
         elif left_hand_type == "string":
             exit("String multiplication not implemented yet")
         return assembly
@@ -122,9 +123,10 @@ class DivisionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperat
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if right_hand_type != "int":
-            exit("Cannot multiply by {}".format(right_hand))
+            exit("Cannot divide by {}".format(right_hand))
         if left_hand_type == "int":
-            assembly.append("       div {};".format(format_int(right_hand)))
+            assembly.append("       mov ecx, {}".format(format_int(right_hand)))
+            assembly.append("       div ecx;")
         elif left_hand_type == "string":
             exit("String multiplication not implemented yet")
         return assembly
@@ -170,17 +172,6 @@ class LowerStatementAssemblyBuilder(TestStatement):
 class LowerEqualStatementAssemblyBuilder(TestStatement):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type) 
-
-class GreaterStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
-    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
-        assembly = []
-        if not left_hand_type == right_hand_type:
-            exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
-        if left_hand_type == "int":
-            assembly.append("       cmp {}, {};".format(format_int(left_hand), format_int(right_hand)))
-        elif left_hand_type == "string":
-            exit("Comparison not available for strings")      
-        return assembly  
 
 class IfStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, instruction, label):
