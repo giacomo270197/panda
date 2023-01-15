@@ -1,11 +1,13 @@
 class X86Windows32AssemblyBuilder:
-    def generate_assembly():
-        return
-
-class BinaryOperator:
     pass
 
-class TestStatement(X86Windows32AssemblyBuilder, BinaryOperator):
+class BinaryOperator(X86Windows32AssemblyBuilder):
+    pass
+
+class UnaryOperator(X86Windows32AssemblyBuilder):
+    pass
+
+class TestStatement(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if not left_hand_type == right_hand_type:
@@ -43,7 +45,7 @@ def format_int(num):
 class ArrayNodeAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, items):
         assembly = []
-        for item in items:
+        for item in items[::-1]:
             try:
                 assembly.append("       push {};".format(hex(int(item))))
             except ValueError:
@@ -72,17 +74,14 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         return assembly
 
 class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
-    def generate_assembly(self, variable_offset, value, in_params):
+    def generate_assembly(self, target, value):
         assembly = []
         if isinstance(value, int):
             value = hex(value)
-        if in_params:
-            assembly.append("       mov [ebp+{}], {};".format(hex(variable_offset), value))
-        else:
-            assembly.append("       mov [ebp-{}], {};".format(hex(variable_offset), value))
+        assembly.append("       mov {}, {};".format(target, value))
         return assembly
 
-class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class AdditionStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if not right_hand_type == "int":
@@ -93,10 +92,10 @@ class AdditionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperat
             exit("String concatenation not implemented yet")
         elif left_hand_type == "array":
             assembly.append("       add {}, {}".format(left_hand, hex(int(right_hand) * 4)))
-            assembly.append("       mov {}, dword ptr [{}]".format(left_hand, left_hand))
+            #assembly.append("       mov {}, dword ptr [{}]".format(left_hand, left_hand))
         return assembly
 
-class SubtractionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class SubtractionStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if not left_hand_type == right_hand_type:
@@ -107,7 +106,7 @@ class SubtractionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOpe
             exit("Subtraction not available for strings")
         return assembly
 
-class MultiplicationStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class MultiplicationStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if right_hand_type != "int":
@@ -119,7 +118,7 @@ class MultiplicationStatementAssemblyBuilder(X86Windows32AssemblyBuilder, Binary
             exit("String multiplication not implemented yet")
         return assembly
 
-class DivisionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class DivisionStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if right_hand_type != "int":
@@ -131,7 +130,7 @@ class DivisionStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperat
             exit("String multiplication not implemented yet")
         return assembly
 
-class BitwiseAndStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class BitwiseAndStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if not left_hand_type == right_hand_type:
@@ -142,7 +141,7 @@ class BitwiseAndStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOper
             exit("Bitwise AND not available for strings")
         return assembly
 
-class BitwiseOrStatementAssemblyBuilder(X86Windows32AssemblyBuilder, BinaryOperator):
+class BitwiseOrStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
         if not left_hand_type == right_hand_type:
@@ -172,6 +171,14 @@ class LowerStatementAssemblyBuilder(TestStatement):
 class LowerEqualStatementAssemblyBuilder(TestStatement):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type) 
+
+class AddressOfStatementAssemblyBuilder(UnaryOperator):
+    def generate_assembly(self, offset):
+        pass
+
+class DereferenceStatementAssemblyBuilder(UnaryOperator):
+    def generate_assembly(self, offset):
+        pass
 
 class IfStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, instruction, label):

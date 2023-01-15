@@ -19,6 +19,8 @@ node_to_builder_map = {
     "GreaterEqualStatementNode":    GreaterEqualStatementAssemblyBuilder,
     "LowerStatementNode":           LowerStatementAssemblyBuilder,
     "LowerEqualStatementNode":      LowerEqualStatementAssemblyBuilder,
+    "AddressOfStatement":           AdditionStatementAssemblyBuilder,
+    "DereferenceStatementNode":     DereferenceStatementAssemblyBuilder,
     "IfStatementNode":              IfStatementAssemblyBuilder,
     "WhileStatementNode":           WhileStatementAssemblyBuilder
 }

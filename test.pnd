@@ -1,5 +1,5 @@
 int fn main() {
-   int a = 5;
-   int b = a / 1;
+   array b = {1, 2, 3, 4};
+   b[2] = 0;
    return b;
 }

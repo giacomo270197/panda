@@ -11,7 +11,7 @@ TYPE: "int" | "string" | "array"
 !array: "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
 
 !declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
-!assign_stmt: IDENTIFIER "=" expr ";"
+!assign_stmt: expr "=" expr ";"
 !if_stmt: "if" "(" test_stmts ")" block ["else" block]
 !while_stmt: "while" "(" test_stmts ")" block
 !functioncall_stmt: IDENTIFIER "(" (expr)? ("," expr)*  ")" [";"]
@@ -27,11 +27,11 @@ TYPE: "int" | "string" | "array"
 !greatereq_stmt: expr ">=" expr [";"]
 !lower_stmt: expr "<" expr [";"]
 !lowereq_stmt: expr "<=" expr [";"]
-!pointer_stmt: "*" IDENTIFIER
-!address_stmt: "&" IDENTIFIER
+!dereference_stmt.1: "*" expr
+!addressof_stmt: "&" IDENTIFIER
 
 ?test_stmts: equality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
-?unary_stmts: pointer_stmt | address_stmt
+?unary_stmts: dereference_stmt | addressof_stmt
 ?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt
 ?flow_stmts: functioncall_stmt | return_stmt | if_stmt | while_stmt
 ?statement:  flow_stmts | binary_stmts | unary_stmts | test_stmts

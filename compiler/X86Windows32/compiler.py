@@ -24,7 +24,7 @@ class X86Windows32Compiler:
         def __init__(self, parameters):
             self.parameters = parameters
 
-    def analyze_expression(self, expr, list_of_variables, state_of_registers):
+    def analyze_expression(self, expr, list_of_variables, state_of_registers, pointer=False):
         if isinstance(expr, LiteralExprNode):
             try:
                 return int(expr.value)
@@ -34,6 +34,16 @@ class X86Windows32Compiler:
             name = expr.value
             if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
                 exit("Error: variable {} not declared".format(name))
+            if pointer:
+                try:
+                    idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
+                except ValueError:
+                    idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
+                    in_params = True
+                if in_params:
+                    return "ebp+{}".format(hex(idx))
+                else:
+                    return "ebp-{}".format(hex(idx))
             for key in state_of_registers.keys():
                 if state_of_registers[key][0] == name:
                     return key
@@ -83,17 +93,25 @@ class X86Windows32Compiler:
                 self.assembly.append(instructon)
             list_of_variables.variables[statement.identifier.value] = statement.type
         if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
-            name = statement.identifier.value
-            if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
-                exit("Error: variable {} not declared".format(name))
-            try:
-                idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
-                in_params = False
-            except ValueError:
-                idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                in_params = True
-            value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
-            statement_assembly = assembly_builder.generate_assembly(idx, value, in_params)
+            identifier = statement.identifier
+            target = None
+            if isinstance(identifier, StatementNode):
+                target = self.analyze_expression(identifier, list_of_variables, state_of_registers)
+                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)   
+                print(target)
+                print(value)            
+            else:
+                name = statement.identifier.value
+                if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
+                    exit("Error: variable {} not declared".format(name))
+                try:
+                    idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
+                    target = "[ebp-{}]".format(hex(idx))
+                except ValueError:
+                    idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
+                    target = "[ebp+{}]".format(hex(idx))
+                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
+            statement_assembly = assembly_builder.generate_assembly(target, value)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
         if isinstance(assembly_builder, FunctionCallStatementAssemblyBuilder):
@@ -161,6 +179,13 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             return first_operator
+        if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
+            operand = statement.operand
+            if isinstance(operand, IdentifierExprNode):
+                operand = self.analyze_expression(operand, list_of_variables, state_of_registers, True)
+            else:
+                operand = self.analyze_expression(operand, list_of_variables, state_of_registers)
+            return "dword ptr [{}]".format(operand)
 
     def reset_registers(self, registers):
         for key in registers.keys():
@@ -246,15 +271,16 @@ class X86Windows32Compiler:
     def create_assembly(self):
         self.assembly.append("start:")
         self.syscall_defs_num += len(self.ast.syscalls)
-        self.ast.syscalls.sort(key=lambda x: x.module_name)
-        statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
-        for instructon in statement_assembly:
-            self.assembly.append(instructon)
-        idx = 0       
-        for syscall in self.ast.syscalls:
-            idx += 1
-            self.process_syscall(syscall, idx)
-        self.assembly.append("       mov esi, ebp;")
+        if self.syscall_defs_num > 2:
+            self.ast.syscalls.sort(key=lambda x: x.module_name)
+            statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
+            for instructon in statement_assembly:
+                self.assembly.append(instructon)
+            idx = 0       
+            for syscall in self.ast.syscalls:
+                idx += 1
+                self.process_syscall(syscall, idx)
+            self.assembly.append("       mov esi, ebp;")
         self.assembly.append("       jmp main;")
         for function in self.ast.func_defs:
             self.process_function(function)

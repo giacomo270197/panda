@@ -97,6 +97,14 @@ class AstTransformer(Transformer):
         left_hand = items[2]
         return nodes.LowerEqualStatementNode(right_hand, left_hand)
 
+    def dereference_stmt(self, items):
+        operand = items[1]
+        return nodes.DereferenceStatementNode(operand)
+
+    def addressof_stmt(self, items):
+        operand = items[1]
+        return nodes.AddressOfStatement(operand)
+
     def if_stmt(self, items):
         test = items[2]
         if_body = items[4]

@@ -14,13 +14,17 @@ class IdentifierExprNode(ExprNode):
     def __init__(self, value):
         self.value = value
 
-class BinaryOperationNode(Node):
-    def __init__(self, left_hand, right_hand):
-        self.left_hand = left_hand
-        self.right_hand = right_hand        
-
 class StatementNode(Node):
     pass
+
+class BinaryOperationNode(StatementNode):
+    def __init__(self, left_hand, right_hand):
+        self.left_hand = left_hand
+        self.right_hand = right_hand
+
+class UnaryOperationNode(StatementNode):
+    def __init__(self, operand):
+        self.operand = operand
 
 class ArrayNode(StatementNode):
     def __init__(self, items):
@@ -38,49 +42,57 @@ class AssignmentStatementNode(StatementNode):
         self.identifier = identifier
         self.expr = expr
 
-class AdditionStatementNode(StatementNode, BinaryOperationNode):
+class AdditionStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class SubtractionStatementNode(StatementNode, BinaryOperationNode):
+class SubtractionStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class MultiplicationStatementNode(StatementNode, BinaryOperationNode):
+class MultiplicationStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class DivisionStatementNode(StatementNode, BinaryOperationNode):
+class DivisionStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class BitwiseAndStatementNode(StatementNode, BinaryOperationNode):
+class BitwiseAndStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class BitwiseOrStatementNode(StatementNode, BinaryOperationNode):
+class BitwiseOrStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class EqualityStatementNode(StatementNode, BinaryOperationNode):
+class EqualityStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class GreaterStatementNode(StatementNode, BinaryOperationNode):
+class GreaterStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class GreaterEqualStatementNode(StatementNode, BinaryOperationNode):
+class GreaterEqualStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class LowerStatementNode(StatementNode, BinaryOperationNode):
+class LowerStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
-class LowerEqualStatementNode(StatementNode, BinaryOperationNode):
+class LowerEqualStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
+
+class AddressOfStatement(UnaryOperationNode):
+    def __init__(self, operand):
+        super().__init__(operand)
+
+class DereferenceStatementNode(UnaryOperationNode):
+    def __init__(self, operand):
+        super().__init__(operand)
 
 class FunctionCallStatementNode(StatementNode):
     def __init__(self, target, parameters):

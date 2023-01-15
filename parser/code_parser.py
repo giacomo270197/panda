@@ -14,7 +14,7 @@ class Parser():
         grammar_file = open("parser/grammar.lark", "rt")
         grammar_text = grammar_file.read()
         grammar_file.close()
-        self.lark_obj = lark.Lark(grammar_text, start="program", ambiguity="explicit")
+        self.lark_obj = lark.Lark(grammar_text, start="program") #, ambiguity="explicit")
         self.text = text
 
     def parse(self):

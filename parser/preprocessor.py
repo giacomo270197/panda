@@ -36,7 +36,7 @@ class Preprocessor:
 
     def array_index(self):
         r = r'(\w+)\[(\d)+\]'
-        self.source = re.sub(r, lambda m: m.groups()[0] + " + " + m.groups()[1], self.source)
+        self.source = re.sub(r, lambda m: "*("  + m.groups()[0] + " + " + m.groups()[1] + ")", self.source)
 
     def preprocess(self):
         for heuristic in self.heuristics:
