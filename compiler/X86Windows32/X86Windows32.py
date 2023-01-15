@@ -78,6 +78,8 @@ class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         assembly = []
         if isinstance(value, int):
             value = hex(value)
+        if "dword ptr" in value:
+            pass
         assembly.append("       mov {}, {};".format(target, value))
         return assembly
 
@@ -89,10 +91,9 @@ class AdditionStatementAssemblyBuilder(BinaryOperator):
         if left_hand_type == "int":
             assembly.append("       add {}, {};".format(left_hand, right_hand))
         elif left_hand_type == "string":
-            exit("String concatenation not implemented yet")
+            assembly.append("       add {}, {}".format(left_hand, hex(int(right_hand))))
         elif left_hand_type == "array":
             assembly.append("       add {}, {}".format(left_hand, hex(int(right_hand) * 4)))
-            #assembly.append("       mov {}, dword ptr [{}]".format(left_hand, left_hand))
         return assembly
 
 class SubtractionStatementAssemblyBuilder(BinaryOperator):
