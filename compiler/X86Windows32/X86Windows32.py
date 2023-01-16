@@ -180,8 +180,13 @@ class LowerEqualStatementAssemblyBuilder(TestStatement):
         return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type) 
 
 class AddressOfStatementAssemblyBuilder(UnaryOperator):
-    def generate_assembly(self, offset):
-        pass
+    def generate_assembly(self, offset, in_params, register):
+        assembly = []
+        if in_params:
+            assembly.append("       lea {}, dword ptr [ebp+{}]".format(register, format_int(offset)))
+        else:
+            assembly.append("       lea {}, dword ptr [ebp-{}]".format(register, format_int(offset)))
+        return assembly
 
 class DereferenceStatementAssemblyBuilder(UnaryOperator):
     def generate_assembly(self, offset):

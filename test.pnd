@@ -1,6 +1,15 @@
+int fn strlen(string str) {
+   int cnt = 0;
+   int char = str[cnt];
+   while(char > 0) {
+      cnt += 1;
+      char = str[cnt];
+   }
+   return cnt - 1;
+}
+
 int fn main() {
-   string a[5];
-   int b = 2;
-   a[b] = 0x69;
-   return 2;
+   string a = "Hello World";
+   int b = strlen(a);
+   return b;
 }

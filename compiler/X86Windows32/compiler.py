@@ -60,7 +60,10 @@ class X86Windows32Compiler:
                     return key
             in_params = False
             if self.current_type_var_req:
-                self.current_type_var = list_of_variables.variables[name]
+                try:
+                    self.current_type_var = list_of_variables.variables[name]
+                except KeyError:
+                    self.current_type_var = list_of_variables.parameters[name]
                 self.current_type_var_req = False
             try:
                 idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
@@ -187,6 +190,18 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             return first_operator
+        if isinstance(assembly_builder, AddressOfStatementAssemblyBuilder):
+            name = statement.operand.value
+            in_params = False
+            try:
+                idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
+            except ValueError:
+                idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
+                in_params = True       
+            register = self.find_available_register(state_of_registers)
+            statement_assembly = assembly_builder.generate_assembly(idx, in_params, register)
+            for instructon in statement_assembly:
+                self.assembly.append(instructon)                
         if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
             operand = statement.operand
             self.current_type_var_req = True
@@ -244,7 +259,7 @@ class X86Windows32Compiler:
         self.assembly += assembly
         parameters = {}
         for x in range(0, len(function.parameters), 2):
-            parameters[function.parameters[x+1].value] = function.parameters[x]
+            parameters[function.parameters[x+1].value] = function.parameters[x].value
         list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())[::-1]})
         for statement in statements:
             self.reset_registers(state_of_registers)
