@@ -89,9 +89,17 @@ class AdditionStatementAssemblyBuilder(BinaryOperator):
         if left_hand_type == "int":
             assembly.append("       add {}, {}".format(left_hand, right_hand))
         elif left_hand_type == "string":
-            assembly.append("       add {}, {}".format(left_hand, hex(int(right_hand))))
+            try:
+                right_hand = hex(int(right_hand))
+            except ValueError:
+                pass
+            assembly.append("       add {}, {}".format(left_hand, right_hand))
         elif left_hand_type == "array":
-            assembly.append("       add {}, {}".format(left_hand, hex(int(right_hand) * 4)))
+            try:
+                right_hand = hex(int(right_hand) * 4)
+            except ValueError:
+                assembly.append("       sal {}, 2".format(right_hand))
+            assembly.append("       add {}, {}".format(left_hand, right_hand))
         return assembly
 
 class SubtractionStatementAssemblyBuilder(BinaryOperator):

@@ -36,7 +36,7 @@ class Preprocessor:
         self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = {" + ("0, ") * (int(m.groups()[1]) - 1) + "0}", self.source)
 
     def array_index(self):
-        r = r'(\w+)\[(\d)+\]'
+        r = r'(\w+)\[(\w)+\]'
         self.source = re.sub(r, lambda m: "*("  + m.groups()[0] + " + " + m.groups()[1] + ")", self.source)
 
     def hex_repr(self):

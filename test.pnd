@@ -1,5 +1,6 @@
 int fn main() {
-   string a = "hello";
-   a[0] = 0x69;
+   array a = {1, 2, 3, 4};
+   int b = 2;
+   a[b] = 0x69;
    return a;
 }
