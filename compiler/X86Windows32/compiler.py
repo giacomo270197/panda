@@ -4,6 +4,7 @@ import struct
 
 from compiler.X86Windows32.X86Windows32 import *
 from compiler.X86Windows32.mappings import node_to_builder_map, test_to_jmp_instruction
+from compiler.X86Windows32.postprocess import PostProcessor
 from parser.nodes import *
 
 class X86Windows32Compiler:
@@ -44,6 +45,7 @@ class X86Windows32Compiler:
             if pointer:
                 try:
                     idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
+                    in_params = False
                 except ValueError:
                     idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
                     in_params = True
@@ -100,10 +102,7 @@ class X86Windows32Compiler:
             target = None
             if isinstance(identifier, StatementNode):
                 target = self.analyze_expression(identifier, list_of_variables, state_of_registers)
-                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)   
-                if "dword" in value:
-                    available_register = self.find_available_register(state_of_registers)
-                    self.assembly.append("      mov {}, {}".format(available_register, second_operator))      
+                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)    
             else:
                 name = statement.identifier.value
                 if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
@@ -164,13 +163,6 @@ class X86Windows32Compiler:
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
             second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
-            not_a_variable = False
-            if "dword" in str(second_operator):
-                available_register = self.find_available_register(state_of_registers)
-                self.assembly.append("       mov {}, {}".format(available_register, second_operator))
-                second_operator = available_register
-                not_a_variable = True
-            print("After " + str(second_operator))
             first_operator_type = None
             second_operator_type = None
             def get_type(operand):
@@ -185,10 +177,7 @@ class X86Windows32Compiler:
                 else:
                     return type(operand).__name__
             first_operator_type = get_type(first_operator)
-            if not not_a_variable:
-                second_operator_type = get_type(second_operator)
-            else:
-                second_operator_type = 'int'
+            second_operator_type = get_type(second_operator)
             statement_assembly = assembly_builder.generate_assembly(first_operator, first_operator_type, second_operator, second_operator_type)
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
@@ -298,6 +287,8 @@ class X86Windows32Compiler:
         self.assembly.append("       jmp main;")
         for function in self.ast.func_defs:
             self.process_function(function)
+        post_process = PostProcessor(self.assembly)
+        self.assembly = post_process.postprocess()
         return self.assembly
     
     def compile(self, assembly):

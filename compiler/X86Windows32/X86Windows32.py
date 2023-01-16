@@ -78,8 +78,6 @@ class AssignmentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         assembly = []
         if isinstance(value, int):
             value = hex(value)
-        if "dword ptr" in value:
-            pass
         assembly.append("       mov {}, {};".format(target, value))
         return assembly
 
