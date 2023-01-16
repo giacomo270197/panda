@@ -1,7 +1,7 @@
 from libraries.utils.strings import strlen
 
 int fn main() {
-   string a = "Hello World";
+   string a = "Hello";
    int b = strlen(a);
    return b;
 }

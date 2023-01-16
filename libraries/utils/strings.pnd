@@ -5,5 +5,5 @@ int fn strlen(string str) {
       cnt += 1;
       char = str[cnt];
    }
-   return cnt - 1;
+   return cnt;
 }
