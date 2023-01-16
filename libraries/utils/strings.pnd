@@ -1,0 +1,9 @@
+int fn strlen(string str) {
+   int cnt = 0;
+   int char = str[cnt];
+   while(char > 0) {
+      cnt += 1;
+      char = str[cnt];
+   }
+   return cnt - 1;
+}
