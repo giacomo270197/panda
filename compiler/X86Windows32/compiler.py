@@ -16,6 +16,7 @@ class X86Windows32Compiler:
         self.current_while = 0
         self.syscall_defs_num = 2
         self.syscall_defs = {}
+        self.current_type_var = None
         self.loaded_modules = ["kernel32.dll"]
 
     class Variables:
@@ -57,6 +58,7 @@ class X86Windows32Compiler:
                 if state_of_registers[key][0] == name:
                     return key
             in_params = False
+            self.current_type_var = list_of_variables.variables[name]
             try:
                 idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
             except ValueError:
@@ -64,9 +66,9 @@ class X86Windows32Compiler:
                 in_params = True
             available_register = self.find_available_register(state_of_registers)
             if in_params:
-                self.assembly.append("       mov {}, [ebp+{}];".format(available_register, hex(idx)))
+                self.assembly.append("       mov {}, [ebp+{}]".format(available_register, hex(idx)))
             else:
-                self.assembly.append("       mov {}, [ebp-{}];".format(available_register, hex(idx)))
+                self.assembly.append("       mov {}, [ebp-{}]".format(available_register, hex(idx)))
             state_of_registers[available_register][0] = name
             state_of_registers[available_register][1] = False
             return available_register
@@ -143,7 +145,7 @@ class X86Windows32Compiler:
                 self.assembly.append(instructon)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
             try:
-                self.assembly.append("      jmp if_stmt{}_else;".format(str(self.current_if)))
+                self.assembly.append("      jmp if_stmt{}_else".format(str(self.current_if)))
                 self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
                 self.process_block(statement.else_body, copy.deepcopy(list_of_variables), state_of_registers)
                 self.assembly.append("  if_stmt{}_else:".format(str(self.current_if)))
@@ -158,7 +160,7 @@ class X86Windows32Compiler:
             for instructon in statement_assembly:
                 self.assembly.append(instructon)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
-            self.assembly.append("       jmp while_stmt{};".format(str(self.current_while))) 
+            self.assembly.append("       jmp while_stmt{}".format(str(self.current_while))) 
             self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
@@ -188,7 +190,10 @@ class X86Windows32Compiler:
                 operand = self.analyze_expression(operand, list_of_variables, state_of_registers, True)
             else:
                 operand = self.analyze_expression(operand, list_of_variables, state_of_registers)
-            return "dword ptr [{}]".format(operand)
+            if self.current_type_var == "string":
+                return "byte ptr [{}]".format(operand)
+            else:
+                return "dword ptr [{}]".format(operand)
 
     def reset_registers(self, registers):
         for key in registers.keys():
@@ -283,8 +288,8 @@ class X86Windows32Compiler:
             for syscall in self.ast.syscalls:
                 idx += 1
                 self.process_syscall(syscall, idx)
-            self.assembly.append("       mov esi, ebp;")
-        self.assembly.append("       jmp main;")
+            self.assembly.append("       mov esi, ebp")
+        self.assembly.append("       jmp main")
         for function in self.ast.func_defs:
             self.process_function(function)
         post_process = PostProcessor(self.assembly)

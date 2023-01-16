@@ -7,8 +7,9 @@ class Preprocessor:
 
     def __init__(self, source):
         self.source = source
-        self.heuristics = [self.implicit_test_statements, self.increment_shorthand, self.decrement_shorthand,
-        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.array_index]
+        self.rules = [self.implicit_test_statements, self.increment_shorthand, self.decrement_shorthand,
+        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.array_index,
+        self.hex_repr]
 
     def implicit_test_statements(self):
         r = r'if\([^=]+?\)(\))?'
@@ -38,7 +39,11 @@ class Preprocessor:
         r = r'(\w+)\[(\d)+\]'
         self.source = re.sub(r, lambda m: "*("  + m.groups()[0] + " + " + m.groups()[1] + ")", self.source)
 
+    def hex_repr(self):
+        r = r'(0x[\d]+)'
+        self.source = re.sub(r, lambda m: str(int(m.groups()[0], 0)), self.source)
+
     def preprocess(self):
-        for heuristic in self.heuristics:
-            heuristic()
+        for rule in self.rules:
+            rule()
         return self.source
