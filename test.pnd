@@ -1,6 +1,6 @@
 int fn main() {
-   array a = {1, 2, 3, 4};
+   string a[5];
    int b = 2;
    a[b] = 0x69;
-   return a;
+   return 2;
 }

@@ -8,8 +8,8 @@ class Preprocessor:
     def __init__(self, source):
         self.source = source
         self.rules = [self.implicit_test_statements, self.increment_shorthand, self.decrement_shorthand,
-        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.array_index,
-        self.hex_repr]
+        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.expand_strings,
+        self.array_index, self.hex_repr]
 
     def implicit_test_statements(self):
         r = r'if\([^=]+?\)(\))?'
@@ -34,6 +34,10 @@ class Preprocessor:
     def expand_arrays(self):
         r = r'array\s(\w+)\[(\d)+\]'
         self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = {" + ("0, ") * (int(m.groups()[1]) - 1) + "0}", self.source)
+    
+    def expand_strings(self):
+        r = r'string\s(\w+)\[(\d)+\]'
+        self.source = re.sub(r, lambda m: "string " + m.groups()[0] + " = \"" + ("0") * (int(m.groups()[1]) - 1) + "0\"", self.source)
 
     def array_index(self):
         r = r'(\w+)\[(\w)+\]'

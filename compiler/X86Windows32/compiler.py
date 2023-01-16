@@ -16,6 +16,7 @@ class X86Windows32Compiler:
         self.current_while = 0
         self.syscall_defs_num = 2
         self.syscall_defs = {}
+        self.current_type_var_req = False
         self.current_type_var = None
         self.loaded_modules = ["kernel32.dll"]
 
@@ -58,7 +59,9 @@ class X86Windows32Compiler:
                 if state_of_registers[key][0] == name:
                     return key
             in_params = False
-            self.current_type_var = list_of_variables.variables[name]
+            if self.current_type_var_req:
+                self.current_type_var = list_of_variables.variables[name]
+                self.current_type_var_req = False
             try:
                 idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
             except ValueError:
@@ -186,6 +189,7 @@ class X86Windows32Compiler:
             return first_operator
         if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
             operand = statement.operand
+            self.current_type_var_req = True
             if isinstance(operand, IdentifierExprNode):
                 operand = self.analyze_expression(operand, list_of_variables, state_of_registers, True)
             else:
