@@ -85,14 +85,15 @@ class X86Windows32Compiler:
         assembly_builder = node_to_builder_map[type(statement).__name__]()
         if isinstance(assembly_builder, ArrayNodeAssemblyBuilder):
             items = []
+            arr_type = statement.arr_type
             for item in statement.items:
                 if isinstance(item, ExprNode):
                     items.append(self.analyze_expression(item, list_of_variables, state_of_registers))
                 else:
                     items.append(item.value)
-            statement_assembly = assembly_builder.generate_assembly(items)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            statement_assembly = assembly_builder.generate_assembly(arr_type, items)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
             return "esp"            
         if isinstance(assembly_builder, DeclarationStatementAssemblyBuilder):
             value = None
@@ -102,8 +103,10 @@ class X86Windows32Compiler:
             except AttributeError:
                 pass
             statement_assembly = assembly_builder.generate_assembly(len(list_of_variables.variables), statement.type, value)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
+            if isinstance(statement.expr, ArrayNode) and statement.expr.arr_type == "byte":
+                statement.type = "string"
             list_of_variables.variables[statement.identifier.value] = statement.type
         if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
             identifier = statement.identifier
@@ -134,21 +137,21 @@ class X86Windows32Compiler:
             if target in list(self.syscall_defs.keys()):
                 syscall_idx = self.syscall_defs[target]
             statement_assembly = assembly_builder.generate_assembly(parameters, target, syscall_idx)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)    
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)    
             return "eax"
         if isinstance(assembly_builder, ReturnStatementAssemblyBuilder):
             value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(value)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
         if isinstance(assembly_builder, IfStatementAssemblyBuilder):
             self.current_if += 1
             self.process_statement(statement.test, list_of_variables, state_of_registers)
             jmp_intruction = test_to_jmp_instruction[type(statement.test).__name__]
             statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_if)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
             try:
                 self.assembly.append("      jmp if_stmt{}_else".format(str(self.current_if)))
@@ -163,8 +166,8 @@ class X86Windows32Compiler:
             self.process_statement(statement.test, list_of_variables, state_of_registers)
             jmp_intruction = test_to_jmp_instruction[type(statement.test).__name__]
             statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_while)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
             self.assembly.append("       jmp while_stmt{}".format(str(self.current_while))) 
             self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
@@ -187,8 +190,8 @@ class X86Windows32Compiler:
             first_operator_type = get_type(first_operator)
             second_operator_type = get_type(second_operator)
             statement_assembly = assembly_builder.generate_assembly(first_operator, first_operator_type, second_operator, second_operator_type)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
             return first_operator
         if isinstance(assembly_builder, AddressOfStatementAssemblyBuilder):
             name = statement.operand.value
@@ -200,8 +203,8 @@ class X86Windows32Compiler:
                 in_params = True       
             register = self.find_available_register(state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(idx, in_params, register)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)                
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)                
         if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
             operand = statement.operand
             self.current_type_var_req = True
@@ -286,14 +289,14 @@ class X86Windows32Compiler:
     def process_syscall(self, syscall, idx):
         if syscall.module_name not in self.loaded_modules:
             statement_assembly = LoadLibraryAssemblyBuilder().generate_assembly(syscall.module_name)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
         key = syscall.function_name.value.replace("\"", "")
         self.syscall_defs[key] = idx
         self.assembly.append("       " + self.push_function_hash(key))
         statement_assembly = FindFunctionPointerAssemblyBuilder().generate_assembly(idx)
-        for instructon in statement_assembly:
-                self.assembly.append(instructon)
+        for instruction in statement_assembly:
+                self.assembly.append(instruction)
 
     def create_assembly(self):
         self.assembly.append("start:")
@@ -301,8 +304,8 @@ class X86Windows32Compiler:
         if self.syscall_defs_num > 2:
             self.ast.syscalls.sort(key=lambda x: x.module_name)
             statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
-            for instructon in statement_assembly:
-                self.assembly.append(instructon)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
             idx = 0       
             for syscall in self.ast.syscalls:
                 idx += 1
@@ -311,6 +314,7 @@ class X86Windows32Compiler:
         self.assembly.append("       jmp main")
         for function in self.ast.func_defs:
             self.process_function(function)
+        print(self.assembly)
         post_process = PostProcessor(self.assembly)
         self.assembly = post_process.postprocess()
         return self.assembly

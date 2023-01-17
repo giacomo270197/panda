@@ -27,7 +27,8 @@ class UnaryOperationNode(StatementNode):
         self.operand = operand
 
 class ArrayNode(StatementNode):
-    def __init__(self, items):
+    def __init__(self, arr_type, items):
+        self.arr_type = arr_type
         self.items = items
 
 class DeclarationStatementNode(StatementNode):

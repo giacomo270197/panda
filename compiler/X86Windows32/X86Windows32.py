@@ -43,13 +43,30 @@ def format_int(num):
         return num
 
 class ArrayNodeAssemblyBuilder(X86Windows32AssemblyBuilder):
-    def generate_assembly(self, items):
+
+    def valid_int(self, num):
+        num = int(num)
+        if num < 256 and num >= 0:
+            return num
+        else:
+            exit("Error, invalid byte value {}".format(num))
+
+    def generate_assembly(self, arr_type, items):
         assembly = []
-        for item in items[::-1]:
-            try:
-                assembly.append("       push {}".format(hex(int(item))))
-            except ValueError:
-                assembly.append("       push {}".format(item))
+        if arr_type == "byte":
+            pushes = []
+            new_items = items[::-1] + ([0] * (4 - (len(items) % 4)))
+            for x in range(0, len(items[::-1]), 4):
+                pushes.append("0x" + "".join("{0:0{1}x}".format(self.valid_int(x),2) for x in new_items[x:x+4]))
+                pushes[-1] = pushes[-1].replace("0x0", "0x")
+            for push in pushes:
+                assembly.append("       push {}".format(push))
+        if arr_type == "int":
+            for item in items[::-1]:
+                try:
+                    assembly.append("       push {}".format(hex(int(item))))
+                except ValueError:
+                    assembly.append("       push {}".format(item))
         return assembly
 
 class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):

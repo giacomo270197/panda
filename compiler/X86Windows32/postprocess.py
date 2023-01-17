@@ -17,9 +17,8 @@ class PostProcessor:
         for x in range(len(self.assembly)):
             instruction = self.assembly[x]
             # Case like mov [ebp-0x4], dword ptr.[...]
-            matches = [m.start() for m in re.finditer(r'\[ebp-0x[\d]+?\], (?:dword|byte) ptr \[([a-z]{3})\]', instruction)]
+            matches = [m.start() for m in re.finditer(r'\[ebp[+|-]0x[\w]+?\], (?:dword|byte) ptr \[([a-z]{3})\]', instruction)]
             if matches:
-                print(instruction)
                 r = r'((dword|byte) ptr \[([a-z]{3})\])'
                 m = re.search(r, instruction)
                 to_replace = m.groups()[0]
@@ -42,7 +41,7 @@ class PostProcessor:
                 r = r'(?:dword|byte) ptr \[[\S]+?\], ((dword|byte) ptr \[([a-z]{3})\])'
                 m = re.search(r, instruction)
                 to_replace = m.groups()[0]
-                target = m.groups(1)
+                target = m.groups()[1]
                 register = m.groups()[2]
                 instruction = instruction.replace(to_replace, register)
                 if target == "byte" and register in list(self.reg_mapping.keys()):
@@ -54,6 +53,21 @@ class PostProcessor:
                     ])
                 else:
                     instruction = "       mov {}, {} ptr[{}]".format(register, target, register) + "\n" + instruction
+                self.assembly[x] = instruction
+            matches = [m.start() for m in re.finditer(r'mov ([a-z]{3}), byte ptr \[[a-z]{3}\]', instruction)]
+            if matches:
+                print(instruction)
+                m = re.search(r'mov ([a-z]{3}), (byte ptr \[[a-z]{3}\])', instruction)
+                register = m.groups()[0]
+                source = m.groups()[1]
+                try:
+                    new_register = self.reg_mapping[register]
+                except KeyError:
+                    exit("Using a non general purpose register for genral purpose reasons")
+                instruction = "\n".join([
+                    "       mov {}, {}".format(new_register, source),
+                    "       movzx {}, {}".format(register, new_register)
+                ])
                 self.assembly[x] = instruction
 
     def remove_zero_operations(self):

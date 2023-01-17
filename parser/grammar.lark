@@ -8,7 +8,7 @@ IDENTIFIER: CNAME
 TYPE: "int" | "string" | "array"
 
 !expr: LITERAL | IDENTIFIER | array | ["("] statement [")"] 
-!array: "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
+!array: ("int"|"byte") "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
 
 !declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
 !assign_stmt: expr "=" expr ";"

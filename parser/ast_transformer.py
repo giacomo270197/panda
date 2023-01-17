@@ -13,13 +13,14 @@ class AstTransformer(Transformer):
     
     def array(self, items):
         new_items = []
-        for item in items:
+        arr_type = items[0]
+        for item in items[1:]:
             if isinstance(item, str):
                 if item not in "\{\},":
                     new_items.append(item)
             else:
                 new_items.append(item)
-        return nodes.ArrayNode(new_items)
+        return nodes.ArrayNode(arr_type, new_items)
 
     def expr(self, items):
         if isinstance(items[0], nodes.ExprNode):
