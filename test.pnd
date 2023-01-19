@@ -1,34 +1,8 @@
-int fn strlen(string str) {
-   int cnt = 0;
-   int char = str[cnt];
-   while(char > 0) {
-      cnt += 1;
-      char = str[cnt];
-   }
-   return cnt;
-}
-
-int fn strcmp(string str1, string str2) {
-   int len1 = strlen(str1);
-   int len2 = strlen(str2);
-   int cnt = 0;
-   if (len1 != len2) {
-      return 0;
-   }
-   while(cnt <= len1) {
-      int a = str1[cnt];
-      int b = str2[cnt];
-      if(a != b) {
-         return 0;
-      }
-      cnt += 1;
-   }
-   return 1;
-}
+import libraries.utils.strings
 
 int fn main() {
    string a = "Hello";
-   string b = "World";
+   string b = "Hello";
    int c = strcmp(a, b);
    return c;
 }

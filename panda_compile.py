@@ -5,9 +5,11 @@ from compiler.compiler import Compiler
 
 def main():
 
-    parser = argparse.ArgumentParser(prog = 'Panda shellcode compiler', description = 'Converts your Panda files to Assembly or machine code')
+    parser = argparse.ArgumentParser(prog='Panda shellcode compiler', description='Converts your Panda files to '
+                                                                                      'Assembly or machine code')
     parser.add_argument('--source', '-s', type=str, help="The source file")
     parser.add_argument('--test', '-t', action='store_true', help="Inject code into the current Python process")
+    parser.add_argument('--debug_tree', '-dt', action='store_true', help="Print the parse tree")
     args = parser.parse_args()
     
     # Parse source code into a list of ASTs
@@ -16,9 +18,9 @@ def main():
     source.close()
     parser = Parser(text)
     parser.parse()
-    parser.display_parsed()
+    if args.debug_tree:
+        parser.display_parsed()
     parser.build_ast()
-    parser.display_ast()
 
     # Transform the AST into Assembly
     compiler = Compiler("x86Windows32", parser.ast)

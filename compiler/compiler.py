@@ -1,7 +1,7 @@
 from compiler.X86Windows32.compiler import X86Windows32Compiler
 
-class Compiler:
 
+class Compiler:
     platform = None
     ast = None
     assembly = None
@@ -21,12 +21,12 @@ class Compiler:
             self.compiler = X86Windows32Compiler(self.ast)
             self.assembly = self.compiler.create_assembly()
         else:
-             exit("Platform {} not supported, aborting".format(self.platform))
-    
+            exit("Platform {} not supported, aborting".format(self.platform))
+
     def show_assembly(self):
         for instruction in self.assembly:
             print(instruction)
-    
+
     def compile(self):
         assembly = "\n".join(self.assembly)
         self.binary_code = self.compiler.compile(assembly)

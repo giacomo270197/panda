@@ -7,8 +7,9 @@ from compiler.X86Windows32.mappings import node_to_builder_map, test_to_jmp_inst
 from compiler.X86Windows32.postprocess import PostProcessor
 from parser.nodes import *
 
+
 class X86Windows32Compiler:
-    
+
     def __init__(self, ast):
         self.ast = ast
         self.assembly = []
@@ -21,11 +22,9 @@ class X86Windows32Compiler:
         self.loaded_modules = ["kernel32.dll"]
 
     class Variables:
-        parameters = {}
-        variables = {}
-
         def __init__(self, parameters):
             self.parameters = parameters
+            self.variables = {}
 
     def find_available_register(self, state_of_registers):
         for key in state_of_registers.keys():
@@ -42,7 +41,8 @@ class X86Windows32Compiler:
                 return expr.value
         if isinstance(expr, IdentifierExprNode):
             name = expr.value
-            if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
+            if name not in list(list_of_variables.variables.keys()) and name not in list(
+                    list_of_variables.parameters.keys()):
                 exit("Error: variable {} not declared".format(name))
             if pointer:
                 try:
@@ -94,15 +94,16 @@ class X86Windows32Compiler:
             statement_assembly = assembly_builder.generate_assembly(arr_type, items)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
-            return "esp"            
+            return "esp"
         if isinstance(assembly_builder, DeclarationStatementAssemblyBuilder):
             value = None
             try:
-                if  statement.expr:
+                if statement.expr:
                     value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             except AttributeError:
                 pass
-            statement_assembly = assembly_builder.generate_assembly(len(list_of_variables.variables), statement.type, value)
+            statement_assembly = assembly_builder.generate_assembly(len(list_of_variables.variables), statement.type,
+                                                                    value)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
             if isinstance(statement.expr, ArrayNode) and statement.expr.arr_type == "byte":
@@ -113,10 +114,11 @@ class X86Windows32Compiler:
             target = None
             if isinstance(identifier, StatementNode):
                 target = self.analyze_expression(identifier, list_of_variables, state_of_registers)
-                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)    
+                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             else:
                 name = statement.identifier.value
-                if name not in list(list_of_variables.variables.keys()) and name not in list(list_of_variables.parameters.keys()):
+                if name not in list(list_of_variables.variables.keys()) and name not in list(
+                        list_of_variables.parameters.keys()):
                     exit("Error: variable {} not declared".format(name))
                 try:
                     idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
@@ -138,7 +140,7 @@ class X86Windows32Compiler:
                 syscall_idx = self.syscall_defs[target]
             statement_assembly = assembly_builder.generate_assembly(parameters, target, syscall_idx)
             for instruction in statement_assembly:
-                self.assembly.append(instruction)    
+                self.assembly.append(instruction)
             return "eax"
         if isinstance(assembly_builder, ReturnStatementAssemblyBuilder):
             value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
@@ -170,13 +172,14 @@ class X86Windows32Compiler:
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
             self.process_block(statement.body, copy.deepcopy(list_of_variables), state_of_registers)
-            self.assembly.append("       jmp while_stmt{}".format(str(self.current_while))) 
-            self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
+            self.assembly.append("       jmp while_stmt{}".format(str(self.current_while)))
+            self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
             second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
             first_operator_type = None
             second_operator_type = None
+
             def get_type(operand):
                 if isinstance(operand, str):
                     if operand in state_of_registers.keys():
@@ -188,9 +191,11 @@ class X86Windows32Compiler:
                         return "string"
                 else:
                     return type(operand).__name__
+
             first_operator_type = get_type(first_operator)
             second_operator_type = get_type(second_operator)
-            statement_assembly = assembly_builder.generate_assembly(first_operator, first_operator_type, second_operator, second_operator_type)
+            statement_assembly = assembly_builder.generate_assembly(first_operator, first_operator_type,
+                                                                    second_operator, second_operator_type)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
             return first_operator
@@ -201,11 +206,11 @@ class X86Windows32Compiler:
                 idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
             except ValueError:
                 idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                in_params = True       
+                in_params = True
             register = self.find_available_register(state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(idx, in_params, register)
             for instruction in statement_assembly:
-                self.assembly.append(instruction)                
+                self.assembly.append(instruction)
         if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
             operand = statement.operand
             self.current_type_var_req = True
@@ -248,11 +253,8 @@ class X86Windows32Compiler:
             num_of_variables = self.resolve_num_variables(block, num_of_variables)
         return num_of_variables
 
-            
     def process_function(self, function):
         statements = function.body.statements
-        num_of_variables = 0
-        list_of_variables = {}
         state_of_registers = {
             "eax": [None, True],
             "ebx": [None, True],
@@ -265,8 +267,9 @@ class X86Windows32Compiler:
         self.assembly += assembly
         parameters = {}
         for x in range(0, len(function.parameters), 2):
-            parameters[function.parameters[x+1].value] = function.parameters[x].value
+            parameters[function.parameters[x + 1].value] = function.parameters[x].value
         list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())[::-1]})
+        print(function.identifier, list_of_variables.variables, list_of_variables.parameters)
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
@@ -277,17 +280,17 @@ class X86Windows32Compiler:
         while count > 0:
             binb = binb[-1] + binb[0:-1]
             count -= 1
-        return (int(binb, 2))
+        return int(binb, 2)
 
     def push_function_hash(self, function_name):
         edx = 0x00
         ror_count = 0
         for eax in function_name:
             edx = edx + ord(eax)
-            if ror_count < len(function_name)-1:
+            if ror_count < len(function_name) - 1:
                 edx = self.ror_str(edx, 0xd)
             ror_count += 1
-        return ("push " + hex(edx))
+        return "push " + hex(edx)
 
     def process_syscall(self, syscall, idx):
         if syscall.module_name not in self.loaded_modules:
@@ -299,7 +302,7 @@ class X86Windows32Compiler:
         self.assembly.append("       " + self.push_function_hash(key))
         statement_assembly = FindFunctionPointerAssemblyBuilder().generate_assembly(idx)
         for instruction in statement_assembly:
-                self.assembly.append(instruction)
+            self.assembly.append(instruction)
 
     def create_assembly(self):
         self.assembly.append("start:")
@@ -309,7 +312,7 @@ class X86Windows32Compiler:
             statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
-            idx = 0       
+            idx = 0
             for syscall in self.ast.syscalls:
                 idx += 1
                 self.process_syscall(syscall, idx)
@@ -320,13 +323,13 @@ class X86Windows32Compiler:
         post_process = PostProcessor(self.assembly)
         self.assembly = post_process.postprocess()
         return self.assembly
-    
+
     def compile(self, assembly):
         eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
         try:
             encoding, _ = eng.asm(assembly)
         except ks.KsError as e:
-            print("ERROR: %s" %e)
+            print("ERROR: %s" % e)
             exit()
         bytecode = b""
         for e in encoding:

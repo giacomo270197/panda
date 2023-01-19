@@ -24,5 +24,4 @@ int fn strcmp(string str1, string str2) {
       cnt += 1;
    }
    return 1;
-
 }
