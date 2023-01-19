@@ -15,6 +15,7 @@ node_to_builder_map = {
     "BitwiseOrStatementNode":       BitwiseOrStatementAssemblyBuilder,
     "FunctionCallStatementNode":    FunctionCallStatementAssemblyBuilder,
     "EqualityStatementNode":        EqualityStatementAssemblyBuilder,
+    "InequalityStatementNode":      InequalityStatementAssemblyBuilder,
     "GreaterStatementNode":         GreaterStatementAssemblyBuilder,
     "GreaterEqualStatementNode":    GreaterEqualStatementAssemblyBuilder,
     "LowerStatementNode":           LowerStatementAssemblyBuilder,
@@ -27,6 +28,7 @@ node_to_builder_map = {
 
 test_to_jmp_instruction = {
     "EqualityStatementNode":        "jne",
+    "InequalityStatementNode":      "je",
     "GreaterStatementNode":         "jle",
     "GreaterEqualStatementNode":    "jl",
     "LowerStatementNode":           "jge",

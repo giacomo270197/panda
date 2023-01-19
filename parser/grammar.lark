@@ -23,6 +23,7 @@ TYPE: "int" | "string" | "array"
 !bitwiseor_stmt: expr "|" expr [";"]
 !return_stmt: "return" expr ";"
 !equality_stmt: expr "==" expr [";"]
+!inequality_stmt: expr "!=" expr [";"]
 !greater_stmt: expr ">" expr [";"]
 !greatereq_stmt: expr ">=" expr [";"]
 !lower_stmt: expr "<" expr [";"]
@@ -30,7 +31,7 @@ TYPE: "int" | "string" | "array"
 !dereference_stmt.1: "*" expr
 !addressof_stmt: "&" IDENTIFIER
 
-?test_stmts: equality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
+?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
 ?unary_stmts: dereference_stmt | addressof_stmt
 ?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt
 ?flow_stmts: functioncall_stmt | return_stmt | if_stmt | while_stmt

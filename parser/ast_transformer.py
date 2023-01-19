@@ -78,6 +78,11 @@ class AstTransformer(Transformer):
         left_hand = items[2]
         return nodes.EqualityStatementNode(right_hand, left_hand)
 
+    def inequality_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.InequalityStatementNode(right_hand, left_hand)
+
     def greater_stmt(self, items):
         right_hand = items[0]
         left_hand = items[2]

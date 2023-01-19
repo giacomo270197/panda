@@ -71,6 +71,10 @@ class EqualityStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
+class InequalityStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
 class GreaterStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
@@ -110,7 +114,7 @@ class IfStatementNode(StatementNode):
 class WhileStatementNode(StatementNode):
     def __init__(self, test, body):
         self.test = test
-        self.if_body = body
+        self.body = body
 
 class ReturnStatementNode(StatementNode):
     def __init__(self, expr):

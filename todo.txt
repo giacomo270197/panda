@@ -1,6 +1,3 @@
-- Implement multiplication and division
-- Implement stack-only strings
-- Add shellcode preamble
-- Implement control flow (if and for)
-- Implement other unary and binary operators
-- Adjust register usage
+# Fix errors found implementing strcmp
+- Only 3 variables declared out of 5 (sub esp, 0xc)
+- Function params are at a wrong offset (0xc and 0x18)

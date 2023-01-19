@@ -154,12 +154,13 @@ class X86Windows32Compiler:
                 self.assembly.append(instruction)
             self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
             try:
+                else_body = statement.else_body
                 self.assembly.append("      jmp if_stmt{}_else".format(str(self.current_if)))
-                self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
-                self.process_block(statement.else_body, copy.deepcopy(list_of_variables), state_of_registers)
-                self.assembly.append("  if_stmt{}_else:".format(str(self.current_if)))
+                self.assembly.append("   if_stmt{}:".format(str(self.current_if)))
+                self.process_block(else_body, copy.deepcopy(list_of_variables), state_of_registers)
+                self.assembly.append("   if_stmt{}_else:".format(str(self.current_if)))
             except AttributeError:
-                self.assembly.append("  if_stmt{}:".format(str(self.current_if)))
+                self.assembly.append("   if_stmt{}:".format(str(self.current_if)))
         if isinstance(assembly_builder, WhileStatementAssemblyBuilder):
             self.current_while += 1
             self.assembly.append("   while_stmt{}:".format(str(self.current_while)))
@@ -168,7 +169,7 @@ class X86Windows32Compiler:
             statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_while)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
-            self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
+            self.process_block(statement.body, copy.deepcopy(list_of_variables), state_of_registers)
             self.assembly.append("       jmp while_stmt{}".format(str(self.current_while))) 
             self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))     
         if isinstance(assembly_builder, BinaryOperator):
@@ -241,6 +242,8 @@ class X86Windows32Compiler:
                     blocks.append(statement.else_body)
                 except AttributeError:
                     pass
+            if isinstance(statement, WhileStatementNode):
+                blocks.append(statement.body)
         for block in blocks:
             num_of_variables = self.resolve_num_variables(block, num_of_variables)
         return num_of_variables
@@ -314,7 +317,6 @@ class X86Windows32Compiler:
         self.assembly.append("       jmp main")
         for function in self.ast.func_defs:
             self.process_function(function)
-        print(self.assembly)
         post_process = PostProcessor(self.assembly)
         self.assembly = post_process.postprocess()
         return self.assembly

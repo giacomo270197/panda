@@ -7,6 +7,9 @@ class BinaryOperator(X86Windows32AssemblyBuilder):
 class UnaryOperator(X86Windows32AssemblyBuilder):
     pass
 
+class ControlFlowStatement(X86Windows32AssemblyBuilder):
+    pass
+
 class TestStatement(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
@@ -180,6 +183,10 @@ class EqualityStatementAssemblyBuilder(TestStatement):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
 
+class InequalityStatementAssemblyBuilder(TestStatement):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
+
 class GreaterStatementAssemblyBuilder(TestStatement):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
@@ -209,13 +216,13 @@ class DereferenceStatementAssemblyBuilder(UnaryOperator):
     def generate_assembly(self, offset):
         pass
 
-class IfStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
+class IfStatementAssemblyBuilder(ControlFlowStatement):
     def generate_assembly(self, instruction, label):
         assembly = []
         assembly.append("       {} if_stmt{}".format(instruction, str(label)))
         return assembly
 
-class WhileStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
+class WhileStatementAssemblyBuilder(ControlFlowStatement):
     def generate_assembly(self, instruction, label):
         assembly = []
         assembly.append("       {} while_stmt{}_end".format(instruction, str(label)))
