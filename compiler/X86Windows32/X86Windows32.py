@@ -84,7 +84,7 @@ class DeclarationStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, num_of_variables, var_type, init_value=None):
         current_var = (num_of_variables + 1) * 4
         assembly = []
-        if init_value and var_type == "int":
+        if init_value != None and var_type == "int":
             if isinstance(init_value, int):
                 init_value = hex(init_value)
             assembly.append("       mov dword ptr [ebp-{}], {}".format(hex(current_var), init_value))
@@ -240,6 +240,10 @@ class DereferenceStatementAssemblyBuilder(UnaryOperator):
         pass
 
 
+class CastingStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
+    pass
+
+
 class IfStatementAssemblyBuilder(ControlFlowStatement):
     def generate_assembly(self, instruction, label):
         assembly = []
@@ -257,7 +261,7 @@ class WhileStatementAssemblyBuilder(ControlFlowStatement):
 class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, parameters, target, syscall_idx):
         assembly = []
-        for param in parameters:
+        for param in parameters[::-1]:
             assembly.append("       push {}".format(param))
         if syscall_idx:
             assembly.append("       call dword ptr [esi+{}]".format(hex(0x14 + (syscall_idx * 4))))

@@ -111,7 +111,6 @@ class X86Windows32Compiler:
             list_of_variables.variables[statement.identifier.value] = statement.type
         if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
             identifier = statement.identifier
-            target = None
             if isinstance(identifier, StatementNode):
                 target = self.analyze_expression(identifier, list_of_variables, state_of_registers)
                 value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
@@ -122,10 +121,10 @@ class X86Windows32Compiler:
                     exit("Error: variable {} not declared".format(name))
                 try:
                     idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
-                    target = "[ebp-{}]".format(hex(idx))
+                    target = "dword ptr [ebp-{}]".format(hex(idx))
                 except ValueError:
                     idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                    target = "[ebp+{}]".format(hex(idx))
+                    target = "dword ptr [ebp+{}]".format(hex(idx))
                 value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
             statement_assembly = assembly_builder.generate_assembly(target, value)
             for instruction in statement_assembly:
@@ -177,9 +176,6 @@ class X86Windows32Compiler:
         if isinstance(assembly_builder, BinaryOperator):
             first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
             second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
-            first_operator_type = None
-            second_operator_type = None
-
             def get_type(operand):
                 if isinstance(operand, str):
                     if operand in state_of_registers.keys():
@@ -222,6 +218,8 @@ class X86Windows32Compiler:
                 return "byte ptr [{}]".format(operand)
             else:
                 return "dword ptr [{}]".format(operand)
+        if isinstance(assembly_builder, CastingStatementAssemblyBuilder):
+            list_of_variables.variables[statement.identifier.value] = statement.new_type
 
     def reset_registers(self, registers):
         for key in registers.keys():
@@ -269,7 +267,6 @@ class X86Windows32Compiler:
         for x in range(0, len(function.parameters), 2):
             parameters[function.parameters[x + 1].value] = function.parameters[x].value
         list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())[::-1]})
-        print(function.identifier, list_of_variables.variables, list_of_variables.parameters)
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
@@ -293,7 +290,8 @@ class X86Windows32Compiler:
         return "push " + hex(edx)
 
     def process_syscall(self, syscall, idx):
-        if syscall.module_name not in self.loaded_modules:
+        if syscall.module_name.value.replace("\"", "") not in self.loaded_modules:
+            self.loaded_modules.append(syscall.module_name.value.replace("\"", ""))
             statement_assembly = LoadLibraryAssemblyBuilder().generate_assembly(syscall.module_name)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)

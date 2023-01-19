@@ -2,7 +2,7 @@ import libraries.utils.strings
 
 int fn main() {
    string a = "Hello";
-   string b = "Hello";
-   int c = strcmp(a, b);
-   return c;
+   string b = " World";
+   a = strcat(a, b);
+   return a;
 }

@@ -63,12 +63,14 @@ class PostProcessor:
                 try:
                     new_register = self.reg_mapping[register]
                 except KeyError:
-                    exit("Using a non general purpose register for genral purpose reasons")
+                    exit("Using a non general purpose register for general purpose reasons")
                 instruction = "\n".join([
                     "       mov {}, {}".format(new_register, source),
                     "       movzx {}, {}".format(register, new_register)
                 ])
                 self.assembly[x] = instruction
+            r = r'(mov byte ptr \[[a-z]{3}\], )([a-z]{3})'
+            self.assembly[x] = re.sub(r, lambda m: m.groups()[0] + self.reg_mapping[m.groups()[1]], instruction)
 
     def remove_zero_operations(self):
         for x in range(len(self.assembly)):

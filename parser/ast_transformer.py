@@ -111,6 +111,11 @@ class AstTransformer(Transformer):
         operand = items[1]
         return nodes.AddressOfStatement(operand)
 
+    def casting_stmt(self, items):
+        identifier = items[0]
+        new_type = items[2]
+        return nodes.CastingStatementNode(identifier, new_type)
+
     def if_stmt(self, items):
         test = items[2]
         if_body = items[4]

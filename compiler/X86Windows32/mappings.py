@@ -23,7 +23,8 @@ node_to_builder_map = {
     "AddressOfStatement":           AddressOfStatementAssemblyBuilder,
     "DereferenceStatementNode":     DereferenceStatementAssemblyBuilder,
     "IfStatementNode":              IfStatementAssemblyBuilder,
-    "WhileStatementNode":           WhileStatementAssemblyBuilder
+    "WhileStatementNode":           WhileStatementAssemblyBuilder,
+    "CastingStatementNode":         CastingStatementAssemblyBuilder
 }
 
 test_to_jmp_instruction = {

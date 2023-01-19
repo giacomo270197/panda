@@ -30,12 +30,14 @@ TYPE: "int" | "string" | "array"
 !lowereq_stmt: expr "<=" expr [";"]
 !dereference_stmt.1: "*" expr
 !addressof_stmt: "&" IDENTIFIER
+!casting_stmt: IDENTIFIER "=" TYPE ";"
 
+?misc_stmts: casting_stmt
 ?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
 ?unary_stmts: dereference_stmt | addressof_stmt
 ?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt
 ?flow_stmts: functioncall_stmt | return_stmt | if_stmt | while_stmt
-?statement:  flow_stmts | binary_stmts | unary_stmts | test_stmts
+?statement:  misc_stmts | flow_stmts | binary_stmts | unary_stmts | test_stmts
 
 !block: "{" statement* "}"
 
