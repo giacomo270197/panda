@@ -266,7 +266,9 @@ class X86Windows32Compiler:
         parameters = {}
         for x in range(0, len(function.parameters), 2):
             parameters[function.parameters[x + 1].value] = function.parameters[x].value
-        list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())[::-1]})
+        list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())})
+        print(function.identifier)
+        print(list_of_variables.parameters)
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
