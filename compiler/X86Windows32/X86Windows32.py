@@ -136,12 +136,22 @@ class AdditionStatementAssemblyBuilder(BinaryOperator):
 class SubtractionStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
-        if not left_hand_type == right_hand_type:
-            exit("Cannot subtract operand {} and {}".format(right_hand, left_hand))
+        if not right_hand_type == "int":
+            exit("Cannot add operand {} and {}".format(right_hand, left_hand))
         if left_hand_type == "int":
             assembly.append("       sub {}, {}".format(left_hand, right_hand))
         elif left_hand_type == "string":
-            exit("Subtraction not available for strings")
+            try:
+                right_hand = hex(int(right_hand))
+            except ValueError:
+                pass
+            assembly.append("       sub {}, {}".format(left_hand, right_hand))
+        elif left_hand_type == "array":
+            try:
+                right_hand = hex(int(right_hand) * 4)
+            except ValueError:
+                assembly.append("       sal {}, 2".format(right_hand))
+            assembly.append("       sub {}, {}".format(left_hand, right_hand))
         return assembly
 
 

@@ -13,7 +13,7 @@ class Preprocessor:
 
     def implicit_test_statements(self):
         r = r'if\([^=]+?\)(\))?'
-        self.source = re.sub(r, lambda m: m.group()[:-1] + " == 0)" , self.source)
+        self.source = re.sub(r, lambda m: m.group()[:-1] + " != 0)" , self.source)
     
     def increment_shorthand(self):
         r = r'((.)*?)\+=(.)*?;'

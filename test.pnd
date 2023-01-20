@@ -1,8 +1,12 @@
+declare("MessageBoxA", "user32.dll");
+
 import libraries.utils.strings
 
 int fn main() {
-   string a = "Hello";
-   string b = " World";
-   a = strcat(a, b);
+   string a = "Hello World";
+   string b = "Caption";
+   a = strrvr(a, 0);
+   b = strrvr(b, 1);
+   MessageBoxA(0, a, b, 0);
    return a;
 }

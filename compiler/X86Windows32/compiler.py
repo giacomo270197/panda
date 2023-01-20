@@ -55,9 +55,9 @@ class X86Windows32Compiler:
                     return "ebp+{}".format(hex(idx))
                 else:
                     return "ebp-{}".format(hex(idx))
-            for key in state_of_registers.keys():
-                if state_of_registers[key][0] == name:
-                    return key
+            # for key in state_of_registers.keys():
+            #     if state_of_registers[key][0] == name:
+            #         return key
             in_params = False
             if self.current_type_var_req:
                 try:

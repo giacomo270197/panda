@@ -52,3 +52,30 @@ string fn strcat(string str1, string str2) {
    return newStr;
 }
 
+string fn strrvr(string str, int in_place) {
+    int cnt = 0;
+    int len = strlen(str) - 1;
+    if(in_place) {
+        while(cnt <= len) {
+            int tmp = 0;
+            tmp = string;
+            tmp = str[cnt];
+            str[cnt] = str[len];
+            str[len] = tmp;
+            cnt += 1;
+            len -= 1;
+        }
+        return str;
+    } else {
+        int heap_handle = RtlCreateHeap(2, 0, 0, 0, 0, 0);
+        int newStr = RtlAllocateHeap(heap_handle, 8, len + 1);
+        newStr = string;
+        while(len >= 0) {
+            newStr[cnt] = str[len];
+            cnt += 1;
+            len -= 1;
+        }
+        return newStr;
+    }
+}
+
