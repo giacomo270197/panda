@@ -14,6 +14,16 @@ class ControlFlowStatement(X86Windows32AssemblyBuilder):
     pass
 
 
+class WordOperatingStatement:
+    def __init__(self):
+        self.reg_mapping = {
+            "eax": "ax",
+            "ebx": "bx",
+            "ecx": "cx",
+            "edx": "dx"
+        }
+
+
 class TestStatement(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
@@ -205,6 +215,74 @@ class BitwiseOrStatementAssemblyBuilder(BinaryOperator):
         return assembly
 
 
+class RolStatementAssemblyBuilder(BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == "int":
+            exit("Cannot perform a rotation/shift with value of type {}".format(left_hand_type))
+        else:
+            assembly.append("       rol {}, {}".format(left_hand, right_hand))
+        return assembly
+
+
+class RorStatementAssemblyBuilder(BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == "int":
+            exit("Cannot perform a rotation/shift with value of type {}".format(left_hand_type))
+        else:
+            assembly.append("       ror {}, {}".format(left_hand, right_hand))
+        return assembly
+
+
+class Rol16StatementAssemblyBuilder(BinaryOperator, WordOperatingStatement):
+
+    def __init__(self):
+        super().__init__()
+
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == "int":
+            exit("Cannot perform a rotation/shift with value of type {}".format(left_hand_type))
+        else:
+            assembly.append("       rol {}, {}".format(self.reg_mapping[left_hand], right_hand))
+        return assembly
+
+
+class Ror16StatementAssemblyBuilder(BinaryOperator, WordOperatingStatement):
+
+    def __init__(self):
+        super().__init__()
+
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == "int":
+            exit("Cannot perform a rotation/shift with value of type {}".format(left_hand_type))
+        else:
+            assembly.append("       ror {}, {}".format(self.reg_mapping[left_hand], right_hand))
+        return assembly
+
+
+class ShlStatementAssemblyBuilder(BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == "int":
+            exit("Cannot perform a rotation/shift with value of type {}".format(left_hand_type))
+        else:
+            assembly.append("       shl {}, {}".format(left_hand, right_hand))
+        return assembly
+
+
+class ShrStatementAssemblyBuilder(BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == "int":
+            exit("Cannot perform a rotation/shift with value of type {}".format(left_hand_type))
+        else:
+            assembly.append("       shr {}, {}".format(left_hand, right_hand))
+        return assembly
+
+
 class EqualityStatementAssemblyBuilder(TestStatement):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         return super().generate_assembly(left_hand, left_hand_type, right_hand, right_hand_type)
@@ -245,6 +323,12 @@ class AddressOfStatementAssemblyBuilder(UnaryOperator):
         return assembly
 
 
+class NegateStatementAssemblyBuilder(UnaryOperator):
+    def generate_assembly(self, value):
+        assembly = ["       neg {}".format(value)]
+        return assembly
+
+
 class DereferenceStatementAssemblyBuilder(UnaryOperator):
     def generate_assembly(self, offset):
         pass
@@ -272,6 +356,8 @@ class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, parameters, target, syscall_idx):
         assembly = []
         for param in parameters[::-1]:
+            if isinstance(param, int):
+                param = hex(param)
             assembly.append("       push {}".format(param))
         if syscall_idx:
             assembly.append("       call dword ptr [esi+{}]".format(hex(0x14 + (syscall_idx * 4))))

@@ -9,7 +9,7 @@ node_to_builder_map = {
     "ReturnStatementNode":          ReturnStatementAssemblyBuilder,
     "AssignmentStatementNode":      AssignmentStatementAssemblyBuilder,
     "SubtractionStatementNode":     SubtractionStatementAssemblyBuilder,
-    "MultiplicationStatementNode" : MultiplicationStatementAssemblyBuilder,
+    "MultiplicationStatementNode":  MultiplicationStatementAssemblyBuilder,
     "DivisionStatementNode":        DivisionStatementAssemblyBuilder,
     "BitwiseAndStatementNode":      BitwiseAndStatementAssemblyBuilder,
     "BitwiseOrStatementNode":       BitwiseOrStatementAssemblyBuilder,
@@ -24,7 +24,14 @@ node_to_builder_map = {
     "DereferenceStatementNode":     DereferenceStatementAssemblyBuilder,
     "IfStatementNode":              IfStatementAssemblyBuilder,
     "WhileStatementNode":           WhileStatementAssemblyBuilder,
-    "CastingStatementNode":         CastingStatementAssemblyBuilder
+    "CastingStatementNode":         CastingStatementAssemblyBuilder,
+    "RorStatementNode":             RorStatementAssemblyBuilder,
+    "RolStatementNode":             RolStatementAssemblyBuilder,
+    "Rol16StatementNode":           Rol16StatementAssemblyBuilder,
+    "Ror16StatementNode":           Ror16StatementAssemblyBuilder,
+    "ShlStatementNode":             ShlStatementAssemblyBuilder,
+    "ShrStatementNode":             ShlStatementAssemblyBuilder,
+    "NegateStatementNode":          NegateStatementAssemblyBuilder
 }
 
 test_to_jmp_instruction = {

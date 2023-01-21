@@ -1,0 +1,9 @@
+declare("CreateProcessA", "kernel32.dll");
+
+int fn CreateProcess(string cmd_line) {
+    array startup_info int[17];
+    array process_info int[4];
+    startup_info[0] = 0x44;
+    int handle = CreateProcessA(0, cmd_line, 0, 0, 0, 0, 0, 0, startup_info, process_info);
+    return handle;
+}

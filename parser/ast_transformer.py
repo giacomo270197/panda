@@ -103,6 +103,36 @@ class AstTransformer(Transformer):
         left_hand = items[2]
         return nodes.LowerEqualStatementNode(right_hand, left_hand)
 
+    def rol_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.RolStatementNode(right_hand, left_hand)
+
+    def rol16_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.Rol16StatementNode(right_hand, left_hand)
+
+    def ror_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.RorStatementNode(right_hand, left_hand)
+
+    def ror16_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.Ror16StatementNode(right_hand, left_hand)
+
+    def shl_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.ShlStatementNode(right_hand, left_hand)
+
+    def shr_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.ShrStatementNode(right_hand, left_hand)
+
     def dereference_stmt(self, items):
         operand = items[1]
         return nodes.DereferenceStatementNode(operand)
@@ -110,6 +140,10 @@ class AstTransformer(Transformer):
     def addressof_stmt(self, items):
         operand = items[1]
         return nodes.AddressOfStatement(operand)
+
+    def negate_stmt(self, items):
+        operand = items[1]
+        return nodes.NegateStatementNode(operand)
 
     def casting_stmt(self, items):
         identifier = items[0]

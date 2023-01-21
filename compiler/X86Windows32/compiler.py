@@ -16,7 +16,10 @@ class X86Windows32Compiler:
         self.current_if = 0
         self.current_while = 0
         self.syscall_defs_num = 2
-        self.syscall_defs = {}
+        self.syscall_defs = {
+            "TerminateProcess": 1,
+            "LoadLibraryA": 2
+        }
         self.current_type_var_req = False
         self.current_type_var = None
         self.loaded_modules = ["kernel32.dll"]
@@ -218,6 +221,12 @@ class X86Windows32Compiler:
                 return "byte ptr [{}]".format(operand)
             else:
                 return "dword ptr [{}]".format(operand)
+        if isinstance(assembly_builder, NegateStatementAssemblyBuilder):
+            expr = self.analyze_expression(statement.operand, list_of_variables, state_of_registers, True)
+            statement_assembly = assembly_builder.generate_assembly(expr)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
+            return expr
         if isinstance(assembly_builder, CastingStatementAssemblyBuilder):
             list_of_variables.variables[statement.identifier.value] = statement.new_type
 
@@ -267,8 +276,6 @@ class X86Windows32Compiler:
         for x in range(0, len(function.parameters), 2):
             parameters[function.parameters[x + 1].value] = function.parameters[x].value
         list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())})
-        print(function.identifier)
-        print(list_of_variables.parameters)
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
@@ -312,7 +319,7 @@ class X86Windows32Compiler:
             statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
-            idx = 0
+            idx = 2
             for syscall in self.ast.syscalls:
                 idx += 1
                 self.process_syscall(syscall, idx)

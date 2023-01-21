@@ -1,0 +1,17 @@
+declare("WSAStartup", "ws2_32.dll");
+declare("WSASocketA", "ws2_32.dll");
+declare("WSAConnect", "ws2_32.dll");
+
+int fn ConnectTcp(int ip, int port) {
+    array wsa_data byte[400];
+    int version_required = 0x202;
+    array name  = int{0, ip, 0, 0};
+    port = port rol16 8;
+    port = port shl 16;
+    int family_and_port = port + 2;
+    name[0] = family_and_port;
+    WSAStartup(version_required, wsa_data);
+    int socket = WSASocketA(2, 1, 6, 0, 0, 0);
+    int res = WSAConnect(socket, name, 0x10, 0, 0, 0, 0);
+    return socket;
+}

@@ -114,12 +114,47 @@ class LowerEqualStatementNode(BinaryOperationNode):
         super().__init__(left_hand, right_hand)
 
 
+class RolStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
+class RorStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
+class Rol16StatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
+class Ror16StatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
+class ShlStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
+class ShrStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
 class AddressOfStatement(UnaryOperationNode):
     def __init__(self, operand):
         super().__init__(operand)
 
 
 class DereferenceStatementNode(UnaryOperationNode):
+    def __init__(self, operand):
+        super().__init__(operand)
+
+
+class NegateStatementNode(UnaryOperationNode):
     def __init__(self, operand):
         super().__init__(operand)
 

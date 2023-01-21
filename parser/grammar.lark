@@ -31,11 +31,18 @@ TYPE: "int" | "string" | "array"
 !dereference_stmt.1: "*" expr
 !addressof_stmt: "&" IDENTIFIER
 !casting_stmt: IDENTIFIER "=" TYPE ";"
+!rol_stmt: expr "rol" expr [";"]
+!ror_stmt: expr "ror" expr [";"]
+!rol16_stmt: expr "rol16" expr [";"]
+!ror16_stmt: expr "ror16" expr [";"]
+!shl_stmt: expr "shl" expr [";"]
+!shr_stmt: expr "shr" expr [";"]
+!negate_stmt: "!" expr [";"]
 
 ?misc_stmts: casting_stmt
 ?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
-?unary_stmts: dereference_stmt | addressof_stmt
-?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt
+?unary_stmts: dereference_stmt | addressof_stmt | negate_stmt
+?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | rol_stmt | ror_stmt | rol16_stmt | ror16_stmt| shl_stmt | shr_stmt
 ?flow_stmts: functioncall_stmt | return_stmt | if_stmt | while_stmt
 ?statement:  misc_stmts | flow_stmts | binary_stmts | unary_stmts | test_stmts
 
