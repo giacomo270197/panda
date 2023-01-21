@@ -20,10 +20,11 @@ class Parser:
         self.declares = set()
 
     def resolve_imports(self, source):
-        r = r'import ([\w|\.]+)'
+        ri = r'import ([\w|\.]+)'
+        rd = r'declare ()'
         code = source.split("\n")
         for x in range(len(code)):
-            m = re.search(r, code[x])
+            m = re.search(ri, code[x])
             if m and not m.groups()[0] in self.imports:
                 self.imports = self.imports.add(m.groups()[0])
                 path = os.path.join(*m.groups()[0].split(".")) + ".pnd"
