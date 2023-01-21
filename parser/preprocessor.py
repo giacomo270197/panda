@@ -55,7 +55,6 @@ class Preprocessor:
         return "0x" + "".join(value)
 
     def resolve_ip(self):
-        print("Running")
         r = r'IP\(([\d|.]+)\)'
         self.source = re.sub(r, lambda m: str(int(self.to_sin_ip(m.groups()[0]), 16)), self.source)
 

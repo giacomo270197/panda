@@ -21,18 +21,23 @@ class Parser:
 
     def resolve_imports(self, source):
         ri = r'import ([\w|\.]+)'
-        rd = r'declare ()'
+        rd = r'(declare .*?;)'
         code = source.split("\n")
         for x in range(len(code)):
+            m = re.search(rd, code[x])
+            if m:
+                self.declares.add(m.groups()[0])
+                code[x] = ""
             m = re.search(ri, code[x])
             if m and not m.groups()[0] in self.imports:
-                self.imports = self.imports.add(m.groups()[0])
+                self.imports.add(m.groups()[0])
                 path = os.path.join(*m.groups()[0].split(".")) + ".pnd"
                 f = open(path)
                 source = f.read()
                 f.close()
                 source_code = self.resolve_imports(source)
                 code[x] = source_code
+        code = list(self.declares) + code
         return "\n".join(code)
 
     def parse(self):
