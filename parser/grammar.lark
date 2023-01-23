@@ -19,8 +19,8 @@ TYPE: "int" | "string" | "array"
 !subtraction_stmt: expr "-" expr [";"]
 !multiplication_stmt: expr "*" expr [";"]
 !division_stmt: expr "/" expr [";"]
-!bitwiseand_stmt: expr "&" expr [";"]
-!bitwiseor_stmt: expr "|" expr [";"]
+!bitwiseand_stmt: expr "&&" expr [";"]
+!bitwiseor_stmt: expr "||" expr [";"]
 !return_stmt: "return" expr ";"
 !equality_stmt: expr "==" expr [";"]
 !inequality_stmt: expr "!=" expr [";"]

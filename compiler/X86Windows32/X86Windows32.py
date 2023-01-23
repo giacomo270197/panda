@@ -40,6 +40,7 @@ class FunctionAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, function_name, num_of_variables):
         num_of_variables *= 4
         assembly = [
+            "   startfunc_{}".format(function_name),
             "   {}:".format(function_name),
             "       push ebp",
             "       mov ebp, esp",

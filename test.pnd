@@ -1,7 +1,11 @@
-import libraries.attack.shells
+declare("MessageBoxA", "user32.dll");
+
+import libraries.utils.strings
 
 int fn main() {
-   ReverseTcpShell(IP(127.0.0.1), 8000);
-   TerminateProcess(0, 0xffffffff);
-   return 1;
+  string a = "Hello ";
+  string b = "world!";
+  string c = "Caption";
+  MessageBoxA(0, strcat(a, b), c, 0);
+  return 1;
 }

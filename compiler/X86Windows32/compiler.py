@@ -279,6 +279,7 @@ class X86Windows32Compiler:
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
+        self.assembly.append("   endfunc_{}".format(function.identifier))
 
     def ror_str(self, b, count):
         b = "{0:b}".format(b)
