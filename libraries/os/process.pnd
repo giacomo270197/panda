@@ -1,4 +1,12 @@
 declare("CreateProcessA", "kernel32.dll");
+declare("CreateToolhelp32Snapshot", "kernel32.dll");
+declare("Process32First", "kernel32.dll");
+declare("Process32Next", "kernel32.dll");
+declare("OpenProcess", "kernel32.dll");
+declare("RtlCreateHeap", "ntdll.dll");
+declare("RtlAllocateHeap", "ntdll.dll");
+
+import libraries.utils.strings
 
 int fn CreateProcess(string cmd_line) {
     array startup_info int[17];
@@ -6,4 +14,28 @@ int fn CreateProcess(string cmd_line) {
     startup_info[0] = 0x44;
     int handle = CreateProcessA(0, cmd_line, 0, 0, 0, 0, 0, 0, startup_info, process_info);
     return handle;
+}
+
+int fn OpenProcessByName(string name){
+    int snapshot = CreateToolhelp32Snapshot(2, 0);
+    int heap_handle = RtlCreateHeap(2, 0, 0, 0, 0, 0);
+    int process_entry = RtlAllocateHeap(heap_handle, 8, 400);
+    int cnt = 0;
+    while(cnt < 400) {
+        process_entry[cnt] = 0;
+        cnt += 1;
+    }
+    process_entry[0] = 296;
+    Process32First(snapshot, process_entry);
+    int retrieved = process_entry + 36;
+    retrieved = string;
+    int equal = strcmp(name, retrieved);
+    while(equal != 1) {
+        Process32Next(snapshot, process_entry);
+        retrieved = process_entry + 36;
+        equal = strcmp(name, retrieved);
+    }
+    int id = *(process_entry + 8);
+    int process_handle = OpenProcess(0x20, 1, id);
+    return id;
 }

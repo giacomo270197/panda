@@ -1,6 +1,7 @@
-import libraries.attack.shells
+import libraries.os.process
 
 int fn main() {
-  ReverseTcpShell(IP(127.0.0.1), 1337);
+  string name = "Notepad.exe";
+  int handle = OpenProcessByName(name);
   return 1;
 }
