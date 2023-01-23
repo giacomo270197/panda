@@ -13,14 +13,19 @@ class AstTransformer(Transformer):
     
     def array(self, items):
         new_items = []
-        arr_type = items[0]
-        for item in items[1:]:
+        defined = True
+        cnt = 0
+        if items[0] == "undef":
+            defined = False
+        arr_type = items[1]
+        cnt += 1
+        for item in items[2:]:
             if isinstance(item, str):
                 if item not in "\{\},":
                     new_items.append(item)
             else:
                 new_items.append(item)
-        return nodes.ArrayNode(arr_type, new_items)
+        return nodes.ArrayNode(arr_type, new_items, defined)
 
     def expr(self, items):
         if isinstance(items[0], nodes.ExprNode):
@@ -178,7 +183,7 @@ class AstTransformer(Transformer):
     def block(self, items):
             statements = items[1:-1]
             return nodes.BlockNode(statements)
-    
+
     def func_def(self, items):
         type = items[0].value
         identifier = items[1].value

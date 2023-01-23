@@ -94,7 +94,7 @@ class X86Windows32Compiler:
                     items.append(self.analyze_expression(item, list_of_variables, state_of_registers))
                 else:
                     items.append(item.value)
-            statement_assembly = assembly_builder.generate_assembly(arr_type, items)
+            statement_assembly = assembly_builder.generate_assembly(arr_type, items, statement.defined)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
             return "esp"

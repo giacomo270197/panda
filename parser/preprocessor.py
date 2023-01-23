@@ -33,7 +33,7 @@ class Preprocessor:
 
     def expand_arrays(self):
         r = r'array\s(\w+)+?\s(int|byte)\[(\d+)\]'
-        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + m.groups()[1] + "{" + "0, " * (int(m.groups()[2]) - 1) + "0}", self.source)
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + " undef " + m.groups()[1] + "{" + "0, " * (int(m.groups()[2]) - 1) + "0}", self.source)
     
     def expand_strings(self):
         r = r'string\s(\w+)\[(\d)+\]'

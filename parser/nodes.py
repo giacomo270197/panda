@@ -35,7 +35,8 @@ class UnaryOperationNode(StatementNode):
 
 
 class ArrayNode(StatementNode):
-    def __init__(self, arr_type, items):
+    def __init__(self, arr_type, items, defined):
+        self.defined = defined
         self.arr_type = arr_type
         self.items = items
 

