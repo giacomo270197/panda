@@ -1,5 +1,5 @@
 
-![](https://giacomo270197.github.io/assets/panda/images/panda_logo.jpeg)
+![](https://giacomo270197.github.io/assets/panda/images/panda_logo2.png)
 
 
 # Panda
