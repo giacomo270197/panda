@@ -1,7 +1,7 @@
-import libraries.os.process
-
 int fn main() {
-  string name = "Notepad.exe";
-  int handle = OpenProcessByName(name);
+  int a = 1;
+  int b = 2;
+  a = a ^ b;
+  # This is a comment
   return 1;
 }

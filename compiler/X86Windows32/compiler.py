@@ -229,6 +229,11 @@ class X86Windows32Compiler:
             return expr
         if isinstance(assembly_builder, CastingStatementAssemblyBuilder):
             list_of_variables.variables[statement.identifier.value] = statement.new_type
+        if isinstance(assembly_builder, CommentStatementAssemblyBuilder):
+            text = statement.text
+            statement_assembly = assembly_builder.generate_assembly(text)
+            for instruction in statement_assembly:
+                self.assembly.append(instruction)
 
     def reset_registers(self, registers):
         for key in registers.keys():

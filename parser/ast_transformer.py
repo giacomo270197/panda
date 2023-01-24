@@ -71,12 +71,17 @@ class AstTransformer(Transformer):
     def bitwiseand_stmt(self, items):
         right_hand = items[0]
         left_hand = items[2]
-        return nodes.BitwiseAndStatementNode(right_hand, left_hand)
+        return nodes.BitwiseXorStatementNode(right_hand, left_hand)
     
     def bitwiseor_stmt(self, items):
         right_hand = items[0]
         left_hand = items[2]
         return nodes.BitwiseOrStatementNode(right_hand, left_hand)
+
+    def bitwisexor_stmt(self, items):
+        right_hand = items[0]
+        left_hand = items[2]
+        return nodes.BitwiseXorStatementNode(right_hand, left_hand)
 
     def equality_stmt(self, items):
         right_hand = items[0]
@@ -149,6 +154,11 @@ class AstTransformer(Transformer):
     def negate_stmt(self, items):
         operand = items[1]
         return nodes.NegateStatementNode(operand)
+
+    def comment(self, items):
+        text = items[1]
+        text = text.value.replace("\n", "")
+        return nodes.CommentStatementNode(text)
 
     def casting_stmt(self, items):
         identifier = items[0]

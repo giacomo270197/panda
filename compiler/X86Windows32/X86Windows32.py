@@ -222,6 +222,18 @@ class BitwiseOrStatementAssemblyBuilder(BinaryOperator):
         return assembly
 
 
+class BitwiseXorStatementAssemblyBuilder(BinaryOperator):
+    def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
+        assembly = []
+        if not left_hand_type == right_hand_type:
+            exit("Cannot peform bitwise XOR on operand {} and {}".format(right_hand, left_hand))
+        if left_hand_type == "int":
+            assembly.append("       xor {}, {}".format(left_hand, right_hand))
+        elif left_hand_type == "string":
+            exit("Bitwise XOR not available for strings")
+        return assembly
+
+
 class RolStatementAssemblyBuilder(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
         assembly = []
@@ -388,6 +400,14 @@ class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
                 "       pop ebp",
                 "       ret",
             ]
+        return assembly
+
+
+class CommentStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
+    def generate_assembly(self, text):
+        assembly = [
+            "       ; {}".format(text)
+        ]
         return assembly
 
 

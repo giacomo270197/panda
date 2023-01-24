@@ -37,10 +37,10 @@ def main():
     compiler.create_assembly()
     if args.debug_asm:
         compiler.show_assembly()
-    code = compiler.compile()
     if args.asm:
         with open(args.asm, "w") as file:
             file.write("\n".join(compiler.assembly))
+    code = compiler.compile()
     if args.bin:
         with open(args.bin, "wb") as file:
             file.write(code)

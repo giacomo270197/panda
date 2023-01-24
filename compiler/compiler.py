@@ -27,7 +27,14 @@ class Compiler:
         for instruction in self.assembly:
             print(instruction)
 
+    def remove_comments(self):
+        for x in range(len(self.assembly)):
+            line = self.assembly[x].replace(" ", "")
+            if line[0] == ";":
+                self.assembly[x] = ""
+
     def compile(self):
+        self.remove_comments()
         assembly = "\n".join(self.assembly)
         self.binary_code = self.compiler.compile(assembly)
         return self.binary_code

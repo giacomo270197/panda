@@ -13,6 +13,7 @@ node_to_builder_map = {
     "DivisionStatementNode":        DivisionStatementAssemblyBuilder,
     "BitwiseAndStatementNode":      BitwiseAndStatementAssemblyBuilder,
     "BitwiseOrStatementNode":       BitwiseOrStatementAssemblyBuilder,
+    "BitwiseXorStatementNode":      BitwiseXorStatementAssemblyBuilder,
     "FunctionCallStatementNode":    FunctionCallStatementAssemblyBuilder,
     "EqualityStatementNode":        EqualityStatementAssemblyBuilder,
     "InequalityStatementNode":      InequalityStatementAssemblyBuilder,
@@ -31,7 +32,8 @@ node_to_builder_map = {
     "Ror16StatementNode":           Ror16StatementAssemblyBuilder,
     "ShlStatementNode":             ShlStatementAssemblyBuilder,
     "ShrStatementNode":             ShlStatementAssemblyBuilder,
-    "NegateStatementNode":          NegateStatementAssemblyBuilder
+    "NegateStatementNode":          NegateStatementAssemblyBuilder,
+    "CommentStatementNode":         CommentStatementAssemblyBuilder
 }
 
 test_to_jmp_instruction = {

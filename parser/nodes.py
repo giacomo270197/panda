@@ -85,6 +85,11 @@ class BitwiseOrStatementNode(BinaryOperationNode):
         super().__init__(left_hand, right_hand)
 
 
+class BitwiseXorStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
 class EqualityStatementNode(BinaryOperationNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
@@ -189,6 +194,11 @@ class WhileStatementNode(StatementNode):
 class ReturnStatementNode(StatementNode):
     def __init__(self, expr):
         self.expr = expr
+
+
+class CommentStatementNode(StatementNode):
+    def __init__(self, text):
+        self.text = text
 
 
 class BlockNode(Node):
