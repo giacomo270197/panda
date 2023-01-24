@@ -1,7 +1,11 @@
+import libraries.os.network
+
 int fn main() {
-  int a = 1;
-  int b = 2;
-  a = a ^ b;
-  # This is a comment
+  string host = "127.0.0.1";
+  string url = "/test.txt";
+  string name = "new_test.txt";
+  string app = "Internet Explorer";
+  string headers = "Content-Type: text/html\n";
+  HTTPDownloadFile(host, url, name, 2000);
   return 1;
 }

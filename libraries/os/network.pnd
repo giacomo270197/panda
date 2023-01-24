@@ -1,6 +1,17 @@
 declare("WSAStartup", "ws2_32.dll");
 declare("WSASocketA", "ws2_32.dll");
 declare("WSAConnect", "ws2_32.dll");
+declare("InternetOpenA", "wininet.dll");
+declare("InternetConnectA", "wininet.dll");
+declare("HttpOpenRequestA", "wininet.dll");
+declare("HttpSendRequestA", "wininet.dll");
+declare("InternetReadFile", "wininet.dll");
+declare("RtlCreateHeap", "ntdll.dll");
+declare("RtlAllocateHeap", "ntdll.dll");
+declare("CreateFileA", "kernel32.dll");
+declare("WriteFile", "kernel32.dll");
+
+import libraries.utils.strings
 
 int fn ConnectTcp(int ip, int port) {
     array wsa_data byte[400];
@@ -14,4 +25,33 @@ int fn ConnectTcp(int ip, int port) {
     int socket = WSASocketA(2, 1, 6, 0, 0, 0);
     int res = WSAConnect(socket, name, 0x10, 0, 0, 0, 0);
     return socket;
+}
+
+int fn HTTPConnect(string user_agent, string target) {
+    int iopen_handle = InternetOpenA(user_agent, 1, 0, 0, 0);
+    int session = InternetConnectA(iopen_handle, target, 80, 0, 0, 3, 0, 0);
+    return session;
+}
+
+int fn HTTPGetRequest(int session, string url, string headers) {
+    string verb = "GET";
+    int request = HttpOpenRequestA(session, verb, url, 0, 0, 0, 0x80000000, 0);
+    int headers_length = strlen(headers);
+    HttpSendRequestA(request, headers, headers_length, 0, 0);
+    return request;
+}
+
+int fn HTTPDownloadFile(string host, string url, string filename, int file_size) {
+    string ua = "Internet Explorer";
+    string headers = "Content-Type: application/octet-stream";
+    int heap_handle = RtlCreateHeap(2, 0, 0, 0, 0, 0);
+    int buffer = RtlAllocateHeap(heap_handle, 8, file_size);
+    int session = HTTPConnect(ua, host);
+    int request = HTTPGetRequest(session, url, headers);
+    int bytes_read;
+    int bytes_read_addr = &bytes_read;
+    InternetReadFile(request, buffer, file_size - 1, bytes_read_addr);
+    int file_handle = CreateFileA(filename, 0x40000000, 0, 0, 1, 0x80);
+    WriteFile(file_handle, buffer, file_size, 0, 0);
+    return file_handle;
 }

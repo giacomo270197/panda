@@ -34,6 +34,8 @@ class X86Windows32Compiler:
             if state_of_registers[key][1]:
                 available_register = key
                 break
+        if not available_register:
+            exit("No more available registers, use more variables")
         return available_register
 
     def analyze_expression(self, expr, list_of_variables, state_of_registers, pointer=False):
@@ -109,8 +111,11 @@ class X86Windows32Compiler:
                                                                     value)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
-            if isinstance(statement.expr, ArrayNode) and statement.expr.arr_type == "byte":
-                statement.type = "string"
+            try:
+                if isinstance(statement.expr, ArrayNode) and statement.expr.arr_type == "byte":
+                    statement.type = "string"
+            except AttributeError:
+                pass
             list_of_variables.variables[statement.identifier.value] = statement.type
         if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
             identifier = statement.identifier
@@ -284,7 +289,7 @@ class X86Windows32Compiler:
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
-        self.assembly.append("add esp, {}".format(hex(len(parameters) * 4)))
+        self.assembly.append("      add esp, {}".format(hex(len(parameters) * 4)))
         self.assembly.append("   endfunc_{}".format(function.identifier))
 
     def ror_str(self, b, count):
