@@ -7,8 +7,6 @@ int fn main() {
   string host = "127.0.0.1";
   string url = "/test.exe";
   string name = "new_test.exe";
-  string app = "Internet Explorer";
-  string headers = "Content-Type: text/html\n";
   int file = HTTPDownloadFile(host, url, name, 100000);
   CloseHandle(file);
   string empty = "";
