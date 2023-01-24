@@ -8,11 +8,21 @@ declare("RtlAllocateHeap", "ntdll.dll");
 
 import libraries.utils.strings
 
-int fn CreateProcess(string cmd_line) {
+int fn CreateProcess(string file_name, string cmd_line) {
     array startup_info int[17];
-    array process_info int[4];
+    int cnt = 0;
+    while(cnt < 17) {
+        startup_info[cnt] = 0;
+        cnt += 1;
+    }
+    array process_info = int{0, 0, 0, 0};
     startup_info[0] = 0x44;
-    int handle = CreateProcessA(0, cmd_line, 0, 0, 0, 0, 0, 0, startup_info, process_info);
+    int handle = 0;
+    if(strlen(file_name) != 0){
+        handle = CreateProcessA(file_name, 0, 0, 0, 0, 0, 0, 0, startup_info, process_info);
+    } else {
+        handle = CreateProcessA(0, cmd_line, 0, 0, 0, 0, 0, 0, startup_info, process_info);
+    }
     return handle;
 }
 

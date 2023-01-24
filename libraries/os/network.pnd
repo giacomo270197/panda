@@ -48,7 +48,7 @@ int fn HTTPDownloadFile(string host, string url, string filename, int file_size)
     int buffer = RtlAllocateHeap(heap_handle, 8, file_size);
     int session = HTTPConnect(ua, host);
     int request = HTTPGetRequest(session, url, headers);
-    int bytes_read;
+    int bytes_read = 0;
     int bytes_read_addr = &bytes_read;
     InternetReadFile(request, buffer, file_size - 1, bytes_read_addr);
     int file_handle = CreateFileA(filename, 0x40000000, 0, 0, 1, 0x80);

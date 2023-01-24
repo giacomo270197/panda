@@ -18,27 +18,46 @@ class Parser:
         self.text = text
         self.imports = set()
         self.declares = set()
+        self.sources = []
 
-    def resolve_imports(self, source):
+    def find_imported_libraries(self, code):
         ri = r'import ([\w|\.]+)'
-        rd = r'(declare .*?;)'
-        code = source.split("\n")
-        for x in range(len(code)):
-            m = re.search(rd, code[x])
+        for line in code:
+            m = re.search(ri, line)
             if m:
-                self.declares.add(m.groups()[0])
-                code[x] = ""
-            m = re.search(ri, code[x])
-            if m and not m.groups()[0] in self.imports:
-                self.imports.add(m.groups()[0])
-                path = os.path.join(*m.groups()[0].split(".")) + ".pnd"
+                imp = m.groups()[0].replace(" ", "").replace("\n", "")
+                path = os.path.join(*imp.split(".")) + ".pnd"
+                self.imports.add(path)
                 f = open(path)
                 source = f.read()
                 f.close()
-                source_code = self.resolve_imports(source)
-                code[x] = source_code
-        code = list(self.declares) + code
-        return "\n".join(code)
+                self.find_imported_libraries(source.split("\n"))
+
+    def find_syscall_declarations(self, code):
+        rd = r'(declare(.*?;))'
+        for line in code:
+            m = re.search(rd, line)
+            if m:
+                self.declares.add(m.groups()[0])
+
+    def resolve_imports(self, source):
+        new_code = []
+        code = source.split("\n")
+        self.find_imported_libraries(code)
+        self.find_syscall_declarations(code)
+        for library in self.imports:
+            with open(library) as f:
+                imp_source = f.read()
+                imp_source = imp_source.split("\n")
+                self.sources.append(imp_source)
+                self.find_syscall_declarations(imp_source)
+        self.sources.append(code)
+        for s in self.sources:
+            for line in s:
+                if not line.lstrip().startswith("import") and not line.lstrip().startswith("declare"):
+                    new_code.append(line)
+        new_code = list(self.declares) + new_code
+        return "\n".join(new_code)
 
     def parse(self):
         self.text = self.resolve_imports(self.text)

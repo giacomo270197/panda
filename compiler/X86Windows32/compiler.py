@@ -151,7 +151,7 @@ class X86Windows32Compiler:
             return "eax"
         if isinstance(assembly_builder, ReturnStatementAssemblyBuilder):
             value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
-            statement_assembly = assembly_builder.generate_assembly(value)
+            statement_assembly = assembly_builder.generate_assembly(value, len(list_of_variables.variables))
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
         if isinstance(assembly_builder, IfStatementAssemblyBuilder):
@@ -215,6 +215,7 @@ class X86Windows32Compiler:
             statement_assembly = assembly_builder.generate_assembly(idx, in_params, register)
             for instruction in statement_assembly:
                 self.assembly.append(instruction)
+            return register
         if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
             operand = statement.operand
             self.current_type_var_req = True
@@ -289,7 +290,6 @@ class X86Windows32Compiler:
         for statement in statements:
             self.reset_registers(state_of_registers)
             self.process_statement(statement, list_of_variables, state_of_registers)
-        self.assembly.append("      add esp, {}".format(hex(len(parameters) * 4)))
         self.assembly.append("   endfunc_{}".format(function.identifier))
 
     def ror_str(self, b, count):

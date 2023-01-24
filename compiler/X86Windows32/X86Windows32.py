@@ -26,13 +26,7 @@ class WordOperatingStatement:
 
 class TestStatement(BinaryOperator):
     def generate_assembly(self, left_hand, left_hand_type, right_hand, right_hand_type):
-        assembly = []
-        if not left_hand_type == right_hand_type:
-            exit("Cannot peform comparison on operand {} and {}".format(right_hand, left_hand))
-        if left_hand_type == "int":
-            assembly.append("       cmp {}, {}".format(format_int(left_hand), format_int(right_hand)))
-        elif left_hand_type == "string":
-            exit("Comparison not available for strings")
+        assembly = ["       cmp {}, {}".format(format_int(left_hand), format_int(right_hand))]
         return assembly
 
 
@@ -382,13 +376,15 @@ class FunctionCallStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
             assembly.append("       call dword ptr [esi+{}]".format(hex(0x14 + (syscall_idx * 4))))
         else:
             assembly.append("       call {}".format(target))
+            assembly.append("       add esp, {}".format(hex(len(parameters) * 4)))
         return assembly
 
 
 class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
-    def generate_assembly(self, value):
+    def generate_assembly(self, value, vars):
         if value == "eax":
             assembly = [
+                "       add esp, {}".format(hex(vars * 4)),
                 "       mov esp, ebp",
                 "       pop ebp",
                 "       ret",
@@ -396,6 +392,7 @@ class ReturnStatementAssemblyBuilder(X86Windows32AssemblyBuilder):
         else:
             assembly = [
                 "       mov eax, {}".format(value),
+                "       add esp, {}".format(hex(vars * 4)),
                 "       mov esp, ebp",
                 "       pop ebp",
                 "       ret",
@@ -415,7 +412,7 @@ class SyscallResolverAssemblyBuilder(X86Windows32AssemblyBuilder):
     def generate_assembly(self, syscall_nums):
         assembly = [
             "       mov ebp, esp",
-            "       sub esp, {}".format(hex(syscall_nums * 4 + 1552)),
+            "       sub esp, {}".format(hex(syscall_nums * 4 + 0x2000)),
             "   find_kernel32:                       ",
             "       xor ecx,ecx                     ",  # ECX = 0
             "       mov esi,fs:[ecx+30h]            ",  # ESI = &(PEB) ([FS:0x30])
