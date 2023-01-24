@@ -1,6 +1,6 @@
-
-![](https://giacomo270197.github.io/assets/panda/images/panda_logo2.png)
-
+<p align="center">
+    <img src="https://giacomo270197.github.io/assets/panda/images/panda_logo2.png" />
+</p>
 
 # Panda
 
