@@ -1,3 +1,7 @@
+
+![](https://giacomo270197.github.io/assets/panda/images/panda_logo.jpeg)
+
+
 # Panda
 
 Panda is a programming language created with Windows shellcode in mind. The compiler builds a completely position-independent assembly which is then assembled with Keystone engine. Lark is used for parsing the EBFN grammar and creating the AST.  
