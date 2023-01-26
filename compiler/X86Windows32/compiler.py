@@ -1,9 +1,9 @@
 import copy
 import keystone as ks
 import struct
+from llvmlite import ir
 
-from compiler.X86Windows32.X86Windows32 import *
-from compiler.X86Windows32.mappings import node_to_builder_map, test_to_jmp_instruction
+from compiler.X86Windows32.mappings import type_mappings, size_mappings
 from compiler.X86Windows32.postprocess import PostProcessor
 from parser.nodes import *
 
@@ -12,336 +12,120 @@ class X86Windows32Compiler:
 
     def __init__(self, ast):
         self.ast = ast
-        self.assembly = []
-        self.current_if = 0
-        self.current_while = 0
-        self.syscall_defs_num = 2
-        self.syscall_defs = {
-            "TerminateProcess": 1,
-            "LoadLibraryA": 2
-        }
-        self.current_type_var_req = False
-        self.current_type_var = None
-        self.loaded_modules = ["kernel32.dll"]
+        # self.assembly = []
+        # self.current_if = 0
+        # self.current_while = 0
+        # self.syscall_defs_num = 2
+        # self.syscall_defs = {
+        #     "TerminateProcess": 1,
+        #     "LoadLibraryA": 2
+        # }
+        # self.current_type_var_req = False
+        # self.current_type_var = None
+        # self.loaded_modules = ["kernel32.dll"]
+        self.module = None
 
     class Variables:
-        def __init__(self, parameters):
-            self.parameters = parameters
-            self.variables = {}
+        def __init__(self):
+            self.parameters = {}
+            self.locals = {}
 
-    def find_available_register(self, state_of_registers):
-        for key in state_of_registers.keys():
-            if state_of_registers[key][1]:
-                available_register = key
-                break
-        if not available_register:
-            exit("No more available registers, use more variables")
-        return available_register
-
-    def analyze_expression(self, expr, list_of_variables, state_of_registers, pointer=False):
+    def analyze_expression(self, expr, builder, variables):
         if isinstance(expr, LiteralExprNode):
-            try:
-                return int(expr.value)
-            except ValueError:
-                return expr.value
+            return ir.Constant(type_mappings["int32"], expr.value)
         if isinstance(expr, IdentifierExprNode):
-            name = expr.value
-            if name not in list(list_of_variables.variables.keys()) and name not in list(
-                    list_of_variables.parameters.keys()):
-                exit("Error: variable {} not declared".format(name))
-            if pointer:
-                try:
-                    idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
-                    in_params = False
-                except ValueError:
-                    idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                    in_params = True
-                if in_params:
-                    return "ebp+{}".format(hex(idx))
-                else:
-                    return "ebp-{}".format(hex(idx))
-            # for key in state_of_registers.keys():
-            #     if state_of_registers[key][0] == name:
-            #         return key
-            in_params = False
-            if self.current_type_var_req:
-                try:
-                    self.current_type_var = list_of_variables.variables[name]
-                except KeyError:
-                    self.current_type_var = list_of_variables.parameters[name]
-                self.current_type_var_req = False
-            try:
-                idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
-            except ValueError:
-                idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                in_params = True
-            available_register = self.find_available_register(state_of_registers)
-            if in_params:
-                self.assembly.append("       mov {}, [ebp+{}]".format(available_register, hex(idx)))
-            else:
-                self.assembly.append("       mov {}, [ebp-{}]".format(available_register, hex(idx)))
-            state_of_registers[available_register][0] = name
-            state_of_registers[available_register][1] = False
-            return available_register
+            if expr.value in variables.locals:
+                tmp = builder.load(variables.locals[expr.value])
+                return tmp
         if isinstance(expr, StatementNode):
-            return self.process_statement(expr, list_of_variables, state_of_registers)
+            return self.process_statement(expr, builder, variables)
 
-    def process_statement(self, statement, list_of_variables, state_of_registers):
-        assembly_builder = node_to_builder_map[type(statement).__name__]()
-        if isinstance(assembly_builder, ArrayNodeAssemblyBuilder):
-            items = []
-            arr_type = statement.arr_type
-            for item in statement.items:
-                if isinstance(item, ExprNode):
-                    items.append(self.analyze_expression(item, list_of_variables, state_of_registers))
-                else:
-                    items.append(item.value)
-            statement_assembly = assembly_builder.generate_assembly(arr_type, items, statement.defined)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            return "esp"
-        if isinstance(assembly_builder, DeclarationStatementAssemblyBuilder):
-            value = None
+    def process_statement(self, statement, builder, variables):
+        if isinstance(statement, ReturnStatementNode):
+            builder.ret(self.analyze_expression(statement.expr, builder, variables))
+        elif isinstance(statement, DeclarationStatementNode):
+            if statement.type == "array":
+                actual_type = ir.PointerType(type_mappings[statement.expr.arr_type])
+            else:
+                actual_type = type_mappings[statement.type]
+            ptr = builder.alloca(actual_type)
+            variables.locals[statement.identifier.value] = ptr
             try:
-                if statement.expr:
-                    value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
+                value = self.analyze_expression(statement.expr, builder, variables)
+                builder.store(value, ptr)
             except AttributeError:
                 pass
-            statement_assembly = assembly_builder.generate_assembly(len(list_of_variables.variables), statement.type,
-                                                                    value)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            try:
-                if isinstance(statement.expr, ArrayNode) and statement.expr.arr_type == "byte":
-                    statement.type = "string"
-            except AttributeError:
-                pass
-            list_of_variables.variables[statement.identifier.value] = statement.type
-        if isinstance(assembly_builder, AssignmentStatementAssemblyBuilder):
-            identifier = statement.identifier
-            if isinstance(identifier, StatementNode):
-                target = self.analyze_expression(identifier, list_of_variables, state_of_registers)
-                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
-            else:
-                name = statement.identifier.value
-                if name not in list(list_of_variables.variables.keys()) and name not in list(
-                        list_of_variables.parameters.keys()):
-                    exit("Error: variable {} not declared".format(name))
-                try:
-                    idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
-                    target = "dword ptr [ebp-{}]".format(hex(idx))
-                except ValueError:
-                    idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                    target = "dword ptr [ebp+{}]".format(hex(idx))
-                value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
-            statement_assembly = assembly_builder.generate_assembly(target, value)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-        if isinstance(assembly_builder, FunctionCallStatementAssemblyBuilder):
-            parameters = []
-            for expr in statement.parameters:
-                parameters.append(self.analyze_expression(expr, list_of_variables, state_of_registers))
-            target = statement.target.value
-            syscall_idx = None
-            if target in list(self.syscall_defs.keys()):
-                syscall_idx = self.syscall_defs[target]
-            statement_assembly = assembly_builder.generate_assembly(parameters, target, syscall_idx)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            return "eax"
-        if isinstance(assembly_builder, ReturnStatementAssemblyBuilder):
-            value = self.analyze_expression(statement.expr, list_of_variables, state_of_registers)
-            statement_assembly = assembly_builder.generate_assembly(value, len(list_of_variables.variables))
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-        if isinstance(assembly_builder, IfStatementAssemblyBuilder):
-            self.current_if += 1
-            self.process_statement(statement.test, list_of_variables, state_of_registers)
-            jmp_intruction = test_to_jmp_instruction[type(statement.test).__name__]
-            statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_if)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            self.process_block(statement.if_body, copy.deepcopy(list_of_variables), state_of_registers)
-            try:
-                else_body = statement.else_body
-                self.assembly.append("      jmp if_stmt{}_else".format(str(self.current_if)))
-                self.assembly.append("   if_stmt{}:".format(str(self.current_if)))
-                self.process_block(else_body, copy.deepcopy(list_of_variables), state_of_registers)
-                self.assembly.append("   if_stmt{}_else:".format(str(self.current_if)))
-            except AttributeError:
-                self.assembly.append("   if_stmt{}:".format(str(self.current_if)))
-        if isinstance(assembly_builder, WhileStatementAssemblyBuilder):
-            self.current_while += 1
-            self.assembly.append("   while_stmt{}:".format(str(self.current_while)))
-            self.process_statement(statement.test, list_of_variables, state_of_registers)
-            jmp_intruction = test_to_jmp_instruction[type(statement.test).__name__]
-            statement_assembly = assembly_builder.generate_assembly(jmp_intruction, self.current_while)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            self.process_block(statement.body, copy.deepcopy(list_of_variables), state_of_registers)
-            self.assembly.append("       jmp while_stmt{}".format(str(self.current_while)))
-            self.assembly.append("   while_stmt{}_end:".format(str(self.current_while)))
-        if isinstance(assembly_builder, BinaryOperator):
-            first_operator = self.analyze_expression(statement.left_hand, list_of_variables, state_of_registers)
-            second_operator = self.analyze_expression(statement.right_hand, list_of_variables, state_of_registers)
-            def get_type(operand):
-                if isinstance(operand, str):
-                    if operand in state_of_registers.keys():
-                        try:
-                            return list_of_variables.variables[state_of_registers[operand][0]]
-                        except KeyError:
-                            return list_of_variables.parameters[state_of_registers[operand][0]]
-                    else:
-                        return "string"
-                else:
-                    return type(operand).__name__
+        elif isinstance(statement, BinaryOperationNode):
+            lhs = self.analyze_expression(statement.left_hand, builder, variables)
+            rhs = self.analyze_expression(statement.right_hand, builder, variables)
+            tmp = None
+            if isinstance(statement, AdditionStatementNode):
+                tmp = builder.add(lhs, rhs)
+            elif isinstance(statement, SubtractionStatementNode):
+                tmp = builder.sub(lhs, rhs)
+            elif isinstance(statement, MultiplicationStatementNode):
+                tmp = builder.mul(lhs, rhs)
+            elif isinstance(statement, DivisionStatementNode):
+                tmp = builder.udiv(lhs, rhs)
+            elif isinstance(statement, BitwiseAndStatementNode):
+                tmp = builder.and_(lhs, rhs)
+            elif isinstance(statement, BitwiseOrStatementNode):
+                tmp = builder.or_(lhs, rhs)
+            elif isinstance(statement, BitwiseXorStatementNode):
+                tmp = builder.xor(lhs, rhs)
+            elif isinstance(statement, ShlStatementNode):
+                tmp = builder.shl(lhs, rhs)
+            elif isinstance(statement, ShrStatementNode):
+                tmp = builder.shr(lhs, rhs)
+            return tmp
+        elif isinstance(statement, UnaryOperationNode):
+            operand = self.analyze_expression(statement.operand, builder, variables)
+            tmp = None
+            if isinstance(statement, NegateStatementNode):
+                tmp = builder.neg(operand)
+            elif isinstance(statement, DereferenceStatementNode):
+                tmp = builder.load(operand)
+            elif isinstance(statement, AddressOfStatement):
+                tmp = builder.ptrtoint(operand, operand.as_pointer())
+            return tmp
+        elif isinstance(statement, ArrayNode):
+            array_space = builder.alloca(type_mappings[statement.arr_type], len(statement.items))
+            if statement.defined:
+                for x in range(len(statement.items)):
+                    int_ptr = builder.ptrtoint(array_space, type_mappings[statement.arr_type])
+                    new_idx = builder.add(int_ptr, ir.Constant(int_ptr.type, x * size_mappings[statement.arr_type]))
+                    new_idx_ptr = builder.inttoptr(new_idx, new_idx.as_pointer())
+                    builder.store(ir.Constant(type_mappings[statement.arr_type], statement.items[x]), new_idx_ptr)
+            return array_space
+        else:
+            exit()
 
-            first_operator_type = get_type(first_operator)
-            second_operator_type = get_type(second_operator)
-            statement_assembly = assembly_builder.generate_assembly(first_operator, first_operator_type,
-                                                                    second_operator, second_operator_type)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            return first_operator
-        if isinstance(assembly_builder, AddressOfStatementAssemblyBuilder):
-            name = statement.operand.value
-            in_params = False
-            try:
-                idx = (list(list_of_variables.variables.keys()).index(name) + 1) * 4
-            except ValueError:
-                idx = (list(list_of_variables.parameters.keys()).index(name) + 2) * 4
-                in_params = True
-            register = self.find_available_register(state_of_registers)
-            statement_assembly = assembly_builder.generate_assembly(idx, in_params, register)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            return register
-        if isinstance(assembly_builder, DereferenceStatementAssemblyBuilder):
-            operand = statement.operand
-            self.current_type_var_req = True
-            if isinstance(operand, IdentifierExprNode):
-                operand = self.analyze_expression(operand, list_of_variables, state_of_registers, True)
-            else:
-                operand = self.analyze_expression(operand, list_of_variables, state_of_registers)
-            if self.current_type_var == "string":
-                return "byte ptr [{}]".format(operand)
-            else:
-                return "dword ptr [{}]".format(operand)
-        if isinstance(assembly_builder, NegateStatementAssemblyBuilder):
-            expr = self.analyze_expression(statement.operand, list_of_variables, state_of_registers, True)
-            statement_assembly = assembly_builder.generate_assembly(expr)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            return expr
-        if isinstance(assembly_builder, CastingStatementAssemblyBuilder):
-            list_of_variables.variables[statement.identifier.value] = statement.new_type
-        if isinstance(assembly_builder, CommentStatementAssemblyBuilder):
-            text = statement.text
-            statement_assembly = assembly_builder.generate_assembly(text)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-
-    def reset_registers(self, registers):
-        for key in registers.keys():
-            registers[key][0] = None
-            registers[key][1] = True
-
-    def process_block(self, block, list_of_variables, state_of_registers):
-        statements = block.statements
-        for statement in statements:
-            self.reset_registers(state_of_registers)
-            self.process_statement(statement, list_of_variables, state_of_registers)
-        self.reset_registers(state_of_registers)
-
-    def resolve_num_variables(self, body, num_of_variables):
-        statements = body.statements
-        blocks = []
-        for statement in statements:
-            if isinstance(statement, DeclarationStatementNode):
-                num_of_variables += 1
-            if isinstance(statement, IfStatementNode):
-                blocks.append(statement.if_body)
-                try:
-                    blocks.append(statement.else_body)
-                except AttributeError:
-                    pass
-            if isinstance(statement, WhileStatementNode):
-                blocks.append(statement.body)
-        for block in blocks:
-            num_of_variables = self.resolve_num_variables(block, num_of_variables)
-        return num_of_variables
+    def process_block(self, block, function, variables):
+        ir_block = function.append_basic_block()
+        builder = ir.IRBuilder(ir_block)
+        for statement in block.statements:
+            self.process_statement(statement, builder, variables)
 
     def process_function(self, function):
-        statements = function.body.statements
-        state_of_registers = {
-            "eax": [None, True],
-            "ebx": [None, True],
-            "ecx": [None, True],
-            "edx": [None, True],
-            "edi": [None, True],
-        }
-        num_of_variables = self.resolve_num_variables(function.body, 0)
-        assembly = FunctionAssemblyBuilder().generate_assembly(function.identifier, num_of_variables)
-        self.assembly += assembly
-        parameters = {}
-        for x in range(0, len(function.parameters), 2):
-            parameters[function.parameters[x + 1].value] = function.parameters[x].value
-        list_of_variables = self.Variables({x: parameters[x] for x in list(parameters.keys())})
-        for statement in statements:
-            self.reset_registers(state_of_registers)
-            self.process_statement(statement, list_of_variables, state_of_registers)
-        self.assembly.append("   endfunc_{}".format(function.identifier))
+        func_type = function.type
+        func_identifier = function.identifier
+        func_parameters = function.parameters
+        func_body = function.body
+        new_func_type = ir.FunctionType(type_mappings[func_type],
+                                        [type_mappings[func_parameters[x]] for x in range(len(func_parameters)) if
+                                         x % 2 == 0])
+        func = ir.Function(self.module, new_func_type, name=func_identifier)
+        variables = self.Variables()
+        variables.parameters = {x: y for x, y in zip(func_parameters[1::2], func_parameters[::2])}
+        self.process_block(func_body, func, variables)
 
-    def ror_str(self, b, count):
-        b = "{0:b}".format(b)
-        binb = (32 - len(b)) * '0' + b
-        while count > 0:
-            binb = binb[-1] + binb[0:-1]
-            count -= 1
-        return int(binb, 2)
-
-    def push_function_hash(self, function_name):
-        edx = 0x00
-        ror_count = 0
-        for eax in function_name:
-            edx = edx + ord(eax)
-            if ror_count < len(function_name) - 1:
-                edx = self.ror_str(edx, 0xd)
-            ror_count += 1
-        return "push " + hex(edx)
-
-    def process_syscall(self, syscall, idx):
-        if syscall.module_name.value.replace("\"", "") not in self.loaded_modules:
-            self.loaded_modules.append(syscall.module_name.value.replace("\"", ""))
-            statement_assembly = LoadLibraryAssemblyBuilder().generate_assembly(syscall.module_name)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-        key = syscall.function_name.value.replace("\"", "")
-        self.syscall_defs[key] = idx
-        self.assembly.append("       " + self.push_function_hash(key))
-        statement_assembly = FindFunctionPointerAssemblyBuilder().generate_assembly(idx)
-        for instruction in statement_assembly:
-            self.assembly.append(instruction)
-
-    def create_assembly(self):
-        self.assembly.append("start:")
-        self.syscall_defs_num += len(self.ast.syscalls)
-        if self.syscall_defs_num > 2:
-            self.ast.syscalls.sort(key=lambda x: x.module_name)
-            statement_assembly = SyscallResolverAssemblyBuilder().generate_assembly(self.syscall_defs_num)
-            for instruction in statement_assembly:
-                self.assembly.append(instruction)
-            idx = 2
-            for syscall in self.ast.syscalls:
-                idx += 1
-                self.process_syscall(syscall, idx)
-            self.assembly.append("       mov esi, ebp")
-        self.assembly.append("       jmp main")
+    def create_assembly(self, platform):
+        self.module = ir.Module(name="Shellcode")
         for function in self.ast.func_defs:
             self.process_function(function)
-        post_process = PostProcessor(self.assembly)
-        self.assembly = post_process.postprocess()
-        return self.assembly
+        with open("example.ll", "w") as f:
+            f.write(str(self.module))
+        return
 
     def compile(self, assembly):
         eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)

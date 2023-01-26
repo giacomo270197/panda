@@ -33,46 +33,46 @@ def main():
     parser.build_ast()
 
     # Transform the AST into Assembly
-    compiler = Compiler("x86Windows32", parser.ast)
+    compiler = Compiler("32", parser.ast)
     compiler.create_assembly()
-    if args.debug_asm:
-        compiler.show_assembly()
-    if args.asm:
-        with open(args.asm, "w") as file:
-            file.write("\n".join(compiler.assembly))
-    code = compiler.compile()
-    if args.bin:
-        with open(args.bin, "wb") as file:
-            file.write(code)
-    if args.py:
-        out = [("{0:#0{1}x}".format(x, 2)).replace("0x", "\\x") for x in code]
-        out = "".join(out)
-        with open(args.py, "w") as file:
-            file.write(out)
+    # if args.debug_asm:
+    #     compiler.show_assembly()
+    # if args.asm:
+    #     with open(args.asm, "w") as file:
+    #         file.write("\n".join(compiler.assembly))
+    # code = compiler.compile()
+    # if args.bin:
+    #     with open(args.bin, "wb") as file:
+    #         file.write(code)
+    # if args.py:
+    #     out = [("{0:#0{1}x}".format(x, 2)).replace("0x", "\\x") for x in code]
+    #     out = "".join(out)
+    #     with open(args.py, "w") as file:
+    #         file.write(out)
 
-    # Run code in current process
-    if args.test:
-        ptr = ctypes.windll.kernel32.VirtualAlloc(
-            ctypes.c_int(0),
-            ctypes.c_int(len(code)),
-            ctypes.c_int(0x3000),
-            ctypes.c_int(0x40),
-        )
-        buf = (ctypes.c_char * len(code)).from_buffer(code)
-        ctypes.windll.kernel32.RtlMoveMemory(
-            ctypes.c_int(ptr), buf, ctypes.c_int(len(code))
-        )
-        print("[=]   Shellcode located at address %s" % hex(ptr))
-        input("...ENTER TO EXECUTE SHELLCODE...")
-        ht = ctypes.windll.kernel32.CreateThread(
-            ctypes.c_int(0),
-            ctypes.c_int(0),
-            ctypes.c_int(ptr),
-            ctypes.c_int(0),
-            ctypes.c_int(0),
-            ctypes.pointer(ctypes.c_int(0)),
-        )
-        ctypes.windll.kernel32.WaitForSingleObject(ctypes.c_int(ht), ctypes.c_int(-1))
+    # # Run code in current process
+    # if args.test:
+    #     ptr = ctypes.windll.kernel32.VirtualAlloc(
+    #         ctypes.c_int(0),
+    #         ctypes.c_int(len(code)),
+    #         ctypes.c_int(0x3000),
+    #         ctypes.c_int(0x40),
+    #     )
+    #     buf = (ctypes.c_char * len(code)).from_buffer(code)
+    #     ctypes.windll.kernel32.RtlMoveMemory(
+    #         ctypes.c_int(ptr), buf, ctypes.c_int(len(code))
+    #     )
+    #     print("[=]   Shellcode located at address %s" % hex(ptr))
+    #     input("...ENTER TO EXECUTE SHELLCODE...")
+    #     ht = ctypes.windll.kernel32.CreateThread(
+    #         ctypes.c_int(0),
+    #         ctypes.c_int(0),
+    #         ctypes.c_int(ptr),
+    #         ctypes.c_int(0),
+    #         ctypes.c_int(0),
+    #         ctypes.pointer(ctypes.c_int(0)),
+    #     )
+    #     ctypes.windll.kernel32.WaitForSingleObject(ctypes.c_int(ht), ctypes.c_int(-1))
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ class Compiler:
     binary_code = None
 
     def __init__(self, platform, ast):
-        if platform == "x86Windows32":
+        if platform == "32":
             self.platform = platform
             self.ast = ast
             self.assembly = None
@@ -17,9 +17,9 @@ class Compiler:
             exit("Platform {} not supported, aborting".format(platform))
 
     def create_assembly(self):
-        if self.platform == "x86Windows32":
+        if self.platform == "32":
             self.compiler = X86Windows32Compiler(self.ast)
-            self.assembly = self.compiler.create_assembly()
+            self.assembly = self.compiler.create_assembly(self.platform)
         else:
             exit("Platform {} not supported, aborting".format(self.platform))
 

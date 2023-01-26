@@ -5,10 +5,10 @@
 
 LITERAL: SIGNED_NUMBER | ESCAPED_STRING 
 IDENTIFIER: CNAME
-TYPE: "int" | "string" | "array"
+TYPE: "int8" | "int16" |  "int32" | "int64" | "array" | "string"
 
 !expr: LITERAL | IDENTIFIER | array | ["("] statement [")"] 
-!array: ["undef"] ("int"|"byte") "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
+!array: ["undef"] ("int8" | "int16" |  "int32" | "int64") "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
 
 !declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
 !assign_stmt: expr "=" expr ";"

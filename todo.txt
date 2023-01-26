@@ -1,3 +1,5 @@
 # Fix errors found implementing strcmp
 - Only 3 variables declared out of 5 (sub esp, 0xc)
 - Function params are at a wrong offset (0xc and 0x18)
+
+clang -g -o output.s -masm=intel -S -x ir [-m32] example.ll

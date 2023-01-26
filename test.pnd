@@ -1,17 +1,5 @@
-declare("CloseHandle", "kernel32.dll");
-
-import libraries.os.network
-import libraries.os.process
-
-int fn main() {
-  string host = "127.0.0.1";
-  string url = "/test.exe";
-  string name = "new_test.exe";
-  string app = "Internet Explorer";
-  string headers = "Content-Type: text/html\n";
-  int file = HTTPDownloadFile(host, url, name, 100000);
-  CloseHandle(file);
-  string empty = "";
-  CreateProcess(name, empty);
-  return 1;
+int32 fn main(int32 b) {
+  array a = int32{1, 2, 3, 4};
+  &a + 4 = 9;
+  return *(&a + 4);
 }
