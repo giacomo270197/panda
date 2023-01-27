@@ -41,9 +41,9 @@ class ArrayNode(StatementNode):
         self.items = items
 
 
-class IndexingStatementNode(UnaryOperationNode):
+class IndexingStatementNode(StatementNode):
     def __init__(self, operand, index):
-        super().__init__(operand)
+        self.operand = operand
         self.index = index
 
 

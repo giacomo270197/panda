@@ -41,7 +41,6 @@ class X86Windows32Compiler:
         if isinstance(expr, LiteralExprNode):
             return ir.Constant(type_mappings["int64"], expr.value)
         if isinstance(expr, IdentifierExprNode) and "as_ptr" in kwargs:
-            print(variables.locals)
             return variables.locals[expr.value].ptr
         elif isinstance(expr, IdentifierExprNode):
             return variables.locals[expr.value].value
@@ -81,7 +80,9 @@ class X86Windows32Compiler:
         elif isinstance(statement, AssignmentStatementNode):
             identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
             value = self.analyze_expression(statement.expr, builder, variables)
-            variables.locals[statement.identifier.value].value = value
+            print(statement.identifier)
+            if isinstance(identifier, IdentifierExprNode):
+                variables.locals[statement.identifier.value].value = value
             builder.store(value, identifier)
         elif isinstance(statement, BinaryOperationNode):
             lhs = self.analyze_expression(statement.left_hand, builder, variables)
