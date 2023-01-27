@@ -18,8 +18,8 @@ type_mappings = {
 }
 
 size_mappings = {
-    "int8": 1,
-    "int16": 2,
-    "int32": 3,
-    "int64": 4,
+    "i8": 1,
+    "i16": 2,
+    "i32": 3,
+    "i64": 4,
 }

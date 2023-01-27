@@ -27,6 +27,11 @@ class AstTransformer(Transformer):
                 new_items.append(item)
         return nodes.ArrayNode(arr_type, new_items, defined)
 
+    def indexing_stmt(self, items):
+        identifier = items[0]
+        index = items[2]
+        return nodes.IndexingStatementNode(identifier, index)
+
     def expr(self, items):
         if isinstance(items[0], nodes.ExprNode):
             return items[0]

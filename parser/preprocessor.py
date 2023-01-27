@@ -9,7 +9,7 @@ class Preprocessor:
         self.source = source
         self.rules = [self.implicit_test_statements, self.increment_shorthand, self.decrement_shorthand,
         self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.expand_strings,
-        self.array_index, self.hex_repr, self.resolve_ip]
+        self.hex_repr, self.resolve_ip]
 
     def implicit_test_statements(self):
         r = r'if\([^=]+?\)(\))?'
@@ -39,9 +39,9 @@ class Preprocessor:
         r = r'string\s(\w+)\[(\d)+\]'
         self.source = re.sub(r, lambda m: "string " + m.groups()[0] + " = \"" + ("0") * (int(m.groups()[1]) - 1) + "0\"", self.source)
 
-    def array_index(self):
-        r = r'\b(?!int\b|byte\b)(\w+)\[(\w+)\]'
-        self.source = re.sub(r, lambda m: "*(" + m.groups()[0] + " + " + m.groups()[1] + ")", self.source)
+    # def array_index(self):
+    #     r = r'\b(?!int\b|byte\b)(\w+)\[(\w+)\]'
+    #     self.source = re.sub(r, lambda m: "*(" + m.groups()[0] + " + " + m.groups()[1] + ")", self.source)
 
     def hex_repr(self):
         r = r'(0x[\w]+)'
