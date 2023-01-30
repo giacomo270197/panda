@@ -1,10 +1,12 @@
-import copy
-import keystone as ks
+import os
 import struct
+import subprocess
+import re
+
+import keystone as ks
 from llvmlite import ir
 
 from compiler.X86Windows32.mappings import type_mappings, size_mappings
-from compiler.X86Windows32.postprocess import PostProcessor
 from parser.nodes import *
 
 
@@ -53,6 +55,8 @@ class X86Windows32Compiler:
                 if "as_ptr" not in kwargs:
                     tmp = builder.load(tmp)
                 return tmp
+            elif isinstance(expr, AddressOfStatement):
+                return variables.locals[expr.operand.value].ptr
             else:
                 return self.process_statement(expr, builder, variables)
 
@@ -69,11 +73,14 @@ class X86Windows32Compiler:
                 variables.locals[statement.identifier.value] = self.Variable(ptr, None)
                 try:
                     value = self.analyze_expression(statement.expr, builder, variables)
-                    if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
-                        value = builder.trunc(value, actual_type)
-                    elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
-                        value = value.zext(value, actual_type)
-                    builder.store(value, ptr)
+                    if isinstance(value.type, ir.PointerType):
+                        builder.store(value, ptr)
+                    else:
+                        if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
+                            value = builder.trunc(value, actual_type)
+                        elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
+                            value = value.zext(value, actual_type)
+                        builder.store(value, ptr)
                     variables.locals[statement.identifier.value].value = value
                 except AttributeError:
                     pass
@@ -115,8 +122,6 @@ class X86Windows32Compiler:
                 tmp = builder.neg(operand)
             elif isinstance(statement, DereferenceStatementNode):
                 tmp = builder.load(operand)
-            elif isinstance(statement, AddressOfStatement):
-                tmp = builder.ptrtoint(operand, operand.as_pointer())
             return tmp
         elif isinstance(statement, ArrayNode):
             arr_type = ir.ArrayType(type_mappings[statement.arr_type], len(statement.items))
@@ -172,6 +177,16 @@ class X86Windows32Compiler:
         func = ir.Function(self.module, new_func_type, name=func_identifier)
         self.functions[func_identifier] = func
 
+    def clean_assembly(self, asm):
+        new_asm = []
+        asm = asm.split("\n")
+        for line in asm:
+            if not line.replace("\t", "").startswith(".") and not line.replace(" ", "").startswith("#"):
+                new_asm.append(line)
+        new_asm = "\n".join(new_asm)
+        new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
+        return new_asm
+
     def create_assembly(self, platform):
         self.module = ir.Module(name="Shellcode")
         for function in self.ast.func_defs:
@@ -180,7 +195,16 @@ class X86Windows32Compiler:
             self.process_function(function)
         with open("example.ll", "w") as f:
             f.write(str(self.module))
-        return
+        subprocess.call(["clang", "-g", "-ooutput.s", "-masm=intel", "-S", "-x", "ir", "-m32", "example.ll"],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                        )
+        path = os.path.join(os.getcwd(), "output.s")
+        with open(path) as asm_file:
+            asm = asm_file.read()
+        asm = self.clean_assembly(asm)
+        asm = "jmp main\n" + asm
+        return asm
 
     def compile(self, assembly):
         eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)

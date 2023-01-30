@@ -15,6 +15,10 @@ type_mappings = {
     "int16": ir.IntType(16),
     "int32": ir.IntType(32),
     "int64": ir.IntType(64),
+    "ptr int8": ir.PointerType(ir.IntType(8)),
+    "ptr int16": ir.PointerType(ir.IntType(16)),
+    "ptr int32": ir.PointerType(ir.IntType(32)),
+    "ptr int64": ir.PointerType(ir.IntType(64))
 }
 
 size_mappings = {

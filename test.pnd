@@ -1,11 +1,11 @@
-int32 fn helper(int32 num, int32 mun){
-    num = mun + 2;
-    return num;
+ptr int32 fn add(int32 a, int32 b) {
+    int32 c = a + b;
+    return &c;
 }
 
 int32 fn main() {
-  array b = int32{1, 2, 3, 4};
-  int32 a = b[2];
-  b[3] = a + 3;
-  return b[3];
+  int32 a = 5;
+  int32 b = 6;
+  ptr int32 c = add(a, b);
+  return *c;
 }
