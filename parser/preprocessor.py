@@ -7,13 +7,12 @@ class Preprocessor:
 
     def __init__(self, source):
         self.source = source
-        self.rules = [self.implicit_test_statements, self.increment_shorthand, self.decrement_shorthand,
-        self.multiplication_shorthand, self.division_shorthand, self.expand_arrays, self.expand_strings,
-        self.hex_repr, self.resolve_ip]
+        self.rules = [self.increment_shorthand, self.decrement_shorthand, self.multiplication_shorthand,
+                      self.division_shorthand, self.expand_arrays, self.expand_strings, self.hex_repr, self.resolve_ip]
 
-    def implicit_test_statements(self):
-        r = r'if\([^=]+?\)(\))?'
-        self.source = re.sub(r, lambda m: m.group()[:-1] + " != 0)" , self.source)
+    # def implicit_test_statements(self):
+    #     r = r'if\([^=]+?\)(\))?'
+    #     self.source = re.sub(r, lambda m: m.group()[:-1] + " != 0)" , self.source)
     
     def increment_shorthand(self):
         r = r'((.)*?)\+=(.)*?;'

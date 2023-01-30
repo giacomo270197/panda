@@ -1,13 +1,12 @@
-from parser.nodes import *
 from llvmlite import ir
 
-test_to_jmp_instruction = {
-    "EqualityStatementNode": "jne",
-    "InequalityStatementNode": "je",
-    "GreaterStatementNode": "jle",
-    "GreaterEqualStatementNode": "jl",
-    "LowerStatementNode": "jge",
-    "LowerEqualStatementNode": "jg"
+test_instructions = {
+    "EqualityStatementNode": "==",
+    "InequalityStatementNode": "!=",
+    "GreaterStatementNode": ">",
+    "GreaterEqualStatementNode": ">=",
+    "LowerStatementNode": "<",
+    "LowerEqualStatementNode": "<="
 }
 
 type_mappings = {

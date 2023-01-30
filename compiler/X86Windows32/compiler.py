@@ -6,7 +6,7 @@ import re
 import keystone as ks
 from llvmlite import ir
 
-from compiler.X86Windows32.mappings import type_mappings, size_mappings
+from compiler.X86Windows32.mappings import type_mappings, size_mappings, test_instructions
 from parser.nodes import *
 
 
@@ -45,6 +45,7 @@ class X86Windows32Compiler:
         if isinstance(expr, IdentifierExprNode) and "as_ptr" in kwargs:
             return variables.locals[expr.value].ptr
         elif isinstance(expr, IdentifierExprNode):
+            print(variables.locals[expr.value].value)
             return variables.locals[expr.value].value
         if isinstance(expr, StatementNode):
             if isinstance(expr, IndexingStatementNode):
@@ -62,6 +63,7 @@ class X86Windows32Compiler:
 
     def process_statement(self, statement, builder, variables):
         if isinstance(statement, ReturnStatementNode):
+            print("Returning")
             builder.ret(self.analyze_expression(statement.expr, builder, variables))
         elif isinstance(statement, DeclarationStatementNode):
             if statement.type == "array":
@@ -83,14 +85,19 @@ class X86Windows32Compiler:
                         builder.store(value, ptr)
                     variables.locals[statement.identifier.value].value = value
                 except AttributeError:
-                    pass
+                    variables.locals[statement.identifier.value].value = actual_type(0)
         elif isinstance(statement, AssignmentStatementNode):
             identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
+            print(identifier)
             value = self.analyze_expression(statement.expr, builder, variables)
-            print(statement.identifier)
             if isinstance(identifier, IdentifierExprNode):
                 variables.locals[statement.identifier.value].value = value
             builder.store(value, identifier)
+        elif isinstance(statement, ComparisonStatementNode):
+            sign = test_instructions[statement.__class__.__name__]
+            lhs = self.analyze_expression(statement.left_hand, builder, variables)
+            rhs = self.analyze_expression(statement.right_hand, builder, variables)
+            return builder.icmp_unsigned(sign, lhs, rhs)
         elif isinstance(statement, BinaryOperationNode):
             lhs = self.analyze_expression(statement.left_hand, builder, variables)
             rhs = self.analyze_expression(statement.right_hand, builder, variables)
@@ -143,8 +150,20 @@ class X86Windows32Compiler:
                 params.append(self.analyze_expression(x, builder, variables))
             ret = builder.call(func, params)
             return ret
+        elif isinstance(statement, IfStatementNode):
+            test = self.analyze_expression(statement.test, builder, variables)
+            with builder.if_else(test) as (then, otherwise):
+                with then:
+                    self.process_branch_block(statement.if_body, variables, builder)
+                with otherwise:
+                    self.process_branch_block(statement.else_body, variables, builder)
         else:
             exit("Node handling not implemented for {}".format(statement.__class__.__name__))
+
+    def process_branch_block(self, block, variables, builder):
+        for statement in block.statements:
+            print(statement)
+            self.process_statement(statement, builder, variables)
 
     def process_block(self, block, function, variables):
         ir_block = function.append_basic_block()
@@ -196,8 +215,7 @@ class X86Windows32Compiler:
         with open("example.ll", "w") as f:
             f.write(str(self.module))
         subprocess.call(["clang", "-g", "-ooutput.s", "-masm=intel", "-S", "-x", "ir", "-m32", "example.ll"],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL
+                        stdout=subprocess.DEVNULL
                         )
         path = os.path.join(os.getcwd(), "output.s")
         with open(path) as asm_file:

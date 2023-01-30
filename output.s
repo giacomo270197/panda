@@ -15,13 +15,27 @@
 	.p2align	4, 0x90
 _add:                                   # @add
 # %bb.0:                                # %.4
-	push	eax
-	mov	ecx, dword ptr [esp + 12]
-	mov	eax, dword ptr [esp + 8]
+	sub	esp, 12
+	mov	ecx, dword ptr [esp + 20]
+	mov	dword ptr [esp], ecx            # 4-byte Spill
+	mov	eax, dword ptr [esp + 16]
+	mov	dword ptr [esp + 4], eax        # 4-byte Spill
+	cmp	eax, ecx
+	jbe	LBB0_2
+# %bb.1:                                # %.4.if
+	mov	ecx, dword ptr [esp]            # 4-byte Reload
+	mov	eax, dword ptr [esp + 4]        # 4-byte Reload
 	add	eax, ecx
-	mov	dword ptr [esp], eax
-	mov	eax, esp
-	pop	ecx
+	mov	dword ptr [esp + 8], eax
+	jmp	LBB0_3
+LBB0_2:                                 # %.4.else
+	mov	ecx, dword ptr [esp]            # 4-byte Reload
+	mov	eax, dword ptr [esp + 4]        # 4-byte Reload
+	sub	eax, ecx
+	mov	dword ptr [esp + 8], eax
+LBB0_3:                                 # %.4.endif
+	lea	eax, [esp + 8]
+	add	esp, 12
 	ret
                                         # -- End function
 	.def	_main;
@@ -38,7 +52,7 @@ _main:                                  # @main
 	sub	esp, 24
 	mov	ecx, 5
 	mov	dword ptr [esp + 20], 5
-	mov	eax, 6
+	mov	eax, 4
 	mov	dword ptr [esp + 16], eax
 	mov	dword ptr [esp], ecx
 	mov	dword ptr [esp + 4], eax

@@ -1,11 +1,16 @@
 ptr int32 fn add(int32 a, int32 b) {
-    int32 c = a + b;
-    return &c;
+  int32 c;
+  if(a > b) {
+    c = a + b;
+  } else {
+    c = a - b;
+  }
+  return &c;
 }
 
 int32 fn main() {
-  int32 a = 5;
-  int32 b = 6;
-  ptr int32 c = add(a, b);
-  return *c;
+    int32 a = 5;
+    int32 b = 4;
+    ptr int32 c = add(5, 4);
+    return *c;
 }

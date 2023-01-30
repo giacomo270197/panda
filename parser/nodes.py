@@ -29,6 +29,11 @@ class BinaryOperationNode(StatementNode):
         self.right_hand = right_hand
 
 
+class ComparisonStatementNode(BinaryOperationNode):
+    def __init__(self, left_hand, right_hand):
+        super().__init__(left_hand, right_hand)
+
+
 class UnaryOperationNode(StatementNode):
     def __init__(self, operand):
         self.operand = operand
@@ -96,32 +101,32 @@ class BitwiseXorStatementNode(BinaryOperationNode):
         super().__init__(left_hand, right_hand)
 
 
-class EqualityStatementNode(BinaryOperationNode):
+class EqualityStatementNode(ComparisonStatementNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
 
-class InequalityStatementNode(BinaryOperationNode):
+class InequalityStatementNode(ComparisonStatementNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
 
-class GreaterStatementNode(BinaryOperationNode):
+class GreaterStatementNode(ComparisonStatementNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
 
-class GreaterEqualStatementNode(BinaryOperationNode):
+class GreaterEqualStatementNode(ComparisonStatementNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
 
-class LowerStatementNode(BinaryOperationNode):
+class LowerStatementNode(ComparisonStatementNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
 
-class LowerEqualStatementNode(BinaryOperationNode):
+class LowerEqualStatementNode(ComparisonStatementNode):
     def __init__(self, left_hand, right_hand):
         super().__init__(left_hand, right_hand)
 
@@ -187,8 +192,7 @@ class IfStatementNode(StatementNode):
     def __init__(self, test, if_body, else_body=None):
         self.test = test
         self.if_body = if_body
-        if else_body:
-            self.else_body = else_body
+        self.else_body = else_body
 
 
 class WhileStatementNode(StatementNode):
