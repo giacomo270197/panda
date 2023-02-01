@@ -182,6 +182,13 @@ class CastingStatementNode(StatementNode):
         self.new_type = new_type
 
 
+class AsmStatementNode(StatementNode):
+    def __init__(self, input_mapping, assembly, output_mapping):
+        self.input_mapping = input_mapping
+        self.assembly = assembly
+        self.output_mapping = output_mapping
+
+
 class FunctionCallStatementNode(StatementNode):
     def __init__(self, target, parameters):
         self.target = target

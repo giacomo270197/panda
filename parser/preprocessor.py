@@ -1,4 +1,10 @@
 import re
+def string_to_arr(string):
+    val = []
+    for x in string:
+        val.append(hex(ord(x)))
+    return ", ".join(val)
+
 
 class Preprocessor:
 
@@ -33,10 +39,10 @@ class Preprocessor:
     def expand_arrays(self):
         r = r'array\s(\w+)+?\s(int|byte)\[(\d+)\]'
         self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + " undef " + m.groups()[1] + "{" + "0, " * (int(m.groups()[2]) - 1) + "0}", self.source)
-    
+
     def expand_strings(self):
-        r = r'string\s(\w+)\[(\d)+\]'
-        self.source = re.sub(r, lambda m: "string " + m.groups()[0] + " = \"" + ("0") * (int(m.groups()[1]) - 1) + "0\"", self.source)
+        r = r'string\s+?(\w+?)\s=\s+?"([\w\s]*?)"\s*?;'
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " =  int8{" + string_to_arr(m.groups()[1]) + "};", self.source)
 
     # def array_index(self):
     #     r = r'\b(?!int\b|byte\b)(\w+)\[(\w+)\]'

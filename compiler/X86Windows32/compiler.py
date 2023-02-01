@@ -6,7 +6,7 @@ import re
 import keystone as ks
 from llvmlite import ir
 
-from compiler.X86Windows32.mappings import type_mappings, size_mappings, test_instructions
+from compiler.X86Windows32.mappings import type_mappings, size_mappings, test_instructions, register_size_mapping
 from parser.nodes import *
 
 
@@ -16,6 +16,8 @@ class X86Windows32Compiler:
         self.ast = ast
         self.module = None
         self.functions = {}
+        self.loops = 0
+        self.ifs = 0
 
     class Variable:
         def __init__(self, ptr, value):
@@ -45,8 +47,8 @@ class X86Windows32Compiler:
         if isinstance(expr, IdentifierExprNode) and "as_ptr" in kwargs:
             return variables.locals[expr.value].ptr
         elif isinstance(expr, IdentifierExprNode):
-            print(variables.locals[expr.value].value)
-            return variables.locals[expr.value].value
+            ret = builder.load(variables.locals[expr.value].ptr)
+            return ret
         if isinstance(expr, StatementNode):
             if isinstance(expr, IndexingStatementNode):
                 operand = self.analyze_expression(expr.operand, builder, variables, as_ptr=True)
@@ -63,7 +65,6 @@ class X86Windows32Compiler:
 
     def process_statement(self, statement, builder, variables):
         if isinstance(statement, ReturnStatementNode):
-            print("Returning")
             builder.ret(self.analyze_expression(statement.expr, builder, variables))
         elif isinstance(statement, DeclarationStatementNode):
             if statement.type == "array":
@@ -88,7 +89,6 @@ class X86Windows32Compiler:
                     variables.locals[statement.identifier.value].value = actual_type(0)
         elif isinstance(statement, AssignmentStatementNode):
             identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
-            print(identifier)
             value = self.analyze_expression(statement.expr, builder, variables)
             if isinstance(identifier, IdentifierExprNode):
                 variables.locals[statement.identifier.value].value = value
@@ -154,15 +154,36 @@ class X86Windows32Compiler:
             test = self.analyze_expression(statement.test, builder, variables)
             with builder.if_else(test) as (then, otherwise):
                 with then:
-                    self.process_branch_block(statement.if_body, variables, builder)
+                    self.process_branch_block(statement.if_body, builder, variables)
                 with otherwise:
-                    self.process_branch_block(statement.else_body, variables, builder)
+                    if statement.else_body:
+                        self.process_branch_block(statement.else_body, builder, variables)
+        elif isinstance(statement, WhileStatementNode):
+            self.loops += 1
+            loop = builder.append_basic_block("loop_{}".format(str(self.loops)))
+            after = builder.append_basic_block("loop_after_{}".format(str(self.loops)))
+            builder.cbranch(self.analyze_expression(statement.test, builder, variables), loop, after)
+            builder.position_at_start(loop)
+            self.process_branch_block(statement.body, builder, variables)
+            builder.cbranch(self.analyze_expression(statement.test, builder, variables), loop, after)
+            builder.position_at_start(after)
+        elif isinstance(statement, AsmStatementNode):
+            for var, reg in statement.input_mapping.items():
+                val = self.analyze_expression(var, builder, variables)
+                builder.store_reg(val, ir.IntType(register_size_mapping[reg]), reg)
+            fty = ir.FunctionType(ir.VoidType(), [])
+            print("Here")
+            print(statement.assembly.replace("\"", ""))
+            builder.asm(fty, statement.assembly.replace("\"", ""), "", [], False)
+            for reg, val in statement.output_mapping.items():
+                tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)
+                ptr = self.analyze_expression(val, builder, variables, as_ptr=True)
+                builder.store(tmp, ptr)
         else:
             exit("Node handling not implemented for {}".format(statement.__class__.__name__))
 
-    def process_branch_block(self, block, variables, builder):
+    def process_branch_block(self, block, builder, variables):
         for statement in block.statements:
-            print(statement)
             self.process_statement(statement, builder, variables)
 
     def process_block(self, block, function, variables):
