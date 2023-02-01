@@ -56,8 +56,7 @@ class DeclarationStatementNode(StatementNode):
     def __init__(self, type, identifier, expr=None):
         self.type = type
         self.identifier = identifier
-        if expr:
-            self.expr = expr
+        self.expr = expr
 
 
 class AssignmentStatementNode(StatementNode):

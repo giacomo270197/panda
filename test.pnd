@@ -1,6 +1,43 @@
+int32 fn compute_hash(int32 name) {
+    
+}
+
+int32 fn find_function(int32 base_address, int32 hash){
+    int32 pe_signature = *(base_address + 0x3c);
+    pe_signature += base_address;
+    int32 etd = *(pe_signature + 0x78);
+    etd += base_address;
+    int32 number_of_names = *(etd + 0x18);
+    int32 address_of_names = *(etd + 0x20);
+    address_of_names += base_address;
+    number_of_names -= 1;
+    while(number_of_names > 0) {
+        int32 symbol_name = address_of_names + (number_of_names * 4);
+        symbol_name = *(base_address + *symbol_name);
+
+        number_of_names -= 1;
+    }
+    return pe_signature;
+}
+
 int32 fn main() {
-    int32 a = 5;
-    int32 b = 4;
-    _asm("a:eax", "mov %fs:0x30, %ebx", "ebx:b");
-    return b;
+    int32 pointer = 0;
+    _asm("pointer:eax", "mov %fs:0x30, %eax", "eax:pointer");
+    pointer = *(pointer + 0xc);
+    pointer = *(pointer + 0x1c);
+    int32 base_address = *(pointer + 8);
+    int32 module_name = *(pointer + 0x20);
+    int8 guard = 0;
+    while(guard == 0) {
+        pointer = *pointer;
+        base_address = *(pointer + 8);
+        module_name = *(pointer + 0x20);
+        int8 char = *(module_name + 24);
+        if (char == 0) {
+            guard = 1;
+        }
+    }
+    int32 zero = 0xec0e4e8e;
+    int32 a = find_function(base_address, zero);
+    return a;
 }

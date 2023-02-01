@@ -21,19 +21,19 @@ class Preprocessor:
     #     self.source = re.sub(r, lambda m: m.group()[:-1] + " != 0)" , self.source)
     
     def increment_shorthand(self):
-        r = r'((.)*?)\+=(.)*?;'
+        r = r'((.)*?)\+=(.*?);'
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" +  m.groups()[0] + "+" + m.groups()[2] + ";", self.source)
 
     def decrement_shorthand(self):
-        r = r'((.)*?)-=(.)*?;'
+        r = r'((.)*?)-=(.*?);'
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" +  m.groups()[0] + "-" + m.groups()[2] + ";", self.source)
 
     def multiplication_shorthand(self):
-        r = r'((.)*?)\*=(.)*?;'
+        r = r'((.)*?)\*=(.*?);'
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" +  m.groups()[0] + "*" + m.groups()[2] + ";", self.source)
 
     def division_shorthand(self):
-        r = r'((.)*?)\/=(.)*?;'
+        r = r'((.)*?)\/=(.*?);'
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "/" + m.groups()[2] + ";", self.source)
 
     def expand_arrays(self):

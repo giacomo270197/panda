@@ -72,26 +72,25 @@ class X86Windows32Compiler:
                 variables.locals[statement.identifier.value] = value
             else:
                 actual_type = type_mappings[statement.type]
-                ptr = builder.alloca(actual_type)
+                ptr = builder.alloca(actual_type, name=statement.identifier.value)
                 variables.locals[statement.identifier.value] = self.Variable(ptr, None)
-                try:
-                    value = self.analyze_expression(statement.expr, builder, variables)
-                    if isinstance(value.type, ir.PointerType):
-                        builder.store(value, ptr)
-                    else:
-                        if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
-                            value = builder.trunc(value, actual_type)
-                        elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
-                            value = value.zext(value, actual_type)
-                        builder.store(value, ptr)
-                    variables.locals[statement.identifier.value].value = value
-                except AttributeError:
+                if statement.expr:
+                    new_statement = AssignmentStatementNode(statement.identifier, statement.expr)
+                    self.process_statement(new_statement, builder, variables)
+                else:
                     variables.locals[statement.identifier.value].value = actual_type(0)
         elif isinstance(statement, AssignmentStatementNode):
             identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
             value = self.analyze_expression(statement.expr, builder, variables)
-            if isinstance(identifier, IdentifierExprNode):
-                variables.locals[statement.identifier.value].value = value
+            actual_type = identifier.type.pointee
+            if isinstance(value.type, ir.PointerType):
+                builder.store(value, identifier)
+            else:
+                if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
+                    value = builder.trunc(value, actual_type)
+                elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
+                    value = value.zext(value, actual_type)
+            variables.locals[statement.identifier.value].value = value
             builder.store(value, identifier)
         elif isinstance(statement, ComparisonStatementNode):
             sign = test_instructions[statement.__class__.__name__]
@@ -101,6 +100,10 @@ class X86Windows32Compiler:
         elif isinstance(statement, BinaryOperationNode):
             lhs = self.analyze_expression(statement.left_hand, builder, variables)
             rhs = self.analyze_expression(statement.right_hand, builder, variables)
+            if isinstance(lhs.type, ir.PointerType):
+                lhs = builder.ptrtoint(lhs, lhs.type.pointee)
+            if isinstance(rhs.type, ir.PointerType):
+                rhs = builder.ptrtoint(rhs, rhs.type.pointee)
             lhs, rhs = self.trunc_to_lowest(lhs, rhs, builder)
             tmp = None
             if isinstance(statement, AdditionStatementNode):
@@ -128,6 +131,8 @@ class X86Windows32Compiler:
             if isinstance(statement, NegateStatementNode):
                 tmp = builder.neg(operand)
             elif isinstance(statement, DereferenceStatementNode):
+                if not isinstance(operand.type, ir.PointerType):
+                    operand = builder.inttoptr(operand, ir.PointerType(operand.type))
                 tmp = builder.load(operand)
             return tmp
         elif isinstance(statement, ArrayNode):
@@ -172,8 +177,6 @@ class X86Windows32Compiler:
                 val = self.analyze_expression(var, builder, variables)
                 builder.store_reg(val, ir.IntType(register_size_mapping[reg]), reg)
             fty = ir.FunctionType(ir.VoidType(), [])
-            print("Here")
-            print(statement.assembly.replace("\"", ""))
             builder.asm(fty, statement.assembly.replace("\"", ""), "", [], False)
             for reg, val in statement.output_mapping.items():
                 tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)

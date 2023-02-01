@@ -21,10 +21,10 @@ type_mappings = {
 }
 
 size_mappings = {
-    "i8": 1,
-    "i16": 2,
-    "i32": 3,
-    "i64": 4,
+    "i8": 8,
+    "i16": 16,
+    "i32": 32,
+    "i64": 64,
 }
 
 register_size_mapping = {
