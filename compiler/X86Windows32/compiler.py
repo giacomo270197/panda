@@ -29,21 +29,23 @@ class X86Windows32Compiler:
             self.parameters = {}
             self.locals = {}
 
-    def trunc_to_lowest(self, a, b, builder):
+    def zext_to_highest(self, a, b, builder):
         size1 = size_mappings[str(a.type)]
         size2 = size_mappings[str(b.type)]
         if size1 == size2:
             return a, b
         elif size1 > size2:
-            a = builder.trunc(a, b.type)
+            b = builder.zext(b, a.type)
             return a, b
         else:
-            b = builder.trunc(b, a.type)
+            a = builder.zext(a, b.type)
             return a, b
 
     def analyze_expression(self, expr, builder, variables, **kwargs):
         if isinstance(expr, LiteralExprNode):
-            return ir.Constant(type_mappings["int64"], expr.value)
+            if "preferred_type" in kwargs:
+                return ir.Constant(kwargs["preferred_type"], expr.value)
+            return ir.Constant(ir.IntType(64), expr.value)
         if isinstance(expr, IdentifierExprNode) and "as_ptr" in kwargs:
             return variables.locals[expr.value].ptr
         elif isinstance(expr, IdentifierExprNode):
@@ -61,11 +63,14 @@ class X86Windows32Compiler:
             elif isinstance(expr, AddressOfStatement):
                 return variables.locals[expr.operand.value].ptr
             else:
+                if "preferred_type" in kwargs:
+                    expr.preferred_type = kwargs["preferred_type"]
                 return self.process_statement(expr, builder, variables)
 
     def process_statement(self, statement, builder, variables):
         if isinstance(statement, ReturnStatementNode):
-            builder.ret(self.analyze_expression(statement.expr, builder, variables))
+            builder.ret(self.analyze_expression(statement.expr, builder, variables,
+                                                preferred_type=builder.function.type.pointee.return_type))
         elif isinstance(statement, DeclarationStatementNode):
             if statement.type == "array":
                 value = self.analyze_expression(statement.expr, builder, variables)
@@ -81,15 +86,15 @@ class X86Windows32Compiler:
                     variables.locals[statement.identifier.value].value = actual_type(0)
         elif isinstance(statement, AssignmentStatementNode):
             identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
-            value = self.analyze_expression(statement.expr, builder, variables)
             actual_type = identifier.type.pointee
+            value = self.analyze_expression(statement.expr, builder, variables, preferred_type=actual_type)
             if isinstance(value.type, ir.PointerType):
                 builder.store(value, identifier)
             else:
                 if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
                     value = builder.trunc(value, actual_type)
                 elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
-                    value = value.zext(value, actual_type)
+                    value = builder.zext(value, actual_type)
             variables.locals[statement.identifier.value].value = value
             builder.store(value, identifier)
         elif isinstance(statement, ComparisonStatementNode):
@@ -104,7 +109,7 @@ class X86Windows32Compiler:
                 lhs = builder.ptrtoint(lhs, lhs.type.pointee)
             if isinstance(rhs.type, ir.PointerType):
                 rhs = builder.ptrtoint(rhs, rhs.type.pointee)
-            lhs, rhs = self.trunc_to_lowest(lhs, rhs, builder)
+            lhs, rhs = self.zext_to_highest(lhs, rhs, builder)
             tmp = None
             if isinstance(statement, AdditionStatementNode):
                 tmp = builder.add(lhs, rhs)
@@ -123,7 +128,7 @@ class X86Windows32Compiler:
             elif isinstance(statement, ShlStatementNode):
                 tmp = builder.shl(lhs, rhs)
             elif isinstance(statement, ShrStatementNode):
-                tmp = builder.shr(lhs, rhs)
+                tmp = builder.ashr(lhs, rhs)
             return tmp
         elif isinstance(statement, UnaryOperationNode):
             operand = self.analyze_expression(statement.operand, builder, variables)
@@ -132,7 +137,11 @@ class X86Windows32Compiler:
                 tmp = builder.neg(operand)
             elif isinstance(statement, DereferenceStatementNode):
                 if not isinstance(operand.type, ir.PointerType):
-                    operand = builder.inttoptr(operand, ir.PointerType(operand.type))
+                    try:
+                        assignment_type = getattr(statement, "preferred_type")
+                        operand = builder.inttoptr(operand, ir.PointerType(assignment_type))
+                    except AttributeError:
+                        operand = builder.inttoptr(operand, ir.PointerType(operand.type))
                 tmp = builder.load(operand)
             return tmp
         elif isinstance(statement, ArrayNode):

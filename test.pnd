@@ -1,23 +1,42 @@
 int32 fn compute_hash(int32 name) {
-    
+    int32 hash = 0;
+    int8 cnt = 0;
+    int8 char = *(name + cnt);
+    while(char != 0){
+        hash = (hash shr 13) || (hash shl 19);
+        hash += char;
+        cnt += 1;
+        char = *(name + cnt);
+    }
+    return hash;
 }
 
 int32 fn find_function(int32 base_address, int32 hash){
     int32 pe_signature = *(base_address + 0x3c);
     pe_signature += base_address;
-    int32 etd = *(pe_signature + 0x78);
-    etd += base_address;
-    int32 number_of_names = *(etd + 0x18);
-    int32 address_of_names = *(etd + 0x20);
+    int32 export_table_directory = *(pe_signature + 0x78);
+    export_table_directory += base_address;
+    int32 number_of_names = *(export_table_directory + 0x18);
+    int32 address_of_names = *(export_table_directory + 0x20);
     address_of_names += base_address;
     number_of_names -= 1;
     while(number_of_names > 0) {
         int32 symbol_name = address_of_names + (number_of_names * 4);
-        symbol_name = *(base_address + *symbol_name);
-
+        symbol_name = base_address + *symbol_name;
+        int32 computed = compute_hash(symbol_name);
+        if(computed == hash) {
+            int32 address_of_name_ordinal = *(export_table_directory + 0x24);
+            address_of_name_ordinal += base_address;
+            int16 ordinal = *(address_of_name_ordinal + (2 * number_of_names));
+            int32 address_of_functions = *(export_table_directory + 0x1c);
+            address_of_functions += base_address;
+            int32 function_address = *(address_of_functions + (4 * ordinal));
+            function_address += base_address;
+            return function_address;
+        }
         number_of_names -= 1;
     }
-    return pe_signature;
+    return 0;
 }
 
 int32 fn main() {
