@@ -171,11 +171,13 @@ class AstTransformer(Transformer):
         return nodes.CastingStatementNode(identifier, new_type)
 
     def asm_stmt(self, items):
-        inputs = items[1]
+        inputs = items[1].replace(" ", "").replace("\"", "")
         assembly = items[3]
-        outputs = items[5]
-        inputs = {nodes.IdentifierExprNode(k): v for k, v in [x.split(":") for x in inputs.replace(" ", "").replace("\"", "").split(",")]}
-        outputs = {k: nodes.IdentifierExprNode(v) for k, v in [x.split(":") for x in outputs.replace(" ", "").replace("\"", "").split(",")]}
+        outputs = items[5].replace(" ", "").replace("\"", "")
+        if inputs != "no_in":
+            inputs = {nodes.IdentifierExprNode(k): v for k, v in [x.split(":") for x in inputs.split(",")]}
+        if outputs != "no_out":
+            outputs = {k: nodes.IdentifierExprNode(v) for k, v in [x.split(":") for x in outputs.split(",")]}
         return nodes.AsmStatementNode(inputs, assembly, outputs)
 
     def if_stmt(self, items):

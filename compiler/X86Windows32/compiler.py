@@ -162,12 +162,14 @@ class X86Windows32Compiler:
             func = self.functions[statement.target.value]
             params = []
             for x, y in zip(statement.parameters, func.args):
-                value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
+                if x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
+                    value = self.analyze_expression(x, builder, variables, as_ptr=True)
+                    idx = ir.Constant(ir.IntType(8), 0)
+                    value = builder.gep(value, [idx, idx])
+                else:
+                    value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
                 params.append(value)
             ret = builder.call(func, params)
-            print(func.name)
-            print(func.args)
-            print(ret)
             return ret
         elif isinstance(statement, IfStatementNode):
             test = self.analyze_expression(statement.test, builder, variables)
@@ -189,6 +191,9 @@ class X86Windows32Compiler:
         elif isinstance(statement, AsmStatementNode):
             for var, reg in statement.input_mapping.items():
                 val = self.analyze_expression(var, builder, variables)
+                if isinstance(val.type, ir.PointerType):
+                    size = register_size_mapping[reg]
+                    val = builder.ptrtoint(val, ir.IntType(size))
                 builder.store_reg(val, ir.IntType(register_size_mapping[reg]), reg)
             fty = ir.FunctionType(ir.VoidType(), [])
             builder.asm(fty, statement.assembly.replace("\"", ""), "", [], False)

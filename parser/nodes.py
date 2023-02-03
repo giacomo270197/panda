@@ -183,9 +183,13 @@ class CastingStatementNode(StatementNode):
 
 class AsmStatementNode(StatementNode):
     def __init__(self, input_mapping, assembly, output_mapping):
-        self.input_mapping = input_mapping
+        self.input_mapping = {}
+        if isinstance(input_mapping, dict):
+            self.input_mapping = input_mapping
         self.assembly = assembly
-        self.output_mapping = output_mapping
+        self.output_mapping = {}
+        if isinstance(output_mapping, dict):
+            self.output_mapping = output_mapping
 
 
 class FunctionCallStatementNode(StatementNode):
