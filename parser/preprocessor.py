@@ -1,13 +1,15 @@
 import re
+
+
 def string_to_arr(string):
     val = []
     for x in string:
         val.append(hex(ord(x)))
+    val.append("0x0")
     return ", ".join(val)
 
 
 class Preprocessor:
-
     source = None
     heuristics = []
 
@@ -16,21 +18,17 @@ class Preprocessor:
         self.rules = [self.increment_shorthand, self.decrement_shorthand, self.multiplication_shorthand,
                       self.division_shorthand, self.expand_arrays, self.expand_strings, self.hex_repr, self.resolve_ip]
 
-    # def implicit_test_statements(self):
-    #     r = r'if\([^=]+?\)(\))?'
-    #     self.source = re.sub(r, lambda m: m.group()[:-1] + " != 0)" , self.source)
-    
     def increment_shorthand(self):
         r = r'((.)*?)\+=(.*?);'
-        self.source = re.sub(r, lambda m: m.groups()[0] + "=" +  m.groups()[0] + "+" + m.groups()[2] + ";", self.source)
+        self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "+" + m.groups()[2] + ";", self.source)
 
     def decrement_shorthand(self):
         r = r'((.)*?)-=(.*?);'
-        self.source = re.sub(r, lambda m: m.groups()[0] + "=" +  m.groups()[0] + "-" + m.groups()[2] + ";", self.source)
+        self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "-" + m.groups()[2] + ";", self.source)
 
     def multiplication_shorthand(self):
         r = r'((.)*?)\*=(.*?);'
-        self.source = re.sub(r, lambda m: m.groups()[0] + "=" +  m.groups()[0] + "*" + m.groups()[2] + ";", self.source)
+        self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "*" + m.groups()[2] + ";", self.source)
 
     def division_shorthand(self):
         r = r'((.)*?)\/=(.*?);'
@@ -38,15 +36,13 @@ class Preprocessor:
 
     def expand_arrays(self):
         r = r'array\s(\w+)+?\s(int|byte)\[(\d+)\]'
-        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + " undef " + m.groups()[1] + "{" + "0, " * (int(m.groups()[2]) - 1) + "0}", self.source)
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + " undef " + m.groups()[1] + "{" + "0, " * (
+                    int(m.groups()[2]) - 1) + "0}", self.source)
 
     def expand_strings(self):
-        r = r'string\s+?(\w+?)\s=\s+?"([\w\s]*?)"\s*?;'
-        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " =  int8{" + string_to_arr(m.groups()[1]) + "};", self.source)
-
-    # def array_index(self):
-    #     r = r'\b(?!int\b|byte\b)(\w+)\[(\w+)\]'
-    #     self.source = re.sub(r, lambda m: "*(" + m.groups()[0] + " + " + m.groups()[1] + ")", self.source)
+        r = r'string\s+?(\w+?)\s=\s+?"(.*?)"\s*?;'
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " =  int8{" + string_to_arr(m.groups()[1]) + "};",
+                             self.source)
 
     def hex_repr(self):
         r = r'(0x[\w]+)'

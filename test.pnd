@@ -1,4 +1,4 @@
-int32 fn compute_hash(int32 name) {
+int32 fn compute_function_hash(int32 name) {
     int32 hash = 0;
     int8 cnt = 0;
     int8 char = *(name + cnt);
@@ -11,7 +11,41 @@ int32 fn compute_hash(int32 name) {
     return hash;
 }
 
-int32 fn find_function(int32 base_address, int32 hash){
+int32 fn compute_module_hash(int32 name) {
+    int32 hash = 0;
+    int8 cnt = 0;
+    int16 char = *(name + cnt);
+    while(char != 0){
+        hash = (hash shr 13) || (hash shl 19);
+        hash += char;
+        cnt += 2;
+        char = *(name + cnt);
+    }
+    return hash;
+}
+
+int32 fn find_module_base(int32 hash) {
+    int32 pointer = 0;
+    _asm("pointer:eax", "mov %fs:0x30, %eax", "eax:pointer");
+    pointer = *(pointer + 0xc);
+    pointer = *(pointer + 0x1c);
+    int32 base_address = *(pointer + 8);
+    int32 module_name = *(pointer + 0x20);
+    int8 guard = 0;
+    while(guard == 0) {
+        pointer = *pointer;
+        base_address = *(pointer + 8);
+        module_name = *(pointer + 0x20);
+        int32 computed_hash = compute_module_hash(module_name);
+        if (computed_hash == hash) {
+            return base_address;
+        }
+    }
+    return 0;
+}
+
+int32 fn find_function(int32 function_hash, int32 module_hash){
+    int32 base_address = find_module_base(module_hash);
     int32 pe_signature = *(base_address + 0x3c);
     pe_signature += base_address;
     int32 export_table_directory = *(pe_signature + 0x78);
@@ -23,8 +57,8 @@ int32 fn find_function(int32 base_address, int32 hash){
     while(number_of_names > 0) {
         int32 symbol_name = address_of_names + (number_of_names * 4);
         symbol_name = base_address + *symbol_name;
-        int32 computed = compute_hash(symbol_name);
-        if(computed == hash) {
+        int32 computed = compute_function_hash(symbol_name);
+        if(computed == function_hash) {
             int32 address_of_name_ordinal = *(export_table_directory + 0x24);
             address_of_name_ordinal += base_address;
             int16 ordinal = *(address_of_name_ordinal + (2 * number_of_names));
@@ -40,23 +74,8 @@ int32 fn find_function(int32 base_address, int32 hash){
 }
 
 int32 fn main() {
-    int32 pointer = 0;
-    _asm("pointer:eax", "mov %fs:0x30, %eax", "eax:pointer");
-    pointer = *(pointer + 0xc);
-    pointer = *(pointer + 0x1c);
-    int32 base_address = *(pointer + 8);
-    int32 module_name = *(pointer + 0x20);
-    int8 guard = 0;
-    while(guard == 0) {
-        pointer = *pointer;
-        base_address = *(pointer + 8);
-        module_name = *(pointer + 0x20);
-        int8 char = *(module_name + 24);
-        if (char == 0) {
-            guard = 1;
-        }
-    }
-    int32 zero = 0xec0e4e8e;
-    int32 a = find_function(base_address, zero);
+    int32 kernel32_hash = 0x6e2bca17;
+    int32 load_library_hash = 0xec0e4e8e;
+    int32 a = find_function(load_library_hash, kernel32_hash);
     return a;
 }

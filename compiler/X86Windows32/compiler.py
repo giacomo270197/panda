@@ -20,9 +20,10 @@ class X86Windows32Compiler:
         self.ifs = 0
 
     class Variable:
-        def __init__(self, ptr, value):
+        def __init__(self, ptr, value, var_type):
             self.ptr = ptr
             self.value = value
+            self.type = var_type
 
     class Variables:
         def __init__(self):
@@ -78,7 +79,7 @@ class X86Windows32Compiler:
             else:
                 actual_type = type_mappings[statement.type]
                 ptr = builder.alloca(actual_type, name=statement.identifier.value)
-                variables.locals[statement.identifier.value] = self.Variable(ptr, None)
+                variables.locals[statement.identifier.value] = self.Variable(ptr, None, actual_type)
                 if statement.expr:
                     new_statement = AssignmentStatementNode(statement.identifier, statement.expr)
                     self.process_statement(new_statement, builder, variables)
@@ -95,7 +96,7 @@ class X86Windows32Compiler:
                     value = builder.trunc(value, actual_type)
                 elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
                     value = builder.zext(value, actual_type)
-            variables.locals[statement.identifier.value].value = value
+            #variables.locals[identifier].value = value
             builder.store(value, identifier)
         elif isinstance(statement, ComparisonStatementNode):
             sign = test_instructions[statement.__class__.__name__]
@@ -156,13 +157,17 @@ class X86Windows32Compiler:
                     idx = ir.Constant(type_mappings[statement.arr_type], y)
                     elem_ptr = builder.gep(arr, [first, idx], inbounds=True)
                     builder.store(val, elem_ptr)
-            return self.Variable(arr, new_arr)
+            return self.Variable(arr, new_arr, arr_type)
         elif isinstance(statement, FunctionCallStatementNode):
             func = self.functions[statement.target.value]
             params = []
-            for x in statement.parameters:
-                params.append(self.analyze_expression(x, builder, variables))
+            for x, y in zip(statement.parameters, func.args):
+                value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
+                params.append(value)
             ret = builder.call(func, params)
+            print(func.name)
+            print(func.args)
+            print(ret)
             return ret
         elif isinstance(statement, IfStatementNode):
             test = self.analyze_expression(statement.test, builder, variables)
@@ -203,7 +208,7 @@ class X86Windows32Compiler:
         builder = ir.IRBuilder(ir_block)
         for name, value in variables.parameters.items():
             ptr = builder.alloca(value.type)
-            var = self.Variable(ptr, value)
+            var = self.Variable(ptr, value, value.type)
             variables.locals[name] = var
             builder.store(value, ptr)
         for statement in block.statements:
