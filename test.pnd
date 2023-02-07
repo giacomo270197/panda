@@ -33,12 +33,12 @@ int32 fn find_module_base(int32 hash) {
     int32 module_name = *(pointer + 0x20);
     int8 guard = 0;
     while(guard == 0) {
-        if(pointer == 0) {
-            return 0;
-        }
         pointer = *pointer;
         base_address = *(pointer + 8);
         module_name = *(pointer + 0x20);
+        if(module_name == 0) {
+            return 0;
+        }
         int32 computed_hash = compute_module_hash(module_name);
         if (computed_hash == hash) {
             return base_address;
@@ -48,11 +48,11 @@ int32 fn find_module_base(int32 hash) {
 }
 
 int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_name){
-    int32 base_address = find_module_base(module_hash);
+        int32 base_address = find_module_base(module_hash);
     if(base_address == 0) {
-        int32 load_library = find_function(0xec0e4e8e, 0x8fecd63f, module_name);
+        int32 load_library = find_function(0xec0e4e8e, 0x6e2bca17, module_name);
         _asm("module_name:ebx", "push %ebx", "no_out");
-        _asm("load_library:eax", "call *(%eax)", "eax:base_address");
+        _asm("load_library:eax", "call eax", "eax:base_address");
     }
     int32 pe_signature = *(base_address + 0x3c);
     pe_signature += base_address;
@@ -81,10 +81,26 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     return 0;
 }
 
+int32 fn call_fun(int32 address, ptr int8 text, ptr int8 caption) {
+    _asm("no_in", "xor %eax, %eax", "no_out");
+    _asm("no_in", "push %eax", "no_out");
+    _asm("caption:eax", "push %eax", "no_out");
+    _asm("text:eax", "push %eax", "no_out");
+    _asm("no_in", "xor %eax, %eax", "no_out");
+    _asm("no_in", "push %eax", "no_out");
+    _asm("address:eax", "call eax", "no_out");
+    return 0;
+}
+
 int32 fn main() {
-    int32 kernel32_hash = 0x6e2bca17;
-    int32 load_library_hash = 0xec0e4e8e;
-    string name = "kernel32.dll";
-    int32 a = find_function(0xec0e4e8e, kernel32_hash, name);
+    int32 user32 = 0x32ade206;
+    int32 message_box_a = 0xbc4da2a8;
+    string name = "user32.dll";
+    string caption = "Caption";
+    string text = "This is the body";
+    ptr int8 caption_address = caption;
+    ptr int8 text_address = text;
+    int32 message_box = find_function(message_box_a, user32, name);
+    call_fun(message_box, caption_address, text_address);
     return 0;
 }

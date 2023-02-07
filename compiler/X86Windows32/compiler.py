@@ -49,6 +49,8 @@ class X86Windows32Compiler:
             return ir.Constant(ir.IntType(64), expr.value)
         if isinstance(expr, IdentifierExprNode) and "as_ptr" in kwargs:
             return variables.locals[expr.value].ptr
+        elif isinstance(expr, IdentifierExprNode) and isinstance(variables.locals[expr.value].type, ir.ArrayType):
+            return builder.bitcast(variables.locals[expr.value].ptr, ir.PointerType(variables.locals[expr.value].type.element))
         elif isinstance(expr, IdentifierExprNode):
             ret = builder.load(variables.locals[expr.value].ptr)
             return ret
@@ -96,7 +98,6 @@ class X86Windows32Compiler:
                     value = builder.trunc(value, actual_type)
                 elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
                     value = builder.zext(value, actual_type)
-            #variables.locals[identifier].value = value
             builder.store(value, identifier)
         elif isinstance(statement, ComparisonStatementNode):
             sign = test_instructions[statement.__class__.__name__]
