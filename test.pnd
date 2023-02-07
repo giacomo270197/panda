@@ -81,14 +81,8 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     return 0;
 }
 
-int32 fn call_fun(int32 address, ptr int8 text, ptr int8 caption) {
-    _asm("no_in", "xor %eax, %eax", "no_out");
-    _asm("no_in", "push %eax", "no_out");
-    _asm("caption:eax", "push %eax", "no_out");
-    _asm("text:eax", "push %eax", "no_out");
-    _asm("no_in", "xor %eax, %eax", "no_out");
-    _asm("no_in", "push %eax", "no_out");
-    _asm("address:eax", "call eax", "no_out");
+int32 fn call_fun(int32 a, ptr int8 text, ptr int8 caption, int32 b, int32 address) {
+    _asm("address:eax", "jmp eax", "no_out");
     return 0;
 }
 
@@ -101,6 +95,6 @@ int32 fn main() {
     ptr int8 caption_address = caption;
     ptr int8 text_address = text;
     int32 message_box = find_function(message_box_a, user32, name);
-    call_fun(message_box, caption_address, text_address);
+    call_fun(0, text_address, caption_address, 0, message_box);
     return 0;
 }

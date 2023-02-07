@@ -47,13 +47,17 @@ class X86Windows32Compiler:
             if "preferred_type" in kwargs:
                 return ir.Constant(kwargs["preferred_type"], expr.value)
             return ir.Constant(ir.IntType(64), expr.value)
-        if isinstance(expr, IdentifierExprNode) and "as_ptr" in kwargs:
-            return variables.locals[expr.value].ptr
-        elif isinstance(expr, IdentifierExprNode) and isinstance(variables.locals[expr.value].type, ir.ArrayType):
-            return builder.bitcast(variables.locals[expr.value].ptr, ir.PointerType(variables.locals[expr.value].type.element))
-        elif isinstance(expr, IdentifierExprNode):
-            ret = builder.load(variables.locals[expr.value].ptr)
-            return ret
+        if isinstance(expr, IdentifierExprNode):
+            try:
+                return variables.parameters[expr.value]
+            except KeyError:
+                if "as_ptr" in kwargs:
+                    return variables.locals[expr.value].ptr
+                elif isinstance(variables.locals[expr.value].type, ir.ArrayType):
+                    return builder.bitcast(variables.locals[expr.value].ptr, ir.PointerType(variables.locals[expr.value].type.element))
+                else:
+                    ret = builder.load(variables.locals[expr.value].ptr)
+                    return ret
         if isinstance(expr, StatementNode):
             if isinstance(expr, IndexingStatementNode):
                 operand = self.analyze_expression(expr.operand, builder, variables, as_ptr=True)
@@ -197,6 +201,7 @@ class X86Windows32Compiler:
                     val = builder.ptrtoint(val, ir.IntType(size))
                 builder.store_reg(val, ir.IntType(register_size_mapping[reg]), reg)
             fty = ir.FunctionType(ir.VoidType(), [])
+            statement.assembly = statement.assembly.replace("\"", "").replace("\\n", "\n")
             builder.asm(fty, statement.assembly.replace("\"", ""), "", [], False)
             for reg, val in statement.output_mapping.items():
                 tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)
@@ -212,11 +217,11 @@ class X86Windows32Compiler:
     def process_block(self, block, function, variables):
         ir_block = function.append_basic_block()
         builder = ir.IRBuilder(ir_block)
-        for name, value in variables.parameters.items():
-            ptr = builder.alloca(value.type)
-            var = self.Variable(ptr, value, value.type)
-            variables.locals[name] = var
-            builder.store(value, ptr)
+        # for name, value in variables.parameters.items():
+        #     ptr = builder.alloca(value.type)
+        #     var = self.Variable(ptr, value, value.type)
+        #     variables.locals[name] = var
+        #     builder.store(value, ptr)
         for statement in block.statements:
             self.process_statement(statement, builder, variables)
 
@@ -258,7 +263,7 @@ class X86Windows32Compiler:
             self.process_function(function)
         with open("example.ll", "w") as f:
             f.write(str(self.module))
-        subprocess.call(["clang", "-g", "-ooutput.s", "-masm=intel", "-S", "-x", "ir", "-m32", "example.ll"],
+        subprocess.call(["clang", "-g", "-ooutput.s", "-masm=intel", "-fno-omit-frame-pointer", "-S", "-x", "ir", "-m32", "example.ll"],
                         stdout=subprocess.DEVNULL
                         )
         path = os.path.join(os.getcwd(), "output.s")
