@@ -11,13 +11,14 @@ from parser.nodes import *
 
 
 class X86Windows32Compiler:
-
     def __init__(self, ast):
         self.ast = ast
         self.module = None
         self.functions = {}
+        self.syscalls = {}
         self.loops = 0
         self.ifs = 0
+        self.platform = None
 
     class Variable:
         def __init__(self, ptr, value, var_type):
@@ -164,16 +165,33 @@ class X86Windows32Compiler:
                     builder.store(val, elem_ptr)
             return self.Variable(arr, new_arr, arr_type)
         elif isinstance(statement, FunctionCallStatementNode):
+            address = None
+            idx = ir.Constant(ir.IntType(8), 0)
+            if statement.target.value in self.syscalls:
+                find_func = self.functions["find_function"]
+                syscall = self.syscalls[statement.target.value]
+                arr_type = ir.ArrayType(ir.IntType(8), len(syscall["module_name"]) + 1)
+                arr = builder.alloca(arr_type)
+                new_arr = ir.Constant(arr_type, bytearray(syscall["module_name"], "ascii") + b"\x00")
+                builder.store(new_arr, arr)
+                find_params = [
+                    ir.Constant(ir.IntType(32), syscall["function_hash"]),
+                    ir.Constant(ir.IntType(32), syscall["module_hash"]),
+                    builder.bitcast(arr, ir.PointerType(ir.IntType(8))),
+                ]
+                address = builder.call(find_func, find_params, cconv="ccc")
+                statement.target.value = "call_{}".format(statement.target.value)
             func = self.functions[statement.target.value]
             params = []
             for x, y in zip(statement.parameters, func.args):
                 if x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
                     value = self.analyze_expression(x, builder, variables, as_ptr=True)
-                    idx = ir.Constant(ir.IntType(8), 0)
                     value = builder.gep(value, [idx, idx])
                 else:
                     value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
                 params.append(value)
+            if address:
+                params.append(address)
             ret = builder.call(func, params)
             return ret
         elif isinstance(statement, IfStatementNode):
@@ -207,6 +225,8 @@ class X86Windows32Compiler:
                 tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)
                 ptr = self.analyze_expression(val, builder, variables, as_ptr=True)
                 builder.store(tmp, ptr)
+        elif isinstance(statement, CommentStatementNode):
+            pass
         else:
             exit("Node handling not implemented for {}".format(statement.__class__.__name__))
 
@@ -255,8 +275,33 @@ class X86Windows32Compiler:
         new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
         return new_asm
 
+    def ror_str(self, b, count):
+        b = "{0:b}".format(b)
+        binb = (32 - len(b)) * '0' + b
+        while count > 0:
+            binb = binb[-1] + binb[0:-1]
+            count -= 1
+        return int(binb, 2)
+
+    def compute_hash(self, name):
+        edx = 0x00
+        ror_count = 0
+        for eax in name:
+            edx = edx + ord(eax)
+            if ror_count < len(name) - 1:
+                edx = self.ror_str(edx, 0xd)
+            ror_count += 1
+        return edx
+
     def create_assembly(self, platform):
+        self.platform = platform
         self.module = ir.Module(name="Shellcode")
+        for declare in self.ast.syscalls:
+            self.syscalls[declare.function_name.value.replace("\"", "")] = {
+                "function_hash": self.compute_hash(declare.function_name.value.replace("\"", "")),
+                "module_hash": self.compute_hash(declare.module_name.value.replace("\"", "")),
+                "module_name": declare.module_name.value.replace("\"", "")
+            }
         for function in self.ast.func_defs:
             self.define_funcs(function)
         for function in self.ast.func_defs:

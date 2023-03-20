@@ -16,7 +16,8 @@ class Preprocessor:
     def __init__(self, source):
         self.source = source
         self.rules = [self.increment_shorthand, self.decrement_shorthand, self.multiplication_shorthand,
-                      self.division_shorthand, self.expand_arrays, self.expand_strings, self.hex_repr, self.resolve_ip]
+                      self.division_shorthand, self.expand_arrays, self.expand_strings, self.hex_repr, self.resolve_ip,
+                      self.create_syscalls]
 
     def increment_shorthand(self):
         r = r'((.)*?)\+=(.*?);'
@@ -58,6 +59,30 @@ class Preprocessor:
     def resolve_ip(self):
         r = r'IP\(([\d|.]+)\)'
         self.source = re.sub(r, lambda m: str(int(self.to_sin_ip(m.groups()[0]), 16)), self.source)
+
+    def create_syscalls(self):
+        r = r'declare\("(\w+)"\s*,\s*"([\w.]+)"\s*\)\s*\(([\w\s,]+)\)\s*;'
+        for line in self.source.split("\n"):
+            if line[:7] == 'declare':
+                g = re.search(r, line)
+                params = g.groups()[2].split(",")
+                params = [x + " " + chr(65 + y) + "," for x, y in zip(params, range(len(params)))]
+                param_len = len(params)
+                params.append("int32 address")
+                params = "".join(params)
+                push_str = "mov %esp,%esi\\n"
+                for x in range(param_len):
+                    push_str += "push {}(%esi)\\n".format(str(4 + 4 * (x+1)))
+                self.source += """
+                
+int32 fn call_{}({}) {{
+    _asm("address:eax", "{}call eax", "no_out");
+    return address;
+}}
+
+                """.format(g.groups()[0], params, push_str)
+            else:
+                break
 
     def preprocess(self):
         for rule in self.rules:

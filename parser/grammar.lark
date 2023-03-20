@@ -43,7 +43,7 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
 !negate_stmt: "!" expr [";"]
 !indexing_stmt: expr "[" expr "]" [";"]
 !asm_stmt: "_asm(" ESCAPED_STRING "," ESCAPED_STRING "," ESCAPED_STRING ")" [";"]
-!comment: "#" /([\w\s]+?)\n/
+!comment: "#" /(.+?)\n/
 
 ?misc_stmts: casting_stmt | asm_stmt
 ?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
@@ -54,7 +54,7 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
 
 !block: "{" statement* "}"
 
-syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" ";"
+syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" "(" (TYPE)? ("," TYPE)* ")" ";"
 func_def: TYPE "fn" IDENTIFIER "(" (TYPE IDENTIFIER)? ("," TYPE IDENTIFIER)*  ")" block
 
 program: syscall_def* func_def+

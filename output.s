@@ -387,23 +387,6 @@ LBB3_8:                                 # %loop_4.endif
 	ja	LBB3_4
 	jmp	LBB3_5
                                         # -- End function
-	.def	_call_fun;
-	.scl	2;
-	.type	32;
-	.endef
-	.globl	_call_fun                       # -- Begin function call_fun
-	.p2align	4, 0x90
-_call_fun:                              # @call_fun
-# %bb.0:                                # %.7
-	mov	eax, dword ptr [esp + 20]
-	#APP
-	#NO_APP
-	#APP
-	jmp	eax
-	#NO_APP
-	xor	eax, eax
-	ret
-                                        # -- End function
 	.def	_main;
 	.scl	2;
 	.type	32;
@@ -416,9 +399,7 @@ _main:                                  # @main
 	mov	ebp, esp
 	push	esi
 	and	esp, -8
-	sub	esp, 88
-	mov	dword ptr [esp + 80], 850256390
-	mov	dword ptr [esp + 76], -1135762776
+	sub	esp, 80
 	mov	byte ptr [esp + 75], 0
 	mov	byte ptr [esp + 74], 0
 	mov	byte ptr [esp + 73], 0
@@ -427,20 +408,17 @@ _main:                                  # @main
 	mov	byte ptr [esp + 70], 0
 	mov	byte ptr [esp + 69], 0
 	mov	byte ptr [esp + 68], 0
+	mov	byte ptr [esp + 68], 67
+	mov	byte ptr [esp + 69], 97
+	mov	byte ptr [esp + 70], 112
+	mov	byte ptr [esp + 71], 116
+	mov	byte ptr [esp + 72], 105
+	mov	byte ptr [esp + 73], 111
+	mov	byte ptr [esp + 74], 110
+	mov	byte ptr [esp + 75], 0
 	mov	byte ptr [esp + 67], 0
 	mov	byte ptr [esp + 66], 0
 	mov	byte ptr [esp + 65], 0
-	mov	byte ptr [esp + 65], 117
-	mov	byte ptr [esp + 66], 115
-	mov	byte ptr [esp + 67], 101
-	mov	byte ptr [esp + 68], 114
-	mov	byte ptr [esp + 69], 51
-	mov	byte ptr [esp + 70], 50
-	mov	byte ptr [esp + 71], 46
-	mov	byte ptr [esp + 72], 100
-	mov	byte ptr [esp + 73], 108
-	mov	byte ptr [esp + 74], 108
-	mov	byte ptr [esp + 75], 0
 	mov	byte ptr [esp + 64], 0
 	mov	byte ptr [esp + 63], 0
 	mov	byte ptr [esp + 62], 0
@@ -449,76 +427,89 @@ _main:                                  # @main
 	mov	byte ptr [esp + 59], 0
 	mov	byte ptr [esp + 58], 0
 	mov	byte ptr [esp + 57], 0
-	mov	byte ptr [esp + 57], 67
-	mov	byte ptr [esp + 58], 97
-	mov	byte ptr [esp + 59], 112
-	mov	byte ptr [esp + 60], 116
-	mov	byte ptr [esp + 61], 105
-	mov	byte ptr [esp + 62], 111
-	mov	byte ptr [esp + 63], 110
-	mov	byte ptr [esp + 64], 0
 	mov	byte ptr [esp + 56], 0
 	mov	byte ptr [esp + 55], 0
 	mov	byte ptr [esp + 54], 0
 	mov	byte ptr [esp + 53], 0
 	mov	byte ptr [esp + 52], 0
 	mov	byte ptr [esp + 51], 0
-	mov	byte ptr [esp + 50], 0
-	mov	byte ptr [esp + 49], 0
-	mov	byte ptr [esp + 48], 0
-	mov	byte ptr [esp + 47], 0
-	mov	byte ptr [esp + 46], 0
-	mov	byte ptr [esp + 45], 0
-	mov	byte ptr [esp + 44], 0
-	mov	byte ptr [esp + 43], 0
-	mov	byte ptr [esp + 42], 0
-	mov	byte ptr [esp + 41], 0
-	mov	byte ptr [esp + 40], 0
-	mov	byte ptr [esp + 40], 84
-	mov	byte ptr [esp + 41], 104
-	mov	byte ptr [esp + 42], 105
-	mov	byte ptr [esp + 43], 115
-	mov	byte ptr [esp + 44], 32
-	mov	byte ptr [esp + 45], 105
-	mov	byte ptr [esp + 46], 115
-	mov	byte ptr [esp + 47], 32
-	mov	byte ptr [esp + 48], 116
-	mov	byte ptr [esp + 49], 104
-	mov	byte ptr [esp + 50], 101
-	mov	byte ptr [esp + 51], 32
-	mov	byte ptr [esp + 52], 98
-	mov	byte ptr [esp + 53], 111
-	mov	byte ptr [esp + 54], 100
-	mov	byte ptr [esp + 55], 121
-	mov	byte ptr [esp + 56], 0
-	lea	eax, [esp + 57]
+	mov	byte ptr [esp + 51], 84
+	mov	byte ptr [esp + 52], 104
+	mov	byte ptr [esp + 53], 105
+	mov	byte ptr [esp + 54], 115
+	mov	byte ptr [esp + 55], 32
+	mov	byte ptr [esp + 56], 105
+	mov	byte ptr [esp + 57], 115
+	mov	byte ptr [esp + 58], 32
+	mov	byte ptr [esp + 59], 116
+	mov	byte ptr [esp + 60], 104
+	mov	byte ptr [esp + 61], 101
+	mov	byte ptr [esp + 62], 32
+	mov	byte ptr [esp + 63], 98
+	mov	byte ptr [esp + 64], 111
+	mov	byte ptr [esp + 65], 100
+	mov	byte ptr [esp + 66], 121
+	mov	byte ptr [esp + 67], 0
+	lea	eax, [esp + 68]
+	mov	dword ptr [esp + 40], eax
+	mov	dword ptr [esp + 40], eax
+	lea	eax, [esp + 51]
 	mov	dword ptr [esp + 32], eax
 	mov	dword ptr [esp + 32], eax
-	lea	eax, [esp + 40]
-	mov	dword ptr [esp + 24], eax
-	mov	dword ptr [esp + 24], eax
-	mov	edx, dword ptr [esp + 76]
-	mov	ecx, dword ptr [esp + 80]
-	lea	eax, [esp + 65]
-	mov	dword ptr [esp], edx
-	mov	dword ptr [esp + 4], ecx
+	mov	byte ptr [esp + 31], 0
+	mov	byte ptr [esp + 30], 108
+	mov	byte ptr [esp + 29], 108
+	mov	byte ptr [esp + 28], 100
+	mov	byte ptr [esp + 27], 46
+	mov	byte ptr [esp + 26], 50
+	mov	byte ptr [esp + 25], 51
+	mov	byte ptr [esp + 24], 114
+	mov	byte ptr [esp + 23], 101
+	mov	byte ptr [esp + 22], 115
+	mov	byte ptr [esp + 21], 117
+	lea	eax, [esp + 21]
+	mov	dword ptr [esp], -1135762776
+	mov	dword ptr [esp + 4], 1412361766
 	mov	dword ptr [esp + 8], eax
 	call	_find_function
-	mov	dword ptr [esp + 20], eax
-	mov	edx, dword ptr [esp + 24]
-	mov	ecx, dword ptr [esp + 32]
-	mov	eax, dword ptr [esp + 20]
+	mov	edx, dword ptr [esp + 32]
+	mov	ecx, dword ptr [esp + 40]
 	xor	esi, esi
 	mov	dword ptr [esp], 0
 	mov	dword ptr [esp + 4], edx
 	mov	dword ptr [esp + 8], ecx
 	mov	dword ptr [esp + 12], 0
 	mov	dword ptr [esp + 16], eax
-	call	_call_fun
+	call	_call_MessageBoxA
 	xor	eax, eax
 	lea	esp, [ebp - 4]
 	pop	esi
 	pop	ebp
+	ret
+                                        # -- End function
+	.def	_call_MessageBoxA;
+	.scl	2;
+	.type	32;
+	.endef
+	.globl	_call_MessageBoxA               # -- Begin function call_MessageBoxA
+	.p2align	4, 0x90
+_call_MessageBoxA:                      # @call_MessageBoxA
+# %bb.0:                                # %.7
+	push	eax
+	mov	eax, dword ptr [esp + 24]
+	mov	dword ptr [esp], eax            # 4-byte Spill
+	#APP
+	#NO_APP
+	mov	eax, dword ptr [esp]            # 4-byte Reload
+	#APP
+	mov	esi, esp
+	push	dword ptr [esi + 8]
+	push	dword ptr [esi + 12]
+	push	dword ptr [esi + 16]
+	push	dword ptr [esi + 20]
+	call	eax
+	#NO_APP
+	pop	ecx
 	ret
                                         # -- End function
 	.addrsig
@@ -526,4 +517,4 @@ _main:                                  # @main
 	.addrsig_sym _compute_module_hash
 	.addrsig_sym _find_module_base
 	.addrsig_sym _find_function
-	.addrsig_sym _call_fun
+	.addrsig_sym _call_MessageBoxA

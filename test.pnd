@@ -1,3 +1,5 @@
+declare("MessageBoxA", "user32.dll")(int32, ptr int8, ptr int8, int32);
+
 int32 fn compute_function_hash(int32 name) {
     int32 hash = 0;
     int8 cnt = 0;
@@ -81,20 +83,11 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     return 0;
 }
 
-int32 fn call_fun(int32 a, ptr int8 text, ptr int8 caption, int32 b, int32 address) {
-    _asm("address:eax", "jmp eax", "no_out");
-    return 0;
-}
-
 int32 fn main() {
-    int32 user32 = 0x32ade206;
-    int32 message_box_a = 0xbc4da2a8;
-    string name = "user32.dll";
     string caption = "Caption";
     string text = "This is the body";
     ptr int8 caption_address = caption;
     ptr int8 text_address = text;
-    int32 message_box = find_function(message_box_a, user32, name);
-    call_fun(0, text_address, caption_address, 0, message_box);
+    MessageBoxA(0, text_address, caption_address, 0);
     return 0;
 }

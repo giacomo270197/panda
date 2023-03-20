@@ -358,118 +358,92 @@ loop_4.endif:
   br i1 %".138", label %"loop_4", label %"loop_after_4"
 }
 
-define i32 @"call_fun"(i32 %".1", i8* %".2", i8* %".3", i32 %".4", i32 %".5")
+define i32 @"main"()
+{
+.2:
+  %".3" = alloca [8 x i8]
+  store [8 x i8] zeroinitializer, [8 x i8]* %".3"
+  %".5" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 0
+  store i8 67, i8* %".5"
+  %".7" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 1
+  store i8 97, i8* %".7"
+  %".9" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 2
+  store i8 112, i8* %".9"
+  %".11" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 3
+  store i8 116, i8* %".11"
+  %".13" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 4
+  store i8 105, i8* %".13"
+  %".15" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 5
+  store i8 111, i8* %".15"
+  %".17" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 6
+  store i8 110, i8* %".17"
+  %".19" = getelementptr inbounds [8 x i8], [8 x i8]* %".3", i8 0, i8 7
+  store i8 0, i8* %".19"
+  %".21" = alloca [17 x i8]
+  store [17 x i8] zeroinitializer, [17 x i8]* %".21"
+  %".23" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 0
+  store i8 84, i8* %".23"
+  %".25" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 1
+  store i8 104, i8* %".25"
+  %".27" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 2
+  store i8 105, i8* %".27"
+  %".29" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 3
+  store i8 115, i8* %".29"
+  %".31" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 4
+  store i8 32, i8* %".31"
+  %".33" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 5
+  store i8 105, i8* %".33"
+  %".35" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 6
+  store i8 115, i8* %".35"
+  %".37" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 7
+  store i8 32, i8* %".37"
+  %".39" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 8
+  store i8 116, i8* %".39"
+  %".41" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 9
+  store i8 104, i8* %".41"
+  %".43" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 10
+  store i8 101, i8* %".43"
+  %".45" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 11
+  store i8 32, i8* %".45"
+  %".47" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 12
+  store i8 98, i8* %".47"
+  %".49" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 13
+  store i8 111, i8* %".49"
+  %".51" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 14
+  store i8 100, i8* %".51"
+  %".53" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 15
+  store i8 121, i8* %".53"
+  %".55" = getelementptr inbounds [17 x i8], [17 x i8]* %".21", i8 0, i8 16
+  store i8 0, i8* %".55"
+  %"caption_address" = alloca i8*
+  %".57" = bitcast [8 x i8]* %".3" to i8*
+  store i8* %".57", i8** %"caption_address"
+  store i8* %".57", i8** %"caption_address"
+  %"text_address" = alloca i8*
+  %".60" = bitcast [17 x i8]* %".21" to i8*
+  store i8* %".60", i8** %"text_address"
+  store i8* %".60", i8** %"text_address"
+  %".63" = alloca [11 x i8]
+  store [11 x i8] c"user32.dll\00", [11 x i8]* %".63"
+  %".65" = bitcast [11 x i8]* %".63" to i8*
+  %".66" = call ccc i32 @"find_function"(i32 3159204520, i32 1412361766, i8* %".65")
+  %".67" = load i8*, i8** %"text_address"
+  %".68" = load i8*, i8** %"caption_address"
+  %".69" = call i32 @"call_MessageBoxA"(i32 0, i8* %".67", i8* %".68", i32 0, i32 %".66")
+  ret i32 0
+}
+
+define i32 @"call_MessageBoxA"(i32 %".1", i8* %".2", i8* %".3", i32 %".4", i32 %".5")
 {
 .7:
   call void asm sideeffect "", "{eax}"
 (i32 %".5")
-  call void asm  "jmp eax", ""
+  call void asm  "mov %esp,%esi
+push 8(%esi)
+push 12(%esi)
+push 16(%esi)
+push 20(%esi)
+call eax", ""
 ()
-  ret i32 0
-}
-
-define i32 @"main"()
-{
-.2:
-  %"user32" = alloca i32
-  store i32 850256390, i32* %"user32"
-  %"message_box_a" = alloca i32
-  store i32 3159204520, i32* %"message_box_a"
-  %".5" = alloca [11 x i8]
-  store [11 x i8] zeroinitializer, [11 x i8]* %".5"
-  %".7" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 0
-  store i8 117, i8* %".7"
-  %".9" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 1
-  store i8 115, i8* %".9"
-  %".11" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 2
-  store i8 101, i8* %".11"
-  %".13" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 3
-  store i8 114, i8* %".13"
-  %".15" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 4
-  store i8 51, i8* %".15"
-  %".17" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 5
-  store i8 50, i8* %".17"
-  %".19" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 6
-  store i8 46, i8* %".19"
-  %".21" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 7
-  store i8 100, i8* %".21"
-  %".23" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 8
-  store i8 108, i8* %".23"
-  %".25" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 9
-  store i8 108, i8* %".25"
-  %".27" = getelementptr inbounds [11 x i8], [11 x i8]* %".5", i8 0, i8 10
-  store i8 0, i8* %".27"
-  %".29" = alloca [8 x i8]
-  store [8 x i8] zeroinitializer, [8 x i8]* %".29"
-  %".31" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 0
-  store i8 67, i8* %".31"
-  %".33" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 1
-  store i8 97, i8* %".33"
-  %".35" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 2
-  store i8 112, i8* %".35"
-  %".37" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 3
-  store i8 116, i8* %".37"
-  %".39" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 4
-  store i8 105, i8* %".39"
-  %".41" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 5
-  store i8 111, i8* %".41"
-  %".43" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 6
-  store i8 110, i8* %".43"
-  %".45" = getelementptr inbounds [8 x i8], [8 x i8]* %".29", i8 0, i8 7
-  store i8 0, i8* %".45"
-  %".47" = alloca [17 x i8]
-  store [17 x i8] zeroinitializer, [17 x i8]* %".47"
-  %".49" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 0
-  store i8 84, i8* %".49"
-  %".51" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 1
-  store i8 104, i8* %".51"
-  %".53" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 2
-  store i8 105, i8* %".53"
-  %".55" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 3
-  store i8 115, i8* %".55"
-  %".57" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 4
-  store i8 32, i8* %".57"
-  %".59" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 5
-  store i8 105, i8* %".59"
-  %".61" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 6
-  store i8 115, i8* %".61"
-  %".63" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 7
-  store i8 32, i8* %".63"
-  %".65" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 8
-  store i8 116, i8* %".65"
-  %".67" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 9
-  store i8 104, i8* %".67"
-  %".69" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 10
-  store i8 101, i8* %".69"
-  %".71" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 11
-  store i8 32, i8* %".71"
-  %".73" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 12
-  store i8 98, i8* %".73"
-  %".75" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 13
-  store i8 111, i8* %".75"
-  %".77" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 14
-  store i8 100, i8* %".77"
-  %".79" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 15
-  store i8 121, i8* %".79"
-  %".81" = getelementptr inbounds [17 x i8], [17 x i8]* %".47", i8 0, i8 16
-  store i8 0, i8* %".81"
-  %"caption_address" = alloca i8*
-  %".83" = bitcast [8 x i8]* %".29" to i8*
-  store i8* %".83", i8** %"caption_address"
-  store i8* %".83", i8** %"caption_address"
-  %"text_address" = alloca i8*
-  %".86" = bitcast [17 x i8]* %".47" to i8*
-  store i8* %".86", i8** %"text_address"
-  store i8* %".86", i8** %"text_address"
-  %"message_box" = alloca i32
-  %".89" = load i32, i32* %"message_box_a"
-  %".90" = load i32, i32* %"user32"
-  %".91" = getelementptr [11 x i8], [11 x i8]* %".5", i8 0, i8 0
-  %".92" = call i32 @"find_function"(i32 %".89", i32 %".90", i8* %".91")
-  store i32 %".92", i32* %"message_box"
-  %".94" = load i8*, i8** %"text_address"
-  %".95" = load i8*, i8** %"caption_address"
-  %".96" = load i32, i32* %"message_box"
-  %".97" = call i32 @"call_fun"(i32 0, i8* %".94", i8* %".95", i32 0, i32 %".96")
-  ret i32 0
+  ret i32 %".5"
 }
