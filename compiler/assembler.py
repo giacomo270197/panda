@@ -1,16 +1,10 @@
-import os
-import struct
-import subprocess
-import re
-
-import keystone as ks
 from llvmlite import ir
 
-from compiler.X86Windows32.mappings import type_mappings, size_mappings, test_instructions, register_size_mapping
+from compiler.mappings import type_mappings, size_mappings, test_instructions, register_size_mapping
 from parser.nodes import *
 
 
-class X86Windows32Compiler:
+class Assembler:
     def __init__(self, ast):
         self.ast = ast
         self.module = None
@@ -237,11 +231,6 @@ class X86Windows32Compiler:
     def process_block(self, block, function, variables):
         ir_block = function.append_basic_block()
         builder = ir.IRBuilder(ir_block)
-        # for name, value in variables.parameters.items():
-        #     ptr = builder.alloca(value.type)
-        #     var = self.Variable(ptr, value, value.type)
-        #     variables.locals[name] = var
-        #     builder.store(value, ptr)
         for statement in block.statements:
             self.process_statement(statement, builder, variables)
 
@@ -264,16 +253,6 @@ class X86Windows32Compiler:
                                          x % 2 == 0])
         func = ir.Function(self.module, new_func_type, name=func_identifier)
         self.functions[func_identifier] = func
-
-    def clean_assembly(self, asm):
-        new_asm = []
-        asm = asm.split("\n")
-        for line in asm:
-            if not line.replace("\t", "").startswith(".") and not line.replace(" ", "").startswith("#"):
-                new_asm.append(line)
-        new_asm = "\n".join(new_asm)
-        new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
-        return new_asm
 
     def ror_str(self, b, count):
         b = "{0:b}".format(b)
@@ -308,25 +287,3 @@ class X86Windows32Compiler:
             self.process_function(function)
         with open("example.ll", "w") as f:
             f.write(str(self.module))
-        subprocess.call(["clang", "-g", "-ooutput.s", "-masm=intel", "-fno-omit-frame-pointer", "-S", "-x", "ir", "-m32", "example.ll"],
-                        stdout=subprocess.DEVNULL
-                        )
-        path = os.path.join(os.getcwd(), "output.s")
-        with open(path) as asm_file:
-            asm = asm_file.read()
-        asm = self.clean_assembly(asm)
-        asm = "jmp main\n" + asm
-        return asm
-
-    def compile(self, assembly):
-        eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
-        try:
-            encoding, _ = eng.asm(assembly)
-        except ks.KsError as e:
-            print("ERROR: %s" % e)
-            exit()
-        bytecode = b""
-        for e in encoding:
-            bytecode += struct.pack("B", e)
-        packed_code = bytearray(bytecode)
-        return packed_code

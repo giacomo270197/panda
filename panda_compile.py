@@ -9,11 +9,12 @@ def main():
                                                                                   'Assembly or machine code')
     parser.add_argument('--source', '-s', type=str, help="The source file")
     parser.add_argument('--test', '-t', action='store_true', help="Inject code into the current Python process")
-    parser.add_argument('--asm', '-a', action='store', type=str, help="Output the generate Assembly code in a file")
-    parser.add_argument('--bin', '-b', action='store', type=str, help="Output the generate code in a byte file")
-    parser.add_argument('--py', '-p', action='store', type=str, help="Output the generate code in a Python byte format")
+    parser.add_argument('--asm', action='store', type=str, help="Output the generate Assembly code in a file")
+    parser.add_argument('--bin', action='store', type=str, help="Output the generate code in a byte file")
+    parser.add_argument('--py', action='store', type=str, help="Output the generate code in a Python byte format")
     parser.add_argument('--debug_asm', '-da', action='store_true', help="Print the assembly")
     parser.add_argument('--debug_tree', '-dt', action='store_true', help="Print the parse tree")
+    parser.add_argument('--platform', '-p', action='store', help="Print the parse tree")
     args = parser.parse_args()
 
     if not args.source:
@@ -21,6 +22,10 @@ def main():
 
     if not args.test and not args.py and not args.bin and not args.asm:
         exit("Please select an output mode")
+
+    platform = args.platform.replace("\n", "")
+    if platform not in ["32", "64"]:
+        exit("Invalid platform, choose 32 or 64")
 
     # Parse source code into a list of ASTs
     source = open(args.source)
@@ -33,7 +38,7 @@ def main():
     parser.build_ast()
 
     # Transform the AST into Assembly
-    compiler = Compiler("32", parser.ast)
+    compiler = Compiler(args.platform, parser.ast)
     compiler.create_assembly()
     if args.debug_asm:
         compiler.show_assembly()

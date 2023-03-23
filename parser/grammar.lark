@@ -43,14 +43,13 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
 !negate_stmt: "!" expr [";"]
 !indexing_stmt: expr "[" expr "]" [";"]
 !asm_stmt: "_asm(" ESCAPED_STRING "," ESCAPED_STRING "," ESCAPED_STRING ")" [";"]
-!comment: "#" /(.+?)\n/
 
 ?misc_stmts: casting_stmt | asm_stmt
 ?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
 ?unary_stmts: dereference_stmt | addressof_stmt | negate_stmt | indexing_stmt
 ?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | bitwisexor_stmt | rol_stmt | ror_stmt | rol16_stmt | ror16_stmt| shl_stmt | shr_stmt
 ?flow_stmts: functioncall_stmt | return_stmt | if_stmt | while_stmt
-?statement:  misc_stmts | flow_stmts | binary_stmts | unary_stmts | test_stmts | comment
+?statement:  misc_stmts | flow_stmts | binary_stmts | unary_stmts | test_stmts
 
 !block: "{" statement* "}"
 
