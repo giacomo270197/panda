@@ -36,8 +36,8 @@ class Preprocessor:
         self.source = re.sub(r, lambda m: m.groups()[0] + "=" + m.groups()[0] + "/" + m.groups()[2] + ";", self.source)
 
     def expand_arrays(self):
-        r = r'array\s(\w+)+?\s(int|byte)\[(\d+)\]'
-        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + " undef " + m.groups()[1] + "{" + "0, " * (
+        r = r'array\s(\w+)+?\s(int8|int16|int32|int64|ptr int8|ptr int16|ptr int32|ptr int64)\[(\d+)\]'
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + m.groups()[1] + "{" + "0, " * (
                     int(m.groups()[2]) - 1) + "0}", self.source)
 
     def expand_strings(self):
@@ -71,12 +71,13 @@ class Preprocessor:
                 params.append("int32 address")
                 params = "".join(params)
                 push_str = "mov %esp,%esi\\n"
-                for x in range(param_len):
+                for x in range(param_len, 0, -1):
                     push_str += "push {}(%esi)\\n".format(str(4 + 4 * (x+1)))
                 self.source += """
                 
 int32 fn call_{}({}) {{
-    _asm("address:eax", "{}call eax", "no_out");
+    int32 out = 0;
+    _asm("address:eax", "{}call eax", "eax:out");
     return address;
 }}
 

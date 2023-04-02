@@ -1,4 +1,4 @@
-declare("MessageBoxA", "user32.dll")(int32, ptr int8, ptr int8, int32);
+declare("CreateProcessA", "kernel32.dll")(int32, ptr int8, int32, int32, int32, int32, int32, int32,ptr int32, ptr int32);
 
 int32 fn compute_function_hash(int32 name) {
     int32 hash = 0;
@@ -84,10 +84,10 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
 }
 
 int32 fn main() {
-    string caption = "Caption";
-    string text = "This is the body";
-    ptr int8 caption_address = caption;
-    ptr int8 text_address = text;
-    MessageBoxA(0, text_address, caption_address, 0);
+    string appname = "notepad.exe";
+    array startup_info int32[17];
+    startup_info[0] = 0x44;
+    array process_info int32[4];
+    CreateProcessA(0, appname, 0, 0, 0, 0, 0, 0, startup_info, process_info);
     return 0;
 }

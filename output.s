@@ -395,121 +395,150 @@ LBB3_8:                                 # %loop_4.endif
 	.p2align	4, 0x90
 _main:                                  # @main
 # %bb.0:                                # %.2
-	push	ebp
-	mov	ebp, esp
+	push	edi
 	push	esi
-	and	esp, -8
-	sub	esp, 80
-	mov	byte ptr [esp + 75], 0
-	mov	byte ptr [esp + 74], 0
-	mov	byte ptr [esp + 73], 0
-	mov	byte ptr [esp + 72], 0
-	mov	byte ptr [esp + 71], 0
-	mov	byte ptr [esp + 70], 0
-	mov	byte ptr [esp + 69], 0
-	mov	byte ptr [esp + 68], 0
-	mov	byte ptr [esp + 68], 67
-	mov	byte ptr [esp + 69], 97
-	mov	byte ptr [esp + 70], 112
-	mov	byte ptr [esp + 71], 116
-	mov	byte ptr [esp + 72], 105
-	mov	byte ptr [esp + 73], 111
-	mov	byte ptr [esp + 74], 110
-	mov	byte ptr [esp + 75], 0
-	mov	byte ptr [esp + 67], 0
-	mov	byte ptr [esp + 66], 0
-	mov	byte ptr [esp + 65], 0
-	mov	byte ptr [esp + 64], 0
-	mov	byte ptr [esp + 63], 0
-	mov	byte ptr [esp + 62], 0
-	mov	byte ptr [esp + 61], 0
-	mov	byte ptr [esp + 60], 0
+	sub	esp, 156
+	mov	byte ptr [esp + 155], 0
+	mov	byte ptr [esp + 154], 0
+	mov	byte ptr [esp + 153], 0
+	mov	byte ptr [esp + 152], 0
+	mov	byte ptr [esp + 151], 0
+	mov	byte ptr [esp + 150], 0
+	mov	byte ptr [esp + 149], 0
+	mov	byte ptr [esp + 148], 0
+	mov	byte ptr [esp + 147], 0
+	mov	byte ptr [esp + 146], 0
+	mov	byte ptr [esp + 145], 0
+	mov	byte ptr [esp + 144], 0
+	mov	byte ptr [esp + 144], 110
+	mov	byte ptr [esp + 145], 111
+	mov	byte ptr [esp + 146], 116
+	mov	byte ptr [esp + 147], 101
+	mov	byte ptr [esp + 148], 112
+	mov	byte ptr [esp + 149], 97
+	mov	byte ptr [esp + 150], 100
+	mov	byte ptr [esp + 151], 46
+	mov	byte ptr [esp + 152], 101
+	mov	byte ptr [esp + 153], 120
+	mov	byte ptr [esp + 154], 101
+	mov	byte ptr [esp + 155], 0
+	mov	dword ptr [esp + 140], 0
+	mov	dword ptr [esp + 136], 0
+	mov	dword ptr [esp + 132], 0
+	mov	dword ptr [esp + 128], 0
+	mov	dword ptr [esp + 124], 0
+	mov	dword ptr [esp + 120], 0
+	mov	dword ptr [esp + 116], 0
+	mov	dword ptr [esp + 112], 0
+	mov	dword ptr [esp + 108], 0
+	mov	dword ptr [esp + 104], 0
+	mov	dword ptr [esp + 100], 0
+	mov	dword ptr [esp + 96], 0
+	mov	dword ptr [esp + 92], 0
+	mov	dword ptr [esp + 88], 0
+	mov	dword ptr [esp + 84], 0
+	mov	dword ptr [esp + 80], 0
+	mov	dword ptr [esp + 76], 0
+	mov	dword ptr [esp + 76], 0
+	mov	dword ptr [esp + 80], 0
+	mov	dword ptr [esp + 84], 0
+	mov	dword ptr [esp + 88], 0
+	mov	dword ptr [esp + 92], 0
+	mov	dword ptr [esp + 96], 0
+	mov	dword ptr [esp + 100], 0
+	mov	dword ptr [esp + 104], 0
+	mov	dword ptr [esp + 108], 0
+	mov	dword ptr [esp + 112], 0
+	mov	dword ptr [esp + 116], 0
+	mov	dword ptr [esp + 120], 0
+	mov	dword ptr [esp + 124], 0
+	mov	dword ptr [esp + 128], 0
+	mov	dword ptr [esp + 132], 0
+	mov	dword ptr [esp + 136], 0
+	mov	dword ptr [esp + 140], 0
+	mov	dword ptr [esp + 76], 68
+	mov	dword ptr [esp + 72], 0
+	mov	dword ptr [esp + 68], 0
+	mov	dword ptr [esp + 64], 0
+	mov	dword ptr [esp + 60], 0
+	mov	dword ptr [esp + 60], 0
+	mov	dword ptr [esp + 64], 0
+	mov	dword ptr [esp + 68], 0
+	mov	dword ptr [esp + 72], 0
 	mov	byte ptr [esp + 59], 0
-	mov	byte ptr [esp + 58], 0
-	mov	byte ptr [esp + 57], 0
-	mov	byte ptr [esp + 56], 0
-	mov	byte ptr [esp + 55], 0
-	mov	byte ptr [esp + 54], 0
-	mov	byte ptr [esp + 53], 0
-	mov	byte ptr [esp + 52], 0
-	mov	byte ptr [esp + 51], 0
-	mov	byte ptr [esp + 51], 84
-	mov	byte ptr [esp + 52], 104
-	mov	byte ptr [esp + 53], 105
-	mov	byte ptr [esp + 54], 115
-	mov	byte ptr [esp + 55], 32
-	mov	byte ptr [esp + 56], 105
-	mov	byte ptr [esp + 57], 115
-	mov	byte ptr [esp + 58], 32
-	mov	byte ptr [esp + 59], 116
-	mov	byte ptr [esp + 60], 104
-	mov	byte ptr [esp + 61], 101
-	mov	byte ptr [esp + 62], 32
-	mov	byte ptr [esp + 63], 98
-	mov	byte ptr [esp + 64], 111
-	mov	byte ptr [esp + 65], 100
-	mov	byte ptr [esp + 66], 121
-	mov	byte ptr [esp + 67], 0
-	lea	eax, [esp + 68]
-	mov	dword ptr [esp + 40], eax
-	mov	dword ptr [esp + 40], eax
-	lea	eax, [esp + 51]
-	mov	dword ptr [esp + 32], eax
-	mov	dword ptr [esp + 32], eax
-	mov	byte ptr [esp + 31], 0
-	mov	byte ptr [esp + 30], 108
-	mov	byte ptr [esp + 29], 108
-	mov	byte ptr [esp + 28], 100
-	mov	byte ptr [esp + 27], 46
-	mov	byte ptr [esp + 26], 50
-	mov	byte ptr [esp + 25], 51
-	mov	byte ptr [esp + 24], 114
-	mov	byte ptr [esp + 23], 101
-	mov	byte ptr [esp + 22], 115
-	mov	byte ptr [esp + 21], 117
-	lea	eax, [esp + 21]
-	mov	dword ptr [esp], -1135762776
-	mov	dword ptr [esp + 4], 1412361766
+	mov	byte ptr [esp + 58], 108
+	mov	byte ptr [esp + 57], 108
+	mov	byte ptr [esp + 56], 100
+	mov	byte ptr [esp + 55], 46
+	mov	byte ptr [esp + 54], 50
+	mov	byte ptr [esp + 53], 51
+	mov	byte ptr [esp + 52], 108
+	mov	byte ptr [esp + 51], 101
+	mov	byte ptr [esp + 50], 110
+	mov	byte ptr [esp + 49], 114
+	mov	byte ptr [esp + 48], 101
+	mov	byte ptr [esp + 47], 107
+	lea	eax, [esp + 47]
+	mov	dword ptr [esp], 380894834
+	mov	dword ptr [esp + 4], -1880304065
 	mov	dword ptr [esp + 8], eax
 	call	_find_function
-	mov	edx, dword ptr [esp + 32]
-	mov	ecx, dword ptr [esp + 40]
-	xor	esi, esi
+	lea	esi, [esp + 144]
+	lea	edx, [esp + 76]
+	lea	ecx, [esp + 60]
+	xor	edi, edi
 	mov	dword ptr [esp], 0
-	mov	dword ptr [esp + 4], edx
-	mov	dword ptr [esp + 8], ecx
+	mov	dword ptr [esp + 4], esi
+	mov	dword ptr [esp + 8], 0
 	mov	dword ptr [esp + 12], 0
-	mov	dword ptr [esp + 16], eax
-	call	_call_MessageBoxA
+	mov	dword ptr [esp + 16], 0
+	mov	dword ptr [esp + 20], 0
+	mov	dword ptr [esp + 24], 0
+	mov	dword ptr [esp + 28], 0
+	mov	dword ptr [esp + 32], edx
+	mov	dword ptr [esp + 36], ecx
+	mov	dword ptr [esp + 40], eax
+	call	_call_CreateProcessA
 	xor	eax, eax
-	lea	esp, [ebp - 4]
+	add	esp, 156
 	pop	esi
-	pop	ebp
+	pop	edi
 	ret
                                         # -- End function
-	.def	_call_MessageBoxA;
+	.def	_call_CreateProcessA;
 	.scl	2;
 	.type	32;
 	.endef
-	.globl	_call_MessageBoxA               # -- Begin function call_MessageBoxA
+	.globl	_call_CreateProcessA            # -- Begin function call_CreateProcessA
 	.p2align	4, 0x90
-_call_MessageBoxA:                      # @call_MessageBoxA
-# %bb.0:                                # %.7
-	push	eax
-	mov	eax, dword ptr [esp + 24]
+_call_CreateProcessA:                   # @call_CreateProcessA
+# %bb.0:                                # %.13
+	sub	esp, 8
+	mov	eax, dword ptr [esp + 52]
 	mov	dword ptr [esp], eax            # 4-byte Spill
+	mov	dword ptr [esp + 4], 0
 	#APP
 	#NO_APP
-	mov	eax, dword ptr [esp]            # 4-byte Reload
 	#APP
 	mov	esi, esp
-	push	dword ptr [esi + 8]
-	push	dword ptr [esi + 12]
-	push	dword ptr [esi + 16]
+	push	dword ptr [esi + 48]
+	push	dword ptr [esi + 44]
+	push	dword ptr [esi + 40]
+	push	dword ptr [esi + 36]
+	push	dword ptr [esi + 32]
+	push	dword ptr [esi + 28]
+	push	dword ptr [esi + 24]
 	push	dword ptr [esi + 20]
+	push	dword ptr [esi + 16]
+	push	dword ptr [esi + 12]
 	call	eax
 	#NO_APP
-	pop	ecx
+	#APP
+	#NO_APP
+	mov	ecx, eax
+	mov	eax, dword ptr [esp]            # 4-byte Reload
+	mov	dword ptr [esp + 4], ecx
+	add	esp, 8
 	ret
                                         # -- End function
 	.addrsig
@@ -517,4 +546,4 @@ _call_MessageBoxA:                      # @call_MessageBoxA
 	.addrsig_sym _compute_module_hash
 	.addrsig_sym _find_module_base
 	.addrsig_sym _find_function
-	.addrsig_sym _call_MessageBoxA
+	.addrsig_sym _call_CreateProcessA

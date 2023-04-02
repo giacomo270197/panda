@@ -219,6 +219,17 @@ class Assembler:
                 tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)
                 ptr = self.analyze_expression(val, builder, variables, as_ptr=True)
                 builder.store(tmp, ptr)
+        elif isinstance(statement, CastingStatementNode):
+            val = self.analyze_expression(statement.identifier, builder, variables)
+            new_type = type_mappings[statement.new_type.value.replace("\"", "")]
+            if isinstance(variables.locals[statement.identifier.value].type, ir.PointerType):
+                if isinstance(new_type, ir.PointerType):
+                    exit("NOT IMPLEMENTED")
+                else:
+                    builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
+            else:
+                pass
+            variables.locals[statement.identifier.value].type = new_type
         elif isinstance(statement, CommentStatementNode):
             pass
         else:
