@@ -1,3 +1,16 @@
+int32 fn compute_function_hash(int64 name) {
+    int32 hash = 0;
+    int8 cnt = 0;
+    int8 char = *(name + cnt);
+    while(char != 0){
+        hash = (hash shr 13) || (hash shl 19);
+        hash += char;
+        cnt += 1;
+        char = *(name + cnt);
+    }
+    return hash;
+}
+
 int64 fn find_actual_dll_name(int64 path) {
     int64 cnt = 0;
     int64 last_backslash = 0;
@@ -61,6 +74,20 @@ int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     while(number_of_names > 0) {
         int32 symbol_name_offset = *(address_of_names + (number_of_names * 4));
         int64 symbol_name = base_address + symbol_name_offset;
+        int32 computed = compute_function_hash(symbol_name);
+        if(computed == function_hash) {
+            int32 address_of_name_ordinal = *(export_table_directory + 0x24);
+            address_of_name_ordinal = int64;
+            address_of_name_ordinal += base_address;
+            int16 ordinal = *(address_of_name_ordinal + (2 * number_of_names));
+            int32 address_of_functions = *(export_table_directory + 0x1c);
+            address_of_functions = int64;
+            address_of_functions += base_address;
+            int32 function_address = *(address_of_functions + (4 * ordinal));
+            function_address = int64;
+            function_address += base_address;
+            return function_address;
+        }
         number_of_names -= 1;
     }
     return 0;
@@ -69,6 +96,6 @@ int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
 int32 fn main() {
     int32 hash = 0x6e2bca17;
     string name = "kernel32";
-    int64 test = find_function(0, hash, name);
+    int64 test = find_function(0xec0e4e8e, hash, name);
     return 0;
 }

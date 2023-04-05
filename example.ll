@@ -2,6 +2,57 @@
 target triple = "unknown-unknown-unknown"
 target datalayout = ""
 
+define i32 @"compute_function_hash"(i64 %".1")
+{
+.3:
+  %"hash" = alloca i32
+  store i32 0, i32* %"hash"
+  %"cnt" = alloca i8
+  store i8 0, i8* %"cnt"
+  %"char" = alloca i8
+  %".6" = load i8, i8* %"cnt"
+  %".7" = zext i8 %".6" to i64
+  %".8" = add i64 %".1", %".7"
+  %".9" = inttoptr i64 %".8" to i8*
+  %".10" = load i8, i8* %".9"
+  store i8 %".10", i8* %"char"
+  %".12" = load i8, i8* %"char"
+  %".13" = icmp ne i8 %".12", 0
+  br i1 %".13", label %"loop_1", label %"loop_after_1"
+loop_1:
+  %".15" = load i32, i32* %"hash"
+  %".16" = zext i32 %".15" to i64
+  %".17" = ashr i64 %".16", 13
+  %".18" = load i32, i32* %"hash"
+  %".19" = zext i32 %".18" to i64
+  %".20" = shl i64 %".19", 19
+  %".21" = or i64 %".17", %".20"
+  %".22" = trunc i64 %".21" to i32
+  store i32 %".22", i32* %"hash"
+  %".24" = load i32, i32* %"hash"
+  %".25" = load i8, i8* %"char"
+  %".26" = zext i8 %".25" to i32
+  %".27" = add i32 %".24", %".26"
+  store i32 %".27", i32* %"hash"
+  %".29" = load i8, i8* %"cnt"
+  %".30" = zext i8 %".29" to i64
+  %".31" = add i64 %".30", 1
+  %".32" = trunc i64 %".31" to i8
+  store i8 %".32", i8* %"cnt"
+  %".34" = load i8, i8* %"cnt"
+  %".35" = zext i8 %".34" to i64
+  %".36" = add i64 %".1", %".35"
+  %".37" = inttoptr i64 %".36" to i8*
+  %".38" = load i8, i8* %".37"
+  store i8 %".38", i8* %"char"
+  %".40" = load i8, i8* %"char"
+  %".41" = icmp ne i8 %".40", 0
+  br i1 %".41", label %"loop_1", label %"loop_after_1"
+loop_after_1:
+  %".43" = load i32, i32* %"hash"
+  ret i32 %".43"
+}
+
 define i64 @"find_actual_dll_name"(i64 %".1")
 {
 .3:
@@ -17,23 +68,23 @@ define i64 @"find_actual_dll_name"(i64 %".1")
   store i8 %".9", i8* %"current_char"
   %".11" = load i8, i8* %"current_char"
   %".12" = icmp ne i8 %".11", 0
-  br i1 %".12", label %"loop_1", label %"loop_after_1"
-loop_1:
+  br i1 %".12", label %"loop_2", label %"loop_after_2"
+loop_2:
   %".14" = load i8, i8* %"current_char"
   %".15" = icmp eq i8 %".14", 92
-  br i1 %".15", label %"loop_1.if", label %"loop_1.else"
-loop_after_1:
+  br i1 %".15", label %"loop_2.if", label %"loop_2.else"
+loop_after_2:
   %".33" = load i64, i64* %"last_backslash"
   %".34" = add i64 %".33", 2
   ret i64 %".34"
-loop_1.if:
+loop_2.if:
   %".17" = load i64, i64* %"cnt"
   %".18" = add i64 %".1", %".17"
   store i64 %".18", i64* %"last_backslash"
-  br label %"loop_1.endif"
-loop_1.else:
-  br label %"loop_1.endif"
-loop_1.endif:
+  br label %"loop_2.endif"
+loop_2.else:
+  br label %"loop_2.endif"
+loop_2.endif:
   %".22" = load i64, i64* %"cnt"
   %".23" = add i64 %".22", 2
   store i64 %".23", i64* %"cnt"
@@ -44,7 +95,7 @@ loop_1.endif:
   store i8 %".28", i8* %"current_char"
   %".30" = load i8, i8* %"current_char"
   %".31" = icmp ne i8 %".30", 0
-  br i1 %".31", label %"loop_1", label %"loop_after_1"
+  br i1 %".31", label %"loop_2", label %"loop_after_2"
 }
 
 define i32 @"compute_module_hash"(i64 %".1")
@@ -67,8 +118,8 @@ define i32 @"compute_module_hash"(i64 %".1")
   store i16 %".13", i16* %"char"
   %".15" = load i16, i16* %"char"
   %".16" = icmp ne i16 %".15", 0
-  br i1 %".16", label %"loop_2", label %"loop_after_2"
-loop_2:
+  br i1 %".16", label %"loop_3", label %"loop_after_3"
+loop_3:
   %".18" = load i32, i32* %"hash"
   %".19" = zext i32 %".18" to i64
   %".20" = ashr i64 %".19", 13
@@ -97,8 +148,8 @@ loop_2:
   store i16 %".42", i16* %"char"
   %".44" = load i16, i16* %"char"
   %".45" = icmp ne i16 %".44", 0
-  br i1 %".45", label %"loop_2", label %"loop_after_2"
-loop_after_2:
+  br i1 %".45", label %"loop_3", label %"loop_after_3"
+loop_after_3:
   %".47" = load i32, i32* %"hash"
   ret i32 %".47"
 }
@@ -135,8 +186,8 @@ define i64 @"find_module_base"(i32 %".1")
   store i8 0, i8* %"guard"
   %".26" = load i8, i8* %"guard"
   %".27" = icmp eq i8 %".26", 0
-  br i1 %".27", label %"loop_3", label %"loop_after_3"
-loop_3:
+  br i1 %".27", label %"loop_4", label %"loop_after_4"
+loop_4:
   %"table_entry" = alloca i64
   %".29" = load i64, i64* %"pointer"
   %".30" = sub i64 %".29", 16
@@ -155,25 +206,25 @@ loop_3:
   store i32 %".40", i32* %"computed_hash"
   %".42" = load i32, i32* %"computed_hash"
   %".43" = icmp eq i32 %".42", %".1"
-  br i1 %".43", label %"loop_3.if", label %"loop_3.else"
-loop_after_3:
+  br i1 %".43", label %"loop_4.if", label %"loop_4.else"
+loop_after_4:
   ret i64 0
-loop_3.if:
+loop_4.if:
   %".45" = load i64, i64* %"table_entry"
   %".46" = add i64 %".45", 48
   %".47" = inttoptr i64 %".46" to i64*
   %".48" = load i64, i64* %".47"
   ret i64 %".48"
-loop_3.else:
-  br label %"loop_3.endif"
-loop_3.endif:
+loop_4.else:
+  br label %"loop_4.endif"
+loop_4.endif:
   %".51" = load i64, i64* %"pointer"
   %".52" = inttoptr i64 %".51" to i64*
   %".53" = load i64, i64* %".52"
   store i64 %".53", i64* %"pointer"
   %".55" = load i8, i8* %"guard"
   %".56" = icmp eq i8 %".55", 0
-  br i1 %".56", label %"loop_3", label %"loop_after_3"
+  br i1 %".56", label %"loop_4", label %"loop_after_4"
 }
 
 define i64 @"find_function"(i32 %".1", i32 %".2", i8* %".3")
@@ -237,8 +288,8 @@ define i64 @"find_function"(i32 %".1", i32 %".2", i8* %".3")
   store i32 %".55", i32* %"number_of_names"
   %".57" = load i32, i32* %"number_of_names"
   %".58" = icmp ugt i32 %".57", 0
-  br i1 %".58", label %"loop_4", label %"loop_after_4"
-loop_4:
+  br i1 %".58", label %"loop_5", label %"loop_after_5"
+loop_5:
   %"symbol_name_offset" = alloca i32
   %".60" = load i64, i64* %".46"
   %".61" = load i32, i32* %"number_of_names"
@@ -254,16 +305,83 @@ loop_4:
   %".70" = zext i32 %".69" to i64
   %".71" = add i64 %".68", %".70"
   store i64 %".71", i64* %"symbol_name"
-  %".73" = load i32, i32* %"number_of_names"
-  %".74" = zext i32 %".73" to i64
-  %".75" = sub i64 %".74", 1
-  %".76" = trunc i64 %".75" to i32
-  store i32 %".76", i32* %"number_of_names"
-  %".78" = load i32, i32* %"number_of_names"
-  %".79" = icmp ugt i32 %".78", 0
-  br i1 %".79", label %"loop_4", label %"loop_after_4"
-loop_after_4:
+  %"computed" = alloca i32
+  %".73" = load i64, i64* %"symbol_name"
+  %".74" = call i32 @"compute_function_hash"(i64 %".73")
+  store i32 %".74", i32* %"computed"
+  %".76" = load i32, i32* %"computed"
+  %".77" = icmp eq i32 %".76", %".1"
+  br i1 %".77", label %"loop_5.if", label %"loop_5.else"
+loop_after_5:
   ret i64 0
+loop_5.if:
+  %"address_of_name_ordinal" = alloca i32
+  %".79" = load i64, i64* %".28"
+  %".80" = add i64 %".79", 36
+  %".81" = inttoptr i64 %".80" to i32*
+  %".82" = load i32, i32* %".81"
+  store i32 %".82", i32* %"address_of_name_ordinal"
+  %".84" = load i32, i32* %"address_of_name_ordinal"
+  %".85" = zext i32 %".84" to i64
+  %".86" = alloca i64
+  store i64 %".85", i64* %".86"
+  %".88" = load i64, i64* %".86"
+  %".89" = load i64, i64* %"base_address"
+  %".90" = add i64 %".88", %".89"
+  store i64 %".90", i64* %".86"
+  %"ordinal" = alloca i16
+  %".92" = load i64, i64* %".86"
+  %".93" = load i32, i32* %"number_of_names"
+  %".94" = zext i32 %".93" to i64
+  %".95" = mul i64 2, %".94"
+  %".96" = add i64 %".92", %".95"
+  %".97" = inttoptr i64 %".96" to i16*
+  %".98" = load i16, i16* %".97"
+  store i16 %".98", i16* %"ordinal"
+  %"address_of_functions" = alloca i32
+  %".100" = load i64, i64* %".28"
+  %".101" = add i64 %".100", 28
+  %".102" = inttoptr i64 %".101" to i32*
+  %".103" = load i32, i32* %".102"
+  store i32 %".103", i32* %"address_of_functions"
+  %".105" = load i32, i32* %"address_of_functions"
+  %".106" = zext i32 %".105" to i64
+  %".107" = alloca i64
+  store i64 %".106", i64* %".107"
+  %".109" = load i64, i64* %".107"
+  %".110" = load i64, i64* %"base_address"
+  %".111" = add i64 %".109", %".110"
+  store i64 %".111", i64* %".107"
+  %"function_address" = alloca i32
+  %".113" = load i64, i64* %".107"
+  %".114" = load i16, i16* %"ordinal"
+  %".115" = zext i16 %".114" to i64
+  %".116" = mul i64 4, %".115"
+  %".117" = add i64 %".113", %".116"
+  %".118" = inttoptr i64 %".117" to i32*
+  %".119" = load i32, i32* %".118"
+  store i32 %".119", i32* %"function_address"
+  %".121" = load i32, i32* %"function_address"
+  %".122" = zext i32 %".121" to i64
+  %".123" = alloca i64
+  store i64 %".122", i64* %".123"
+  %".125" = load i64, i64* %".123"
+  %".126" = load i64, i64* %"base_address"
+  %".127" = add i64 %".125", %".126"
+  store i64 %".127", i64* %".123"
+  %".129" = load i64, i64* %".123"
+  ret i64 %".129"
+loop_5.else:
+  br label %"loop_5.endif"
+loop_5.endif:
+  %".132" = load i32, i32* %"number_of_names"
+  %".133" = zext i32 %".132" to i64
+  %".134" = sub i64 %".133", 1
+  %".135" = trunc i64 %".134" to i32
+  store i32 %".135", i32* %"number_of_names"
+  %".137" = load i32, i32* %"number_of_names"
+  %".138" = icmp ugt i32 %".137", 0
+  br i1 %".138", label %"loop_5", label %"loop_after_5"
 }
 
 define i32 @"main"()
@@ -294,7 +412,7 @@ define i32 @"main"()
   %"test" = alloca i64
   %".24" = load i32, i32* %"hash"
   %".25" = getelementptr [9 x i8], [9 x i8]* %".4", i8 0, i8 0
-  %".26" = call i64 @"find_function"(i32 0, i32 %".24", i8* %".25")
+  %".26" = call i64 @"find_function"(i32 3960360590, i32 %".24", i8* %".25")
   store i64 %".26", i64* %"test"
   ret i32 0
 }

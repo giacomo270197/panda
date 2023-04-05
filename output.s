@@ -7,6 +7,62 @@
 .set @feat.00, 0
 	.intel_syntax noprefix
 	.file	"example.ll"
+	.def	compute_function_hash;
+	.scl	2;
+	.type	32;
+	.endef
+	.globl	compute_function_hash           # -- Begin function compute_function_hash
+	.p2align	4, 0x90
+compute_function_hash:                  # @compute_function_hash
+.seh_proc compute_function_hash
+# %bb.0:                                # %.3
+	sub	rsp, 16
+	.seh_stackalloc 16
+	.seh_endprologue
+	mov	qword ptr [rsp], rcx            # 8-byte Spill
+	mov	dword ptr [rsp + 12], 0
+	mov	byte ptr [rsp + 11], 0
+	movzx	eax, byte ptr [rsp + 11]
+                                        # kill: def $rax killed $eax
+	add	rcx, rax
+	mov	al, byte ptr [rcx]
+	mov	byte ptr [rsp + 10], al
+	cmp	byte ptr [rsp + 10], 0
+	je	.LBB0_2
+.LBB0_1:                                # %loop_1
+                                        # =>This Inner Loop Header: Depth=1
+	mov	rax, qword ptr [rsp]            # 8-byte Reload
+	mov	ecx, dword ptr [rsp + 12]
+                                        # kill: def $rcx killed $ecx
+	sar	rcx, 13
+	mov	edx, dword ptr [rsp + 12]
+                                        # kill: def $rdx killed $edx
+	shl	rdx, 19
+	or	rcx, rdx
+                                        # kill: def $ecx killed $ecx killed $rcx
+	mov	dword ptr [rsp + 12], ecx
+	mov	ecx, dword ptr [rsp + 12]
+	movzx	edx, byte ptr [rsp + 10]
+	add	ecx, edx
+	mov	dword ptr [rsp + 12], ecx
+	movzx	ecx, byte ptr [rsp + 11]
+                                        # kill: def $rcx killed $ecx
+	add	rcx, 1
+                                        # kill: def $cl killed $cl killed $rcx
+	mov	byte ptr [rsp + 11], cl
+	movzx	ecx, byte ptr [rsp + 11]
+                                        # kill: def $rcx killed $ecx
+	add	rax, rcx
+	mov	al, byte ptr [rax]
+	mov	byte ptr [rsp + 10], al
+	cmp	byte ptr [rsp + 10], 0
+	jne	.LBB0_1
+.LBB0_2:                                # %loop_after_1
+	mov	eax, dword ptr [rsp + 12]
+	add	rsp, 16
+	ret
+	.seh_endproc
+                                        # -- End function
 	.def	find_actual_dll_name;
 	.scl	2;
 	.type	32;
@@ -26,28 +82,28 @@ find_actual_dll_name:                   # @find_actual_dll_name
 	mov	al, byte ptr [rcx]
 	mov	byte ptr [rsp + 15], al
 	cmp	byte ptr [rsp + 15], 0
-	je	.LBB0_2
-.LBB0_1:                                # %loop_1
+	je	.LBB1_2
+.LBB1_1:                                # %loop_2
                                         # =>This Inner Loop Header: Depth=1
 	cmp	byte ptr [rsp + 15], 92
-	je	.LBB0_3
-	jmp	.LBB0_4
-.LBB0_2:                                # %loop_after_1
+	je	.LBB1_3
+	jmp	.LBB1_4
+.LBB1_2:                                # %loop_after_2
 	mov	rax, qword ptr [rsp + 16]
 	add	rax, 2
 	add	rsp, 32
 	ret
-.LBB0_3:                                # %loop_1.if
-                                        #   in Loop: Header=BB0_1 Depth=1
+.LBB1_3:                                # %loop_2.if
+                                        #   in Loop: Header=BB1_1 Depth=1
 	mov	rax, qword ptr [rsp]            # 8-byte Reload
 	add	rax, qword ptr [rsp + 24]
 	mov	qword ptr [rsp + 16], rax
-	jmp	.LBB0_5
-.LBB0_4:                                # %loop_1.else
-                                        #   in Loop: Header=BB0_1 Depth=1
-	jmp	.LBB0_5
-.LBB0_5:                                # %loop_1.endif
-                                        #   in Loop: Header=BB0_1 Depth=1
+	jmp	.LBB1_5
+.LBB1_4:                                # %loop_2.else
+                                        #   in Loop: Header=BB1_1 Depth=1
+	jmp	.LBB1_5
+.LBB1_5:                                # %loop_2.endif
+                                        #   in Loop: Header=BB1_1 Depth=1
 	mov	rax, qword ptr [rsp]            # 8-byte Reload
 	mov	rcx, qword ptr [rsp + 24]
 	add	rcx, 2
@@ -56,8 +112,8 @@ find_actual_dll_name:                   # @find_actual_dll_name
 	mov	al, byte ptr [rax]
 	mov	byte ptr [rsp + 15], al
 	cmp	byte ptr [rsp + 15], 0
-	jne	.LBB0_1
-	jmp	.LBB0_2
+	jne	.LBB1_1
+	jmp	.LBB1_2
 	.seh_endproc
                                         # -- End function
 	.def	compute_module_hash;
@@ -83,8 +139,8 @@ compute_module_hash:                    # @compute_module_hash
 	mov	ax, word ptr [rax]
 	mov	word ptr [rsp + 40], ax
 	cmp	word ptr [rsp + 40], 0
-	je	.LBB1_2
-.LBB1_1:                                # %loop_2
+	je	.LBB2_2
+.LBB2_1:                                # %loop_3
                                         # =>This Inner Loop Header: Depth=1
 	mov	eax, dword ptr [rsp + 44]
                                         # kill: def $rax killed $eax
@@ -111,8 +167,8 @@ compute_module_hash:                    # @compute_module_hash
 	mov	ax, word ptr [rax]
 	mov	word ptr [rsp + 40], ax
 	cmp	word ptr [rsp + 40], 0
-	jne	.LBB1_1
-.LBB1_2:                                # %loop_after_2
+	jne	.LBB2_1
+.LBB2_2:                                # %loop_after_3
 	mov	eax, dword ptr [rsp + 44]
 	add	rsp, 56
 	ret
@@ -156,8 +212,8 @@ find_module_base:                       # @find_module_base
 	mov	qword ptr [rbp - 8], rax
 	mov	byte ptr [rbp - 9], 0
 	cmp	byte ptr [rbp - 9], 0
-	jne	.LBB2_2
-.LBB2_1:                                # %loop_3
+	jne	.LBB3_2
+.LBB3_1:                                # %loop_4
                                         # =>This Inner Loop Header: Depth=1
 	mov	eax, 16
 	mov	qword ptr [rbp - 40], rax       # 8-byte Spill
@@ -193,32 +249,32 @@ find_module_base:                       # @find_module_base
 	mov	rax, qword ptr [rbp - 24]       # 8-byte Reload
 	mov	dword ptr [rax], edx
 	cmp	dword ptr [rax], ecx
-	je	.LBB2_3
-	jmp	.LBB2_4
-.LBB2_2:                                # %loop_after_3
+	je	.LBB3_3
+	jmp	.LBB3_4
+.LBB3_2:                                # %loop_after_4
 	xor	eax, eax
                                         # kill: def $rax killed $eax
 	mov	rsp, rbp
 	pop	rbp
 	ret
-.LBB2_3:                                # %loop_3.if
+.LBB3_3:                                # %loop_4.if
 	mov	rax, qword ptr [rbp - 48]       # 8-byte Reload
 	mov	rax, qword ptr [rax]
 	mov	rax, qword ptr [rax + 48]
 	mov	rsp, rbp
 	pop	rbp
 	ret
-.LBB2_4:                                # %loop_3.else
-                                        #   in Loop: Header=BB2_1 Depth=1
-	jmp	.LBB2_5
-.LBB2_5:                                # %loop_3.endif
-                                        #   in Loop: Header=BB2_1 Depth=1
+.LBB3_4:                                # %loop_4.else
+                                        #   in Loop: Header=BB3_1 Depth=1
+	jmp	.LBB3_5
+.LBB3_5:                                # %loop_4.endif
+                                        #   in Loop: Header=BB3_1 Depth=1
 	mov	rax, qword ptr [rbp - 8]
 	mov	rax, qword ptr [rax]
 	mov	qword ptr [rbp - 8], rax
 	cmp	byte ptr [rbp - 9], 0
-	je	.LBB2_1
-	jmp	.LBB2_2
+	je	.LBB3_1
+	jmp	.LBB3_2
 	.seh_endproc
                                         # -- End function
 	.def	find_function;
@@ -232,12 +288,15 @@ find_function:                          # @find_function
 # %bb.0:                                # %.5
 	push	rbp
 	.seh_pushreg rbp
-	sub	rsp, 64
-	.seh_stackalloc 64
-	lea	rbp, [rsp + 64]
-	.seh_setframe rbp, 64
+	sub	rsp, 96
+	.seh_stackalloc 96
+	lea	rbp, [rsp + 96]
+	.seh_setframe rbp, 96
 	.seh_endprologue
-	mov	ecx, edx
+	mov	dword ptr [rbp - 64], edx       # 4-byte Spill
+	mov	eax, ecx
+	mov	ecx, dword ptr [rbp - 64]       # 4-byte Reload
+	mov	dword ptr [rbp - 60], eax       # 4-byte Spill
 	sub	rsp, 32
 	call	find_module_base
 	add	rsp, 32
@@ -278,42 +337,136 @@ find_function:                          # @find_function
                                         # kill: def $eax killed $eax killed $rax
 	mov	dword ptr [rbp - 44], eax
 	cmp	dword ptr [rbp - 44], 0
-	jbe	.LBB3_2
-.LBB3_1:                                # %loop_4
+	jbe	.LBB4_2
+.LBB4_1:                                # %loop_5
                                         # =>This Inner Loop Header: Depth=1
 	mov	eax, 16
-	mov	qword ptr [rbp - 64], rax       # 8-byte Spill
+	mov	qword ptr [rbp - 88], rax       # 8-byte Spill
 	call	__chkstk
 	sub	rsp, rax
-	mov	rax, qword ptr [rbp - 64]       # 8-byte Reload
+	mov	rax, qword ptr [rbp - 88]       # 8-byte Reload
+	mov	r8, rsp
+	mov	rcx, qword ptr [rbp - 56]
+	mov	edx, dword ptr [rbp - 44]
+                                        # kill: def $rdx killed $edx
+	mov	ecx, dword ptr [rcx + 4*rdx]
+	mov	dword ptr [r8], ecx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 88]       # 8-byte Reload
 	mov	rcx, rsp
 	mov	rdx, rcx
-	mov	r8, qword ptr [rbp - 56]
-	mov	r9d, dword ptr [rbp - 44]
-                                        # kill: def $r9 killed $r9d
-	mov	r8d, dword ptr [r8 + 4*r9]
-	mov	dword ptr [rcx], r8d
+	mov	qword ptr [rbp - 80], rdx       # 8-byte Spill
+	mov	rdx, qword ptr [rbp - 8]
+	mov	r8d, dword ptr [r8]
+                                        # kill: def $r8 killed $r8d
+	add	rdx, r8
+	mov	qword ptr [rcx], rdx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 80]       # 8-byte Reload
+	mov	rcx, rsp
+	mov	qword ptr [rbp - 72], rcx       # 8-byte Spill
+	mov	rcx, qword ptr [rax]
+	sub	rsp, 32
+	call	compute_function_hash
+	mov	ecx, dword ptr [rbp - 60]       # 4-byte Reload
+	add	rsp, 32
+	mov	edx, eax
+	mov	rax, qword ptr [rbp - 72]       # 8-byte Reload
+	mov	dword ptr [rax], edx
+	cmp	dword ptr [rax], ecx
+	je	.LBB4_3
+	jmp	.LBB4_4
+.LBB4_2:                                # %loop_after_5
+	xor	eax, eax
+                                        # kill: def $rax killed $eax
+	mov	rsp, rbp
+	pop	rbp
+	ret
+.LBB4_3:                                # %loop_5.if
+	mov	eax, 16
+	mov	qword ptr [rbp - 96], rax       # 8-byte Spill
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 96]       # 8-byte Reload
+	mov	rcx, rsp
+	mov	rdx, qword ptr [rbp - 40]
+	mov	edx, dword ptr [rdx + 36]
+	mov	dword ptr [rcx], edx
+	mov	ecx, dword ptr [rcx]
+	mov	edx, ecx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 96]       # 8-byte Reload
+	mov	rcx, rsp
+	mov	qword ptr [rcx], rdx
+	mov	rdx, qword ptr [rcx]
+	mov	r8, qword ptr [rbp - 8]
+	add	rdx, r8
+	mov	qword ptr [rcx], rdx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 96]       # 8-byte Reload
+	mov	r8, rsp
+	mov	rcx, qword ptr [rcx]
+	mov	edx, dword ptr [rbp - 44]
+                                        # kill: def $rdx killed $edx
+	mov	cx, word ptr [rcx + 2*rdx]
+	mov	word ptr [r8], cx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 96]       # 8-byte Reload
+	mov	rcx, rsp
+	mov	rdx, qword ptr [rbp - 40]
+	mov	edx, dword ptr [rdx + 28]
+	mov	dword ptr [rcx], edx
+	mov	ecx, dword ptr [rcx]
+                                        # kill: def $rcx killed $ecx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 96]       # 8-byte Reload
+	mov	rdx, rsp
+	mov	qword ptr [rdx], rcx
+	mov	rcx, qword ptr [rdx]
+	mov	r9, qword ptr [rbp - 8]
+	add	rcx, r9
+	mov	qword ptr [rdx], rcx
+	call	__chkstk
+	sub	rsp, rax
+	mov	rax, qword ptr [rbp - 96]       # 8-byte Reload
+	mov	rcx, rsp
+	mov	rdx, qword ptr [rdx]
+	movzx	r8d, word ptr [r8]
+                                        # kill: def $r8 killed $r8d
+	mov	edx, dword ptr [rdx + 4*r8]
+	mov	dword ptr [rcx], edx
+	mov	ecx, dword ptr [rcx]
+                                        # kill: def $rcx killed $ecx
 	call	__chkstk
 	sub	rsp, rax
 	mov	rax, rsp
-	mov	rcx, qword ptr [rbp - 8]
-	mov	edx, dword ptr [rdx]
-                                        # kill: def $rdx killed $edx
-	add	rcx, rdx
 	mov	qword ptr [rax], rcx
+	mov	rcx, qword ptr [rax]
+	add	rcx, qword ptr [rbp - 8]
+	mov	qword ptr [rax], rcx
+	mov	rax, qword ptr [rax]
+	mov	rsp, rbp
+	pop	rbp
+	ret
+.LBB4_4:                                # %loop_5.else
+                                        #   in Loop: Header=BB4_1 Depth=1
+	jmp	.LBB4_5
+.LBB4_5:                                # %loop_5.endif
+                                        #   in Loop: Header=BB4_1 Depth=1
 	mov	eax, dword ptr [rbp - 44]
                                         # kill: def $rax killed $eax
 	sub	rax, 1
                                         # kill: def $eax killed $eax killed $rax
 	mov	dword ptr [rbp - 44], eax
 	cmp	dword ptr [rbp - 44], 0
-	ja	.LBB3_1
-.LBB3_2:                                # %loop_after_4
-	xor	eax, eax
-                                        # kill: def $rax killed $eax
-	mov	rsp, rbp
-	pop	rbp
-	ret
+	ja	.LBB4_1
+	jmp	.LBB4_2
 	.seh_endproc
                                         # -- End function
 	.def	main;
@@ -349,7 +502,7 @@ main:                                   # @main
 	mov	byte ptr [rsp + 51], 0
 	mov	edx, dword ptr [rsp + 52]
 	lea	r8, [rsp + 43]
-	xor	ecx, ecx
+	mov	ecx, 3960360590
 	call	find_function
 	mov	qword ptr [rsp + 32], rax
 	xor	eax, eax
@@ -358,6 +511,7 @@ main:                                   # @main
 	.seh_endproc
                                         # -- End function
 	.addrsig
+	.addrsig_sym compute_function_hash
 	.addrsig_sym find_actual_dll_name
 	.addrsig_sym compute_module_hash
 	.addrsig_sym find_module_base
