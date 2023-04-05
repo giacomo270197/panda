@@ -222,14 +222,21 @@ class Assembler:
         elif isinstance(statement, CastingStatementNode):
             val = self.analyze_expression(statement.identifier, builder, variables)
             new_type = type_mappings[statement.new_type.value.replace("\"", "")]
-            if isinstance(variables.locals[statement.identifier.value].type, ir.PointerType):
+            old_type = variables.locals[statement.identifier.value].type
+            if isinstance(old_type, ir.PointerType):
                 if isinstance(new_type, ir.PointerType):
                     exit("NOT IMPLEMENTED")
                 else:
-                    builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
+                    value = builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
             else:
-                pass
+                if size_mappings[str(old_type)] > size_mappings[str(new_type)]:
+                    value = builder.trunc(val, new_type)
+                elif size_mappings[str(old_type)] < size_mappings[str(new_type)]:
+                    value = builder.zext(val, new_type)
+            new_ptr = builder.alloca(new_type)
+            builder.store(value, new_ptr)
             variables.locals[statement.identifier.value].type = new_type
+            variables.locals[statement.identifier.value].ptr = new_ptr
         elif isinstance(statement, CommentStatementNode):
             pass
         else:

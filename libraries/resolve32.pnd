@@ -33,12 +33,12 @@ int32 fn find_module_base(int32 hash) {
     int32 module_name = *(pointer + 0x20);
     int8 guard = 0;
     while(guard == 0) {
-        if(pointer == 0) {
-            return 0;
-        }
         pointer = *pointer;
         base_address = *(pointer + 8);
         module_name = *(pointer + 0x20);
+        if(module_name == 0) {
+            return 0;
+        }
         int32 computed_hash = compute_module_hash(module_name);
         if (computed_hash == hash) {
             return base_address;
@@ -50,8 +50,9 @@ int32 fn find_module_base(int32 hash) {
 int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_name){
     int32 base_address = find_module_base(module_hash);
     if(base_address == 0) {
-        int32 load_library = find_function(0xec0e4e8e, 0x8fecd63f, module_name);
-        _asm("load_library:eax, module_name:ebx", "push %ebx\ncall %eax", "eax:base_address");
+        int32 load_library = find_function(0xec0e4e8e, 0x6e2bca17, module_name);
+        _asm("module_name:ebx", "push %ebx", "no_out");
+        _asm("load_library:eax", "call eax", "eax:base_address");
     }
     int32 pe_signature = *(base_address + 0x3c);
     pe_signature += base_address;
@@ -78,12 +79,4 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
         number_of_names -= 1;
     }
     return 0;
-}
-
-int32 fn main() {
-    int32 kernel32_hash = 0x6e2bca17;
-    int32 load_library_hash = 0xec0e4e8e;
-    string name = "kernel32.dll";
-    int32 a = find_function(load_library_hash, kernel32_hash, name);
-    return a;
 }

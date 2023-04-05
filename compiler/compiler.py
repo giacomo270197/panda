@@ -15,7 +15,7 @@ class Compiler:
     binary_code = None
 
     def __init__(self, platform, ast):
-        if platform == "32":
+        if platform == "32" or platform == "64":
             self.platform = platform
             self.ast = ast
             self.assembly = None
@@ -23,14 +23,25 @@ class Compiler:
             exit("Platform {} not supported, aborting".format(platform))
 
     def clean_assembly(self, asm):
-        new_asm = []
-        asm = asm.split("\n")
-        for line in asm:
-            if not line.replace("\t", "").startswith(".") and not line.replace(" ", "").startswith("#"):
-                new_asm.append(line)
-        new_asm = "\n".join(new_asm)
-        new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
-        return new_asm
+        if self.platform == "32":
+            new_asm = []
+            asm = asm.split("\n")
+            for line in asm:
+                if not line.replace("\t", "").startswith(".") and not line.replace(" ", "").startswith("#"):
+                    new_asm.append(line)
+            new_asm = "\n".join(new_asm)
+            new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
+            return new_asm
+        elif self.platform == "64":
+            new_asm = []
+            asm = asm.split("\n")
+            for line in asm:
+                if line.startswith(".LBB") or (not line.replace("\t", "").startswith(".") and "__chkstk" not in line):
+                    new_asm.append(line)
+            new_asm = "\n".join(new_asm)
+            new_asm = re.sub(r'#(.*)', lambda m: "", new_asm)
+            return new_asm
+        exit()
 
     def create_assembly(self):
         self.compiler = Assembler(self.ast)
@@ -59,7 +70,10 @@ class Compiler:
 
     def compile(self):
         self.remove_comments()
-        eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
+        if self.platform == "32":
+            eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
+        else:
+            eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_64)
         try:
             encoding, _ = eng.asm(self.assembly)
         except ks.KsError as e:
