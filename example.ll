@@ -233,155 +233,177 @@ define i64 @"find_function"(i32 %".1", i32 %".2", i8* %".3")
   %"base_address" = alloca i64
   %".6" = call i64 @"find_module_base"(i32 %".2")
   store i64 %".6", i64* %"base_address"
-  %"pe_signature" = alloca i32
   %".8" = load i64, i64* %"base_address"
-  %".9" = add i64 %".8", 60
-  %".10" = inttoptr i64 %".9" to i32*
-  %".11" = load i32, i32* %".10"
-  store i32 %".11", i32* %"pe_signature"
-  %".13" = load i32, i32* %"pe_signature"
-  %".14" = zext i32 %".13" to i64
-  %".15" = alloca i64
-  store i64 %".14", i64* %".15"
-  %".17" = load i64, i64* %".15"
-  %".18" = load i64, i64* %"base_address"
-  %".19" = add i64 %".17", %".18"
-  store i64 %".19", i64* %".15"
+  %".9" = icmp eq i64 %".8", 0
+  br i1 %".9", label %".5.if", label %".5.else"
+.5.if:
+  %"load_library" = alloca i64
+  %".11" = call i64 @"find_function"(i32 3960360590, i32 1848363543, i8* %".3")
+  store i64 %".11", i64* %"load_library"
+  %".13" = load i64, i64* %"load_library"
+  call void asm sideeffect "", "{rax}"
+(i64 %".13")
+  %".15" = ptrtoint i8* %".3" to i64
+  call void asm sideeffect "", "{rbx}"
+(i64 %".15")
+  call void asm  "call rax", ""
+()
+  %".18" = call i64 asm  "", "={rax}"
+()
+  store i64 %".18", i64* %"base_address"
+  br label %".5.endif"
+.5.else:
+  br label %".5.endif"
+.5.endif:
+  %"pe_signature" = alloca i32
+  %".22" = load i64, i64* %"base_address"
+  %".23" = add i64 %".22", 60
+  %".24" = inttoptr i64 %".23" to i32*
+  %".25" = load i32, i32* %".24"
+  store i32 %".25", i32* %"pe_signature"
+  %".27" = load i32, i32* %"pe_signature"
+  %".28" = zext i32 %".27" to i64
+  %".29" = alloca i64
+  store i64 %".28", i64* %".29"
+  %".31" = load i64, i64* %".29"
+  %".32" = load i64, i64* %"base_address"
+  %".33" = add i64 %".31", %".32"
+  store i64 %".33", i64* %".29"
   %"export_table_directory" = alloca i32
-  %".21" = load i64, i64* %".15"
-  %".22" = add i64 %".21", 136
-  %".23" = inttoptr i64 %".22" to i32*
-  %".24" = load i32, i32* %".23"
-  store i32 %".24", i32* %"export_table_directory"
-  %".26" = load i32, i32* %"export_table_directory"
-  %".27" = zext i32 %".26" to i64
-  %".28" = alloca i64
-  store i64 %".27", i64* %".28"
-  %".30" = load i64, i64* %".28"
-  %".31" = load i64, i64* %"base_address"
-  %".32" = add i64 %".30", %".31"
-  store i64 %".32", i64* %".28"
+  %".35" = load i64, i64* %".29"
+  %".36" = add i64 %".35", 136
+  %".37" = inttoptr i64 %".36" to i32*
+  %".38" = load i32, i32* %".37"
+  store i32 %".38", i32* %"export_table_directory"
+  %".40" = load i32, i32* %"export_table_directory"
+  %".41" = zext i32 %".40" to i64
+  %".42" = alloca i64
+  store i64 %".41", i64* %".42"
+  %".44" = load i64, i64* %".42"
+  %".45" = load i64, i64* %"base_address"
+  %".46" = add i64 %".44", %".45"
+  store i64 %".46", i64* %".42"
   %"number_of_names" = alloca i32
-  %".34" = load i64, i64* %".28"
-  %".35" = add i64 %".34", 24
-  %".36" = inttoptr i64 %".35" to i32*
-  %".37" = load i32, i32* %".36"
-  store i32 %".37", i32* %"number_of_names"
+  %".48" = load i64, i64* %".42"
+  %".49" = add i64 %".48", 24
+  %".50" = inttoptr i64 %".49" to i32*
+  %".51" = load i32, i32* %".50"
+  store i32 %".51", i32* %"number_of_names"
   %"address_of_names" = alloca i32
-  %".39" = load i64, i64* %".28"
-  %".40" = add i64 %".39", 32
-  %".41" = inttoptr i64 %".40" to i32*
-  %".42" = load i32, i32* %".41"
-  store i32 %".42", i32* %"address_of_names"
-  %".44" = load i32, i32* %"address_of_names"
-  %".45" = zext i32 %".44" to i64
-  %".46" = alloca i64
-  store i64 %".45", i64* %".46"
-  %".48" = load i64, i64* %".46"
-  %".49" = load i64, i64* %"base_address"
-  %".50" = add i64 %".48", %".49"
-  store i64 %".50", i64* %".46"
-  %".52" = load i32, i32* %"number_of_names"
-  %".53" = zext i32 %".52" to i64
-  %".54" = sub i64 %".53", 1
-  %".55" = trunc i64 %".54" to i32
-  store i32 %".55", i32* %"number_of_names"
-  %".57" = load i32, i32* %"number_of_names"
-  %".58" = icmp ugt i32 %".57", 0
-  br i1 %".58", label %"loop_5", label %"loop_after_5"
+  %".53" = load i64, i64* %".42"
+  %".54" = add i64 %".53", 32
+  %".55" = inttoptr i64 %".54" to i32*
+  %".56" = load i32, i32* %".55"
+  store i32 %".56", i32* %"address_of_names"
+  %".58" = load i32, i32* %"address_of_names"
+  %".59" = zext i32 %".58" to i64
+  %".60" = alloca i64
+  store i64 %".59", i64* %".60"
+  %".62" = load i64, i64* %".60"
+  %".63" = load i64, i64* %"base_address"
+  %".64" = add i64 %".62", %".63"
+  store i64 %".64", i64* %".60"
+  %".66" = load i32, i32* %"number_of_names"
+  %".67" = zext i32 %".66" to i64
+  %".68" = sub i64 %".67", 1
+  %".69" = trunc i64 %".68" to i32
+  store i32 %".69", i32* %"number_of_names"
+  %".71" = load i32, i32* %"number_of_names"
+  %".72" = icmp ugt i32 %".71", 0
+  br i1 %".72", label %"loop_5", label %"loop_after_5"
 loop_5:
   %"symbol_name_offset" = alloca i32
-  %".60" = load i64, i64* %".46"
-  %".61" = load i32, i32* %"number_of_names"
-  %".62" = zext i32 %".61" to i64
-  %".63" = mul i64 %".62", 4
-  %".64" = add i64 %".60", %".63"
-  %".65" = inttoptr i64 %".64" to i32*
-  %".66" = load i32, i32* %".65"
-  store i32 %".66", i32* %"symbol_name_offset"
+  %".74" = load i64, i64* %".60"
+  %".75" = load i32, i32* %"number_of_names"
+  %".76" = zext i32 %".75" to i64
+  %".77" = mul i64 %".76", 4
+  %".78" = add i64 %".74", %".77"
+  %".79" = inttoptr i64 %".78" to i32*
+  %".80" = load i32, i32* %".79"
+  store i32 %".80", i32* %"symbol_name_offset"
   %"symbol_name" = alloca i64
-  %".68" = load i64, i64* %"base_address"
-  %".69" = load i32, i32* %"symbol_name_offset"
-  %".70" = zext i32 %".69" to i64
-  %".71" = add i64 %".68", %".70"
-  store i64 %".71", i64* %"symbol_name"
+  %".82" = load i64, i64* %"base_address"
+  %".83" = load i32, i32* %"symbol_name_offset"
+  %".84" = zext i32 %".83" to i64
+  %".85" = add i64 %".82", %".84"
+  store i64 %".85", i64* %"symbol_name"
   %"computed" = alloca i32
-  %".73" = load i64, i64* %"symbol_name"
-  %".74" = call i32 @"compute_function_hash"(i64 %".73")
-  store i32 %".74", i32* %"computed"
-  %".76" = load i32, i32* %"computed"
-  %".77" = icmp eq i32 %".76", %".1"
-  br i1 %".77", label %"loop_5.if", label %"loop_5.else"
+  %".87" = load i64, i64* %"symbol_name"
+  %".88" = call i32 @"compute_function_hash"(i64 %".87")
+  store i32 %".88", i32* %"computed"
+  %".90" = load i32, i32* %"computed"
+  %".91" = icmp eq i32 %".90", %".1"
+  br i1 %".91", label %"loop_5.if", label %"loop_5.else"
 loop_after_5:
   ret i64 0
 loop_5.if:
   %"address_of_name_ordinal" = alloca i32
-  %".79" = load i64, i64* %".28"
-  %".80" = add i64 %".79", 36
-  %".81" = inttoptr i64 %".80" to i32*
-  %".82" = load i32, i32* %".81"
-  store i32 %".82", i32* %"address_of_name_ordinal"
-  %".84" = load i32, i32* %"address_of_name_ordinal"
-  %".85" = zext i32 %".84" to i64
-  %".86" = alloca i64
-  store i64 %".85", i64* %".86"
-  %".88" = load i64, i64* %".86"
-  %".89" = load i64, i64* %"base_address"
-  %".90" = add i64 %".88", %".89"
-  store i64 %".90", i64* %".86"
+  %".93" = load i64, i64* %".42"
+  %".94" = add i64 %".93", 36
+  %".95" = inttoptr i64 %".94" to i32*
+  %".96" = load i32, i32* %".95"
+  store i32 %".96", i32* %"address_of_name_ordinal"
+  %".98" = load i32, i32* %"address_of_name_ordinal"
+  %".99" = zext i32 %".98" to i64
+  %".100" = alloca i64
+  store i64 %".99", i64* %".100"
+  %".102" = load i64, i64* %".100"
+  %".103" = load i64, i64* %"base_address"
+  %".104" = add i64 %".102", %".103"
+  store i64 %".104", i64* %".100"
   %"ordinal" = alloca i16
-  %".92" = load i64, i64* %".86"
-  %".93" = load i32, i32* %"number_of_names"
-  %".94" = zext i32 %".93" to i64
-  %".95" = mul i64 2, %".94"
-  %".96" = add i64 %".92", %".95"
-  %".97" = inttoptr i64 %".96" to i16*
-  %".98" = load i16, i16* %".97"
-  store i16 %".98", i16* %"ordinal"
+  %".106" = load i64, i64* %".100"
+  %".107" = load i32, i32* %"number_of_names"
+  %".108" = zext i32 %".107" to i64
+  %".109" = mul i64 2, %".108"
+  %".110" = add i64 %".106", %".109"
+  %".111" = inttoptr i64 %".110" to i16*
+  %".112" = load i16, i16* %".111"
+  store i16 %".112", i16* %"ordinal"
   %"address_of_functions" = alloca i32
-  %".100" = load i64, i64* %".28"
-  %".101" = add i64 %".100", 28
-  %".102" = inttoptr i64 %".101" to i32*
-  %".103" = load i32, i32* %".102"
-  store i32 %".103", i32* %"address_of_functions"
-  %".105" = load i32, i32* %"address_of_functions"
-  %".106" = zext i32 %".105" to i64
-  %".107" = alloca i64
-  store i64 %".106", i64* %".107"
-  %".109" = load i64, i64* %".107"
-  %".110" = load i64, i64* %"base_address"
-  %".111" = add i64 %".109", %".110"
-  store i64 %".111", i64* %".107"
+  %".114" = load i64, i64* %".42"
+  %".115" = add i64 %".114", 28
+  %".116" = inttoptr i64 %".115" to i32*
+  %".117" = load i32, i32* %".116"
+  store i32 %".117", i32* %"address_of_functions"
+  %".119" = load i32, i32* %"address_of_functions"
+  %".120" = zext i32 %".119" to i64
+  %".121" = alloca i64
+  store i64 %".120", i64* %".121"
+  %".123" = load i64, i64* %".121"
+  %".124" = load i64, i64* %"base_address"
+  %".125" = add i64 %".123", %".124"
+  store i64 %".125", i64* %".121"
   %"function_address" = alloca i32
-  %".113" = load i64, i64* %".107"
-  %".114" = load i16, i16* %"ordinal"
-  %".115" = zext i16 %".114" to i64
-  %".116" = mul i64 4, %".115"
-  %".117" = add i64 %".113", %".116"
-  %".118" = inttoptr i64 %".117" to i32*
-  %".119" = load i32, i32* %".118"
-  store i32 %".119", i32* %"function_address"
-  %".121" = load i32, i32* %"function_address"
-  %".122" = zext i32 %".121" to i64
-  %".123" = alloca i64
-  store i64 %".122", i64* %".123"
-  %".125" = load i64, i64* %".123"
-  %".126" = load i64, i64* %"base_address"
-  %".127" = add i64 %".125", %".126"
-  store i64 %".127", i64* %".123"
-  %".129" = load i64, i64* %".123"
-  ret i64 %".129"
+  %".127" = load i64, i64* %".121"
+  %".128" = load i16, i16* %"ordinal"
+  %".129" = zext i16 %".128" to i64
+  %".130" = mul i64 4, %".129"
+  %".131" = add i64 %".127", %".130"
+  %".132" = inttoptr i64 %".131" to i32*
+  %".133" = load i32, i32* %".132"
+  store i32 %".133", i32* %"function_address"
+  %".135" = load i32, i32* %"function_address"
+  %".136" = zext i32 %".135" to i64
+  %".137" = alloca i64
+  store i64 %".136", i64* %".137"
+  %".139" = load i64, i64* %".137"
+  %".140" = load i64, i64* %"base_address"
+  %".141" = add i64 %".139", %".140"
+  store i64 %".141", i64* %".137"
+  %".143" = load i64, i64* %".137"
+  ret i64 %".143"
 loop_5.else:
   br label %"loop_5.endif"
 loop_5.endif:
-  %".132" = load i32, i32* %"number_of_names"
-  %".133" = zext i32 %".132" to i64
-  %".134" = sub i64 %".133", 1
-  %".135" = trunc i64 %".134" to i32
-  store i32 %".135", i32* %"number_of_names"
-  %".137" = load i32, i32* %"number_of_names"
-  %".138" = icmp ugt i32 %".137", 0
-  br i1 %".138", label %"loop_5", label %"loop_after_5"
+  %".146" = load i32, i32* %"number_of_names"
+  %".147" = zext i32 %".146" to i64
+  %".148" = sub i64 %".147", 1
+  %".149" = trunc i64 %".148" to i32
+  store i32 %".149", i32* %"number_of_names"
+  %".151" = load i32, i32* %"number_of_names"
+  %".152" = icmp ugt i32 %".151", 0
+  br i1 %".152", label %"loop_5", label %"loop_after_5"
 }
 
 define i32 @"main"()

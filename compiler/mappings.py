@@ -29,6 +29,7 @@ size_mappings = {
 
 register_size_mapping = {
     "rax": 64,
+    "rbx": 64,
     "rcx": 64,
     "rdx": 64,
     "rsi": 64,

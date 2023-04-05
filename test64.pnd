@@ -60,6 +60,10 @@ int64 fn find_module_base(int32 hash) {
 
 int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_name){
     int64 base_address = find_module_base(module_hash);
+    if(base_address == 0) {
+        int64 load_library = find_function(0xec0e4e8e, 0x6e2bca17, module_name);
+        _asm("load_library:rax,module_name:rbx", "call rax", "rax:base_address");
+    }
     int32 pe_signature = *(base_address + 0x3c);
     pe_signature = int64;
     pe_signature += base_address;
