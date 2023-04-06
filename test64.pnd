@@ -1,3 +1,16 @@
+declare("MessageBoxA", "user32.dll")(int32, ptr int8, ptr int8 , int32);
+declare("LoadLibraryA", "kernel32.dll")(ptr int8);
+
+int16 fn to_lowercase(int16 char) {
+    int64 test = char;
+    if(test >= 0x61){
+        if(test <= 0x7a) {
+            test -= 32;
+        }
+    }
+    return char;
+}
+
 int32 fn compute_function_hash(int64 name) {
     int32 hash = 0;
     int8 cnt = 0;
@@ -30,6 +43,7 @@ int32 fn compute_module_hash(int64 name) {
     int32 hash = 0;
     int8 cnt = 0;
     int16 char = *(actual_name + cnt);
+    char = to_lowercase(char);
     while(char != 0){
         hash = (hash shr 13) || (hash shl 19);
         hash += char;
@@ -49,6 +63,10 @@ int64 fn find_module_base(int32 hash) {
     while(guard == 0) {
         int64 table_entry = *(pointer - 0x10);
         int64 name = *(table_entry + 0x50);
+        int16 first_char = *name;
+        if(first_char == 0) {
+            return 0;
+        }
         int32 computed_hash = compute_module_hash(name);
         if(computed_hash == hash) {
            return *(table_entry + 0x30);
@@ -62,7 +80,7 @@ int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     int64 base_address = find_module_base(module_hash);
     if(base_address == 0) {
         int64 load_library = find_function(0xec0e4e8e, 0x6e2bca17, module_name);
-        _asm("load_library:rax,module_name:rbx", "call rax", "rax:base_address");
+        _asm("load_library:rax,module_name:rcx", "call rax", "rax:base_address");
     }
     int32 pe_signature = *(base_address + 0x3c);
     pe_signature = int64;
@@ -97,9 +115,8 @@ int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     return 0;
 }
 
-int32 fn main() {
-    int32 hash = 0x6e2bca17;
-    string name = "kernel32";
-    int64 test = find_function(0xec0e4e8e, hash, name);
+int64 fn main() {
+    string name = "user32.dll";
+    LoadLibraryA(name);
     return 0;
 }

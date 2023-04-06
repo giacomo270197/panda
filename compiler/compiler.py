@@ -3,27 +3,23 @@ import re
 import struct
 import subprocess
 import keystone as ks
+import config
 
 from compiler.assembler import Assembler
 
 
 class Compiler:
-    platform = None
     ast = None
     assembly = None
     compiler = None
     binary_code = None
 
-    def __init__(self, platform, ast):
-        if platform == "32" or platform == "64":
-            self.platform = platform
-            self.ast = ast
-            self.assembly = None
-        else:
-            exit("Platform {} not supported, aborting".format(platform))
+    def __init__(self, ast):
+        self.ast = ast
+        self.assembly = None
 
     def clean_assembly(self, asm):
-        if self.platform == "32":
+        if config.PLATFORM == "32":
             new_asm = []
             asm = asm.split("\n")
             for line in asm:
@@ -32,7 +28,7 @@ class Compiler:
             new_asm = "\n".join(new_asm)
             new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
             return new_asm
-        elif self.platform == "64":
+        elif config.PLATFORM == "64":
             new_asm = []
             asm = asm.split("\n")
             for line in asm:
@@ -45,8 +41,8 @@ class Compiler:
 
     def create_assembly(self):
         self.compiler = Assembler(self.ast)
-        self.compiler.create_assembly(self.platform)
-        if self.platform == "32":
+        self.compiler.create_assembly()
+        if config.PLATFORM == "32":
             subprocess.call(["clang", "-g", "-ooutput.s", "-masm=intel", "-fno-omit-frame-pointer", "-S", "-x", "ir", "-m32", "example.ll"],
                             stdout=subprocess.DEVNULL)
         else:
@@ -70,10 +66,12 @@ class Compiler:
 
     def compile(self):
         self.remove_comments()
-        if self.platform == "32":
+        if config.PLATFORM == "32":
             eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_32)
-        else:
+        elif config.PLATFORM == "64":
             eng = ks.Ks(ks.KS_ARCH_X86, ks.KS_MODE_64)
+        else:
+            exit()
         try:
             encoding, _ = eng.asm(self.assembly)
         except ks.KsError as e:

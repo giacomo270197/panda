@@ -1,5 +1,7 @@
 import re
 
+import config
+
 
 def string_to_arr(string):
     val = []
@@ -68,20 +70,38 @@ class Preprocessor:
                 params = g.groups()[2].split(",")
                 params = [x + " " + chr(65 + y) + "," for x, y in zip(params, range(len(params)))]
                 param_len = len(params)
-                params.append("int32 address")
-                params = "".join(params)
-                push_str = "mov %esp,%esi\\n"
-                for x in range(param_len, 0, -1):
-                    push_str += "push {}(%esi)\\n".format(str(4 + 4 * (x+1)))
-                self.source += """
-                
+                if config.PLATFORM == "32":
+                    params.append("int32 address")
+                    params = "".join(params)
+                    push_str = "mov %esp,%esi\\n"
+                    for x in range(param_len, 0, -1):
+                        push_str += "push {}(%esi)\\n".format(str(4 + 4 * (x+1)))
+                    self.source += """
+                    
 int32 fn call_{}({}) {{
     int32 out = 0;
     _asm("address:eax", "{}call eax", "eax:out");
     return address;
 }}
-
-                """.format(g.groups()[0], params, push_str)
+    
+                    """.format(g.groups()[0], params, push_str)
+                elif config.PLATFORM == "64":
+                    params.append("int64 address")
+                    params = "".join(params)
+                    push_str = "mov %rsp,%rsi\\n"
+                    pop_str = ""
+                    for x in range(param_len, 0, -1):
+                        push_str += "push {}(%rsi)\\n".format(str(8 * (2 + x)))
+                        pop_str += "pop %rsi\\n"
+                    push_str += "push %rsi\\n"
+                    pop_str += "pop %rsi"
+                    self.source += """
+int64 fn call_{}({}) {{
+    int64 out = 0;
+    _asm("address:rax", "{}call rax\\n{}", "rax:out");
+    return address;
+}}                    
+                    """.format(g.groups()[0], params, push_str, pop_str)
             else:
                 break
 

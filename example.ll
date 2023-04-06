@@ -2,6 +2,34 @@
 target triple = "unknown-unknown-unknown"
 target datalayout = ""
 
+define i16 @"to_lowercase"(i16 %".1")
+{
+.3:
+  %"test" = alloca i64
+  %".4" = zext i16 %".1" to i64
+  store i64 %".4", i64* %"test"
+  %".6" = load i64, i64* %"test"
+  %".7" = icmp uge i64 %".6", 97
+  br i1 %".7", label %".3.if", label %".3.else"
+.3.if:
+  %".9" = load i64, i64* %"test"
+  %".10" = icmp ule i64 %".9", 122
+  br i1 %".10", label %".3.if.if", label %".3.if.else"
+.3.else:
+  br label %".3.endif"
+.3.endif:
+  ret i16 %".1"
+.3.if.if:
+  %".12" = load i64, i64* %"test"
+  %".13" = sub i64 %".12", 32
+  store i64 %".13", i64* %"test"
+  br label %".3.if.endif"
+.3.if.else:
+  br label %".3.if.endif"
+.3.if.endif:
+  br label %".3.endif"
+}
+
 define i32 @"compute_function_hash"(i64 %".1")
 {
 .3:
@@ -117,41 +145,44 @@ define i32 @"compute_module_hash"(i64 %".1")
   %".13" = load i16, i16* %".12"
   store i16 %".13", i16* %"char"
   %".15" = load i16, i16* %"char"
-  %".16" = icmp ne i16 %".15", 0
-  br i1 %".16", label %"loop_3", label %"loop_after_3"
+  %".16" = call i16 @"to_lowercase"(i16 %".15")
+  store i16 %".16", i16* %"char"
+  %".18" = load i16, i16* %"char"
+  %".19" = icmp ne i16 %".18", 0
+  br i1 %".19", label %"loop_3", label %"loop_after_3"
 loop_3:
-  %".18" = load i32, i32* %"hash"
-  %".19" = zext i32 %".18" to i64
-  %".20" = ashr i64 %".19", 13
   %".21" = load i32, i32* %"hash"
   %".22" = zext i32 %".21" to i64
-  %".23" = shl i64 %".22", 19
-  %".24" = or i64 %".20", %".23"
-  %".25" = trunc i64 %".24" to i32
-  store i32 %".25", i32* %"hash"
-  %".27" = load i32, i32* %"hash"
-  %".28" = load i16, i16* %"char"
-  %".29" = zext i16 %".28" to i32
-  %".30" = add i32 %".27", %".29"
-  store i32 %".30", i32* %"hash"
-  %".32" = load i8, i8* %"cnt"
-  %".33" = zext i8 %".32" to i64
-  %".34" = add i64 %".33", 2
-  %".35" = trunc i64 %".34" to i8
-  store i8 %".35", i8* %"cnt"
-  %".37" = load i64, i64* %"actual_name"
-  %".38" = load i8, i8* %"cnt"
-  %".39" = zext i8 %".38" to i64
-  %".40" = add i64 %".37", %".39"
-  %".41" = inttoptr i64 %".40" to i16*
-  %".42" = load i16, i16* %".41"
-  store i16 %".42", i16* %"char"
-  %".44" = load i16, i16* %"char"
-  %".45" = icmp ne i16 %".44", 0
-  br i1 %".45", label %"loop_3", label %"loop_after_3"
+  %".23" = ashr i64 %".22", 13
+  %".24" = load i32, i32* %"hash"
+  %".25" = zext i32 %".24" to i64
+  %".26" = shl i64 %".25", 19
+  %".27" = or i64 %".23", %".26"
+  %".28" = trunc i64 %".27" to i32
+  store i32 %".28", i32* %"hash"
+  %".30" = load i32, i32* %"hash"
+  %".31" = load i16, i16* %"char"
+  %".32" = zext i16 %".31" to i32
+  %".33" = add i32 %".30", %".32"
+  store i32 %".33", i32* %"hash"
+  %".35" = load i8, i8* %"cnt"
+  %".36" = zext i8 %".35" to i64
+  %".37" = add i64 %".36", 2
+  %".38" = trunc i64 %".37" to i8
+  store i8 %".38", i8* %"cnt"
+  %".40" = load i64, i64* %"actual_name"
+  %".41" = load i8, i8* %"cnt"
+  %".42" = zext i8 %".41" to i64
+  %".43" = add i64 %".40", %".42"
+  %".44" = inttoptr i64 %".43" to i16*
+  %".45" = load i16, i16* %".44"
+  store i16 %".45", i16* %"char"
+  %".47" = load i16, i16* %"char"
+  %".48" = icmp ne i16 %".47", 0
+  br i1 %".48", label %"loop_3", label %"loop_after_3"
 loop_after_3:
-  %".47" = load i32, i32* %"hash"
-  ret i32 %".47"
+  %".50" = load i32, i32* %"hash"
+  ret i32 %".50"
 }
 
 define i64 @"find_module_base"(i32 %".1")
@@ -200,31 +231,44 @@ loop_4:
   %".36" = inttoptr i64 %".35" to i64*
   %".37" = load i64, i64* %".36"
   store i64 %".37", i64* %"name"
-  %"computed_hash" = alloca i32
+  %"first_char" = alloca i16
   %".39" = load i64, i64* %"name"
-  %".40" = call i32 @"compute_module_hash"(i64 %".39")
-  store i32 %".40", i32* %"computed_hash"
-  %".42" = load i32, i32* %"computed_hash"
-  %".43" = icmp eq i32 %".42", %".1"
-  br i1 %".43", label %"loop_4.if", label %"loop_4.else"
+  %".40" = inttoptr i64 %".39" to i16*
+  %".41" = load i16, i16* %".40"
+  store i16 %".41", i16* %"first_char"
+  %".43" = load i16, i16* %"first_char"
+  %".44" = icmp eq i16 %".43", 0
+  br i1 %".44", label %"loop_4.if", label %"loop_4.else"
 loop_after_4:
   ret i64 0
 loop_4.if:
-  %".45" = load i64, i64* %"table_entry"
-  %".46" = add i64 %".45", 48
-  %".47" = inttoptr i64 %".46" to i64*
-  %".48" = load i64, i64* %".47"
-  ret i64 %".48"
+  ret i64 0
 loop_4.else:
   br label %"loop_4.endif"
 loop_4.endif:
-  %".51" = load i64, i64* %"pointer"
-  %".52" = inttoptr i64 %".51" to i64*
-  %".53" = load i64, i64* %".52"
-  store i64 %".53", i64* %"pointer"
-  %".55" = load i8, i8* %"guard"
-  %".56" = icmp eq i8 %".55", 0
-  br i1 %".56", label %"loop_4", label %"loop_after_4"
+  %"computed_hash" = alloca i32
+  %".48" = load i64, i64* %"name"
+  %".49" = call i32 @"compute_module_hash"(i64 %".48")
+  store i32 %".49", i32* %"computed_hash"
+  %".51" = load i32, i32* %"computed_hash"
+  %".52" = icmp eq i32 %".51", %".1"
+  br i1 %".52", label %"loop_4.endif.if", label %"loop_4.endif.else"
+loop_4.endif.if:
+  %".54" = load i64, i64* %"table_entry"
+  %".55" = add i64 %".54", 48
+  %".56" = inttoptr i64 %".55" to i64*
+  %".57" = load i64, i64* %".56"
+  ret i64 %".57"
+loop_4.endif.else:
+  br label %"loop_4.endif.endif"
+loop_4.endif.endif:
+  %".60" = load i64, i64* %"pointer"
+  %".61" = inttoptr i64 %".60" to i64*
+  %".62" = load i64, i64* %".61"
+  store i64 %".62", i64* %"pointer"
+  %".64" = load i8, i8* %"guard"
+  %".65" = icmp eq i8 %".64", 0
+  br i1 %".65", label %"loop_4", label %"loop_after_4"
 }
 
 define i64 @"find_function"(i32 %".1", i32 %".2", i8* %".3")
@@ -244,7 +288,7 @@ define i64 @"find_function"(i32 %".1", i32 %".2", i8* %".3")
   call void asm sideeffect "", "{rax}"
 (i64 %".13")
   %".15" = ptrtoint i8* %".3" to i64
-  call void asm sideeffect "", "{rbx}"
+  call void asm sideeffect "", "{rcx}"
 (i64 %".15")
   call void asm  "call rax", ""
 ()
@@ -406,35 +450,84 @@ loop_5.endif:
   br i1 %".152", label %"loop_5", label %"loop_after_5"
 }
 
-define i32 @"main"()
+define i64 @"main"()
 {
 .2:
-  %"hash" = alloca i32
-  store i32 1848363543, i32* %"hash"
-  %".4" = alloca [9 x i8]
-  store [9 x i8] zeroinitializer, [9 x i8]* %".4"
-  %".6" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 0
-  store i8 107, i8* %".6"
-  %".8" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 1
-  store i8 101, i8* %".8"
-  %".10" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 2
-  store i8 114, i8* %".10"
-  %".12" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 3
-  store i8 110, i8* %".12"
-  %".14" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 4
-  store i8 101, i8* %".14"
-  %".16" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 5
-  store i8 108, i8* %".16"
-  %".18" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 6
-  store i8 51, i8* %".18"
-  %".20" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 7
-  store i8 50, i8* %".20"
-  %".22" = getelementptr inbounds [9 x i8], [9 x i8]* %".4", i8 0, i8 8
-  store i8 0, i8* %".22"
-  %"test" = alloca i64
-  %".24" = load i32, i32* %"hash"
-  %".25" = getelementptr [9 x i8], [9 x i8]* %".4", i8 0, i8 0
-  %".26" = call i64 @"find_function"(i32 3960360590, i32 %".24", i8* %".25")
-  store i64 %".26", i64* %"test"
-  ret i32 0
+  %".3" = alloca [11 x i8]
+  store [11 x i8] zeroinitializer, [11 x i8]* %".3"
+  %".5" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 0
+  store i8 117, i8* %".5"
+  %".7" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 1
+  store i8 115, i8* %".7"
+  %".9" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 2
+  store i8 101, i8* %".9"
+  %".11" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 3
+  store i8 114, i8* %".11"
+  %".13" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 4
+  store i8 51, i8* %".13"
+  %".15" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 5
+  store i8 50, i8* %".15"
+  %".17" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 6
+  store i8 46, i8* %".17"
+  %".19" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 7
+  store i8 100, i8* %".19"
+  %".21" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 8
+  store i8 108, i8* %".21"
+  %".23" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 9
+  store i8 108, i8* %".23"
+  %".25" = getelementptr inbounds [11 x i8], [11 x i8]* %".3", i8 0, i8 10
+  store i8 0, i8* %".25"
+  %".27" = alloca [13 x i8]
+  store [13 x i8] c"kernel32.dll\00", [13 x i8]* %".27"
+  %".29" = bitcast [13 x i8]* %".27" to i8*
+  %".30" = call ccc i64 @"find_function"(i32 3960360590, i32 1848363543, i8* %".29")
+  %".31" = getelementptr [11 x i8], [11 x i8]* %".3", i8 0, i8 0
+  %".32" = call i64 @"call_LoadLibraryA"(i8* %".31", i64 %".30")
+  ret i64 0
+}
+
+define i64 @"call_MessageBoxA"(i32 %".1", i8* %".2", i8* %".3", i32 %".4", i64 %".5")
+{
+.7:
+  %"out" = alloca i64
+  store i64 0, i64* %"out"
+  call void asm sideeffect "", "{rax}"
+(i64 %".5")
+  call void asm  "mov %rsp,%rsi
+push 48(%rsi)
+push 40(%rsi)
+push 32(%rsi)
+push 24(%rsi)
+push %rsi
+call rax
+pop %rsi
+pop %rsi
+pop %rsi
+pop %rsi
+pop %rsi", ""
+()
+  %".11" = call i64 asm  "", "={rax}"
+()
+  store i64 %".11", i64* %"out"
+  ret i64 %".5"
+}
+
+define i64 @"call_LoadLibraryA"(i8* %".1", i64 %".2")
+{
+.4:
+  %"out" = alloca i64
+  store i64 0, i64* %"out"
+  call void asm sideeffect "", "{rax}"
+(i64 %".2")
+  call void asm  "mov %rsp,%rsi
+push 24(%rsi)
+push %rsi
+call rax
+pop %rsi
+pop %rsi", ""
+()
+  %".8" = call i64 asm  "", "={rax}"
+()
+  store i64 %".8", i64* %"out"
+  ret i64 %".2"
 }

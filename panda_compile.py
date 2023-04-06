@@ -1,5 +1,5 @@
 import argparse, ctypes
-from parser.preprocessor import Preprocessor
+import config
 from parser.code_parser import Parser
 from compiler.compiler import Compiler
 
@@ -24,6 +24,7 @@ def main():
         exit("Please select an output mode")
 
     platform = args.platform.replace("\n", "")
+    config.PLATFORM = platform
     if platform not in ["32", "64"]:
         exit("Invalid platform, choose 32 or 64")
 
@@ -38,7 +39,7 @@ def main():
     parser.build_ast()
 
     # Transform the AST into Assembly
-    compiler = Compiler(args.platform, parser.ast)
+    compiler = Compiler(parser.ast)
     compiler.create_assembly()
     if args.debug_asm:
         compiler.show_assembly()
@@ -64,7 +65,6 @@ def main():
             ctypes.c_int(0x3000),
             ctypes.c_int(0x40),
         )
-        print(ctypes.c_void_p(ptr))
         buf = (ctypes.c_char * len(code)).from_buffer(code)
         ctypes.windll.kernel32.RtlMoveMemory(
             ctypes.c_void_p(ptr), buf, ctypes.c_int(len(code))

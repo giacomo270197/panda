@@ -2,6 +2,7 @@ from llvmlite import ir
 
 from compiler.mappings import type_mappings, size_mappings, test_instructions, register_size_mapping
 from parser.nodes import *
+import config
 
 
 class Assembler:
@@ -12,7 +13,6 @@ class Assembler:
         self.syscalls = {}
         self.loops = 0
         self.ifs = 0
-        self.platform = None
 
     class Variable:
         def __init__(self, ptr, value, var_type):
@@ -280,9 +280,11 @@ class Assembler:
             count -= 1
         return int(binb, 2)
 
-    def compute_hash(self, name):
+    def compute_hash(self, name, is_dll=False):
         edx = 0x00
         ror_count = 0
+        if is_dll:
+            name = name.upper()
         for eax in name:
             edx = edx + ord(eax)
             if ror_count < len(name) - 1:
@@ -290,13 +292,12 @@ class Assembler:
             ror_count += 1
         return edx
 
-    def create_assembly(self, platform):
-        self.platform = platform
+    def create_assembly(self):
         self.module = ir.Module(name="Shellcode")
         for declare in self.ast.syscalls:
             self.syscalls[declare.function_name.value.replace("\"", "")] = {
                 "function_hash": self.compute_hash(declare.function_name.value.replace("\"", "")),
-                "module_hash": self.compute_hash(declare.module_name.value.replace("\"", "")),
+                "module_hash": self.compute_hash(declare.module_name.value.replace("\"", ""), True),
                 "module_name": declare.module_name.value.replace("\"", "")
             }
         for function in self.ast.func_defs:

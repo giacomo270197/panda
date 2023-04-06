@@ -1,4 +1,14 @@
-declare("CreateProcessA", "kernel32.dll")(int32, ptr int8, int32, int32, int32, int32, int32, int32,ptr int32, ptr int32);
+declare("MessageBoxA", "user32.dll")(int32, ptr int8, ptr int8 , int32);
+
+int16 fn to_lowercase(int16 char) {
+    int64 test = char;
+    if(test >= 0x61){
+        if(test <= 0x7a) {
+            test -= 32;
+        }
+    }
+    return char;
+}
 
 int32 fn compute_function_hash(int32 name) {
     int32 hash = 0;
@@ -17,6 +27,7 @@ int32 fn compute_module_hash(int32 name) {
     int32 hash = 0;
     int8 cnt = 0;
     int16 char = *(name + cnt);
+    char = to_lowercase(char);
     while(char != 0){
         hash = (hash shr 13) || (hash shl 19);
         hash += char;
@@ -50,7 +61,7 @@ int32 fn find_module_base(int32 hash) {
 }
 
 int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_name){
-        int32 base_address = find_module_base(module_hash);
+    int32 base_address = find_module_base(module_hash);
     if(base_address == 0) {
         int32 load_library = find_function(0xec0e4e8e, 0x6e2bca17, module_name);
         _asm("module_name:ebx", "push %ebx", "no_out");
@@ -84,10 +95,8 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
 }
 
 int32 fn main() {
-    string appname = "notepad.exe";
-    array startup_info int32[17];
-    startup_info[0] = 0x44;
-    array process_info int32[4];
-    CreateProcessA(0, appname, 0, 0, 0, 0, 0, 0, startup_info, process_info);
+    string caption = "Caption";
+    string body = "Body";
+    MessageBoxA(0, body, caption, 0);
     return 0;
 }
