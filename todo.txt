@@ -1,9 +1,10 @@
 # Bugs
-- Parameters passing issues, parameters can't be modified
+- Parameters passing issues, parameters can't be modified -> Done
 - Single identifier inside parenthesis
+- Passing statements as function parameters
+- Assign to dereferenced pointer
 
 # Features
-- 64 bits syscall calling function
 - Add imports
 - Add structs
 

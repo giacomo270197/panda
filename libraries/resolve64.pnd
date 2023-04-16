@@ -1,8 +1,7 @@
 int16 fn to_lowercase(int16 char) {
-    int64 test = char;
-    if(test >= 0x61){
-        if(test <= 0x7a) {
-            test -= 32;
+    if(char >= 0x61){
+        if(char <= 0x7a) {
+            char -= 32;
         }
     }
     return char;

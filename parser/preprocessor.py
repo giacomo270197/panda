@@ -81,7 +81,7 @@ class Preprocessor:
 int32 fn call_{}({}) {{
     int32 out = 0;
     _asm("address:eax", "{}call eax", "eax:out");
-    return address;
+    return out;
 }}
     
                     """.format(g.groups()[0], params, push_str)
@@ -99,7 +99,7 @@ int32 fn call_{}({}) {{
 int64 fn call_{}({}) {{
     int64 out = 0;
     _asm("address:rax", "{}call rax\\n{}", "rax:out");
-    return address;
+    return out;
 }}                    
                     """.format(g.groups()[0], params, push_str, pop_str)
             else:

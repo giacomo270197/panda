@@ -43,16 +43,13 @@ class Assembler:
                 return ir.Constant(kwargs["preferred_type"], expr.value)
             return ir.Constant(ir.IntType(64), expr.value)
         if isinstance(expr, IdentifierExprNode):
-            try:
-                return variables.parameters[expr.value]
-            except KeyError:
-                if "as_ptr" in kwargs:
-                    return variables.locals[expr.value].ptr
-                elif isinstance(variables.locals[expr.value].type, ir.ArrayType):
-                    return builder.bitcast(variables.locals[expr.value].ptr, ir.PointerType(variables.locals[expr.value].type.element))
-                else:
-                    ret = builder.load(variables.locals[expr.value].ptr)
-                    return ret
+            if "as_ptr" in kwargs:
+                return variables.locals[expr.value].ptr
+            elif isinstance(variables.locals[expr.value].type, ir.ArrayType):
+                return builder.bitcast(variables.locals[expr.value].ptr, ir.PointerType(variables.locals[expr.value].type.element))
+            else:
+                ret = builder.load(variables.locals[expr.value].ptr)
+                return ret
         if isinstance(expr, StatementNode):
             if isinstance(expr, IndexingStatementNode):
                 operand = self.analyze_expression(expr.operand, builder, variables, as_ptr=True)
@@ -88,7 +85,10 @@ class Assembler:
                     variables.locals[statement.identifier.value].value = actual_type(0)
         elif isinstance(statement, AssignmentStatementNode):
             identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
-            actual_type = identifier.type.pointee
+            if isinstance(identifier.type, ir.PointerType):
+                actual_type = identifier.type.pointee
+            else:
+                actual_type = identifier.type
             value = self.analyze_expression(statement.expr, builder, variables, preferred_type=actual_type)
             if isinstance(value.type, ir.PointerType):
                 builder.store(value, identifier)
@@ -249,6 +249,10 @@ class Assembler:
     def process_block(self, block, function, variables):
         ir_block = function.append_basic_block()
         builder = ir.IRBuilder(ir_block)
+        for param, value in variables.parameters.items():
+            ptr = builder.alloca(value.type)
+            builder.store(value, ptr)
+            variables.locals[param] = self.Variable(ptr, value, value.type)
         for statement in block.statements:
             self.process_statement(statement, builder, variables)
 
