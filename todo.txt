@@ -1,7 +1,7 @@
 # Bugs
 - Parameters passing issues, parameters can't be modified -> Done
 - Single identifier inside parenthesis
-- Passing statements as function parameters
+- Passing statements as function parameters -> Done
 - Assign to dereferenced pointer
 
 # Features

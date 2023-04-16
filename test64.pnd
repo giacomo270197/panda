@@ -1,11 +1,9 @@
 int8 fn test(ptr int64 hey){
-    *hey = 7;
     return 0;
 }
 
 int64 fn main() {
     int64 a = 5;
-    ptr int64 b = &a;
-    test(b);
+    test(&a);
     return 0;
 }

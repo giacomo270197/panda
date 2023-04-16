@@ -178,7 +178,9 @@ class Assembler:
             func = self.functions[statement.target.value]
             params = []
             for x, y in zip(statement.parameters, func.args):
-                if x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
+                if isinstance(x, StatementNode):
+                    value = self.analyze_expression(x, builder, variables)
+                elif x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
                     value = self.analyze_expression(x, builder, variables, as_ptr=True)
                     value = builder.gep(value, [idx, idx])
                 else:
