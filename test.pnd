@@ -1,4 +1,4 @@
-declare("MessageBoxA", "user32.dll")(int32, ptr int8, ptr int8 , int32);
+declare("CreateProcessA", "kernel32.dll")(int32, ptr int8, int32 , int32, int32, int32, int32, int32 , ptr int32, ptr int32);
 
 int16 fn to_lowercase(int16 char) {
     int64 test = char;
@@ -95,8 +95,10 @@ int32 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
 }
 
 int32 fn main() {
-    string caption = "Caption";
-    string body = "Body";
-    MessageBoxA(0, body, caption, 0);
+    string command = "notepad.exe";
+    array si int32[17];
+    si[0] = 0x44;
+    array pi = int32{0, 0, 0};
+    CreateProcessA(0, command, 0, 0, 0, 0, 0, 0, si, pi);
     return 0;
 }

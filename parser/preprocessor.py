@@ -73,9 +73,9 @@ class Preprocessor:
                 if config.PLATFORM == "32":
                     params.append("int32 address")
                     params = "".join(params)
-                    push_str = "mov %esp,%esi\\n"
+                    push_str = ""
                     for x in range(param_len, 0, -1):
-                        push_str += "push {}(%esi)\\n".format(str(4 + 4 * (x+1)))
+                        push_str += "push {}(%ebp)\\n".format(str(4 + (4 * x)))
                     self.source += """
                     
 int32 fn call_{}({}) {{
@@ -89,12 +89,12 @@ int32 fn call_{}({}) {{
                     params.append("int64 address")
                     params = "".join(params)
                     push_str = "mov %rsp,%rsi\\n"
+                    push_str += "push %rsi\\n"
                     pop_str = ""
                     for x in range(param_len, 0, -1):
-                        push_str += "push {}(%rsi)\\n".format(str(8 * (2 + x)))
+                        push_str += "push {}(%rsi)\\n".format(str(8 * (4 + x)))
                         pop_str += "pop %rsi\\n"
-                    push_str += "push %rsi\\n"
-                    pop_str += "pop %rsi"
+                    pop_str += "pop %rsi\\n"
                     self.source += """
 int64 fn call_{}({}) {{
     int64 out = 0;

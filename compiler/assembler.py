@@ -66,179 +66,214 @@ class Assembler:
                     expr.preferred_type = kwargs["preferred_type"]
                 return self.process_statement(expr, builder, variables)
 
+    def process_return_statement(self, statement, builder, variables):
+        builder.ret(self.analyze_expression(statement.expr, builder, variables,preferred_type=builder.function.type.pointee.return_type))
+
+    def process_declaration_statement(self, statement, builder, variables):
+        if statement.type == "array":
+            value = self.analyze_expression(statement.expr, builder, variables)
+            variables.locals[statement.identifier.value] = value
+        else:
+            actual_type = type_mappings[statement.type]
+            ptr = builder.alloca(actual_type, name=statement.identifier.value)
+            variables.locals[statement.identifier.value] = self.Variable(ptr, None, actual_type)
+            if statement.expr:
+                new_statement = AssignmentStatementNode(statement.identifier, statement.expr)
+                self.process_statement(new_statement, builder, variables)
+            else:
+                variables.locals[statement.identifier.value].value = actual_type(0)
+
+    def process_assignment_statement(self, statement, builder, variables):
+        identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
+        if isinstance(identifier.type, ir.PointerType):
+            actual_type = identifier.type.pointee
+        else:
+            actual_type = identifier.type
+        value = self.analyze_expression(statement.expr, builder, variables, preferred_type=actual_type)
+        if isinstance(value.type, ir.PointerType):
+            builder.store(value, identifier)
+        else:
+            if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
+                value = builder.trunc(value, actual_type)
+            elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
+                value = builder.zext(value, actual_type)
+        builder.store(value, identifier)
+
+    def process_comparison_statement(self, statement, builder, variables):
+        sign = test_instructions[statement.__class__.__name__]
+        lhs = self.analyze_expression(statement.left_hand, builder, variables)
+        rhs = self.analyze_expression(statement.right_hand, builder, variables)
+        return builder.icmp_unsigned(sign, lhs, rhs)
+
+    def process_binary_operation_statement(self, statement, builder, variables):
+        lhs = self.analyze_expression(statement.left_hand, builder, variables)
+        rhs = self.analyze_expression(statement.right_hand, builder, variables)
+        if isinstance(lhs.type, ir.PointerType):
+            lhs = builder.ptrtoint(lhs, lhs.type.pointee)
+        if isinstance(rhs.type, ir.PointerType):
+            rhs = builder.ptrtoint(rhs, rhs.type.pointee)
+        lhs, rhs = self.zext_to_highest(lhs, rhs, builder)
+        tmp = None
+        if isinstance(statement, AdditionStatementNode):
+            tmp = builder.add(lhs, rhs)
+        elif isinstance(statement, SubtractionStatementNode):
+            tmp = builder.sub(lhs, rhs)
+        elif isinstance(statement, MultiplicationStatementNode):
+            tmp = builder.mul(lhs, rhs)
+        elif isinstance(statement, DivisionStatementNode):
+            tmp = builder.udiv(lhs, rhs)
+        elif isinstance(statement, BitwiseAndStatementNode):
+            tmp = builder.and_(lhs, rhs)
+        elif isinstance(statement, BitwiseOrStatementNode):
+            tmp = builder.or_(lhs, rhs)
+        elif isinstance(statement, BitwiseXorStatementNode):
+            tmp = builder.xor(lhs, rhs)
+        elif isinstance(statement, ShlStatementNode):
+            tmp = builder.shl(lhs, rhs)
+        elif isinstance(statement, ShrStatementNode):
+            tmp = builder.ashr(lhs, rhs)
+        return tmp
+
+    def process_unary_operation_statement(self, statement, builder, variables):
+        operand = self.analyze_expression(statement.operand, builder, variables)
+        tmp = None
+        if isinstance(statement, NegateStatementNode):
+            tmp = builder.neg(operand)
+        elif isinstance(statement, DereferenceStatementNode):
+            if not isinstance(operand.type, ir.PointerType):
+                try:
+                    assignment_type = getattr(statement, "preferred_type")
+                    operand = builder.inttoptr(operand, ir.PointerType(assignment_type))
+                except AttributeError:
+                    operand = builder.inttoptr(operand, ir.PointerType(operand.type))
+            tmp = builder.load(operand)
+        return tmp
+
+    def process_array_statement(self, statement, builder):
+        arr_type = ir.ArrayType(type_mappings[statement.arr_type], len(statement.items))
+        arr = builder.alloca(arr_type)
+        new_arr = ir.Constant(arr_type, None)
+        builder.store(new_arr, arr)
+        if statement.defined:
+            for x, y in zip(statement.items, range(len(statement.items))):
+                val = ir.Constant(type_mappings[statement.arr_type], x)
+                first = ir.Constant(type_mappings[statement.arr_type], 0)
+                idx = ir.Constant(type_mappings[statement.arr_type], y)
+                elem_ptr = builder.gep(arr, [first, idx], inbounds=True)
+                builder.store(val, elem_ptr)
+        return self.Variable(arr, new_arr, arr_type)
+
+    def process_function_call_statement(self, statement, builder, variables):
+        address = None
+        idx = ir.Constant(ir.IntType(8), 0)
+        if statement.target.value in self.syscalls:
+            find_func = self.functions["find_function"]
+            syscall = self.syscalls[statement.target.value]
+            arr_type = ir.ArrayType(ir.IntType(8), len(syscall["module_name"]) + 1)
+            arr = builder.alloca(arr_type)
+            new_arr = ir.Constant(arr_type, bytearray(syscall["module_name"], "ascii") + b"\x00")
+            builder.store(new_arr, arr)
+            find_params = [
+                ir.Constant(ir.IntType(32), syscall["function_hash"]),
+                ir.Constant(ir.IntType(32), syscall["module_hash"]),
+                builder.bitcast(arr, ir.PointerType(ir.IntType(8))),
+            ]
+            address = builder.call(find_func, find_params, cconv="ccc")
+            statement.target.value = "call_{}".format(statement.target.value)
+        func = self.functions[statement.target.value]
+        params = []
+        for x, y in zip(statement.parameters, func.args):
+            if isinstance(x, StatementNode):
+                value = self.analyze_expression(x, builder, variables)
+            elif x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
+                value = self.analyze_expression(x, builder, variables, as_ptr=True)
+                value = builder.gep(value, [idx, idx])
+            else:
+                value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
+            params.append(value)
+        if address:
+            params.append(address)
+        ret = builder.call(func, params)
+        return ret
+
+    def process_if_statement(self, statement, builder, variables):
+        test = self.analyze_expression(statement.test, builder, variables)
+        with builder.if_else(test) as (then, otherwise):
+            with then:
+                self.process_branch_block(statement.if_body, builder, variables)
+            with otherwise:
+                if statement.else_body:
+                    self.process_branch_block(statement.else_body, builder, variables)
+
+    def process_while_statement(self, statement, builder, variables):
+        self.loops += 1
+        loop = builder.append_basic_block("loop_{}".format(str(self.loops)))
+        after = builder.append_basic_block("loop_after_{}".format(str(self.loops)))
+        builder.cbranch(self.analyze_expression(statement.test, builder, variables), loop, after)
+        builder.position_at_start(loop)
+        self.process_branch_block(statement.body, builder, variables)
+        builder.cbranch(self.analyze_expression(statement.test, builder, variables), loop, after)
+        builder.position_at_start(after)
+
+    def process_asm_statement(self, statement, builder, variables):
+        for var, reg in statement.input_mapping.items():
+            val = self.analyze_expression(var, builder, variables)
+            if isinstance(val.type, ir.PointerType):
+                size = register_size_mapping[reg]
+                val = builder.ptrtoint(val, ir.IntType(size))
+            builder.store_reg(val, ir.IntType(register_size_mapping[reg]), reg)
+        fty = ir.FunctionType(ir.VoidType(), [])
+        statement.assembly = statement.assembly.replace("\"", "").replace("\\n", "\n")
+        builder.asm(fty, statement.assembly.replace("\"", ""), "", [], False)
+        for reg, val in statement.output_mapping.items():
+            tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)
+            ptr = self.analyze_expression(val, builder, variables, as_ptr=True)
+            builder.store(tmp, ptr)
+
+    def process_casting_statement(self, statement, builder, variables):
+        val = self.analyze_expression(statement.identifier, builder, variables)
+        new_type = type_mappings[statement.new_type.value.replace("\"", "")]
+        old_type = variables.locals[statement.identifier.value].type
+        if isinstance(old_type, ir.PointerType):
+            if isinstance(new_type, ir.PointerType):
+                exit("NOT IMPLEMENTED")
+            else:
+                value = builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
+        else:
+            if size_mappings[str(old_type)] > size_mappings[str(new_type)]:
+                value = builder.trunc(val, new_type)
+            elif size_mappings[str(old_type)] < size_mappings[str(new_type)]:
+                value = builder.zext(val, new_type)
+        new_ptr = builder.alloca(new_type)
+        builder.store(value, new_ptr)
+        variables.locals[statement.identifier.value].type = new_type
+        variables.locals[statement.identifier.value].ptr = new_ptr
+
     def process_statement(self, statement, builder, variables):
         if isinstance(statement, ReturnStatementNode):
-            builder.ret(self.analyze_expression(statement.expr, builder, variables,
-                                                preferred_type=builder.function.type.pointee.return_type))
+            self.process_return_statement(statement, builder, variables)
         elif isinstance(statement, DeclarationStatementNode):
-            if statement.type == "array":
-                value = self.analyze_expression(statement.expr, builder, variables)
-                variables.locals[statement.identifier.value] = value
-            else:
-                actual_type = type_mappings[statement.type]
-                ptr = builder.alloca(actual_type, name=statement.identifier.value)
-                variables.locals[statement.identifier.value] = self.Variable(ptr, None, actual_type)
-                if statement.expr:
-                    new_statement = AssignmentStatementNode(statement.identifier, statement.expr)
-                    self.process_statement(new_statement, builder, variables)
-                else:
-                    variables.locals[statement.identifier.value].value = actual_type(0)
+            self.process_declaration_statement(statement, builder, variables)
         elif isinstance(statement, AssignmentStatementNode):
-            identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
-            if isinstance(identifier.type, ir.PointerType):
-                actual_type = identifier.type.pointee
-            else:
-                actual_type = identifier.type
-            value = self.analyze_expression(statement.expr, builder, variables, preferred_type=actual_type)
-            if isinstance(value.type, ir.PointerType):
-                builder.store(value, identifier)
-            else:
-                if size_mappings[str(value.type)] > size_mappings[str(actual_type)]:
-                    value = builder.trunc(value, actual_type)
-                elif size_mappings[str(value.type)] < size_mappings[str(actual_type)]:
-                    value = builder.zext(value, actual_type)
-            builder.store(value, identifier)
+            self.process_assignment_statement(statement, builder, variables)
         elif isinstance(statement, ComparisonStatementNode):
-            sign = test_instructions[statement.__class__.__name__]
-            lhs = self.analyze_expression(statement.left_hand, builder, variables)
-            rhs = self.analyze_expression(statement.right_hand, builder, variables)
-            return builder.icmp_unsigned(sign, lhs, rhs)
+            return self.process_comparison_statement(statement, builder, variables)
         elif isinstance(statement, BinaryOperationNode):
-            lhs = self.analyze_expression(statement.left_hand, builder, variables)
-            rhs = self.analyze_expression(statement.right_hand, builder, variables)
-            if isinstance(lhs.type, ir.PointerType):
-                lhs = builder.ptrtoint(lhs, lhs.type.pointee)
-            if isinstance(rhs.type, ir.PointerType):
-                rhs = builder.ptrtoint(rhs, rhs.type.pointee)
-            lhs, rhs = self.zext_to_highest(lhs, rhs, builder)
-            tmp = None
-            if isinstance(statement, AdditionStatementNode):
-                tmp = builder.add(lhs, rhs)
-            elif isinstance(statement, SubtractionStatementNode):
-                tmp = builder.sub(lhs, rhs)
-            elif isinstance(statement, MultiplicationStatementNode):
-                tmp = builder.mul(lhs, rhs)
-            elif isinstance(statement, DivisionStatementNode):
-                tmp = builder.udiv(lhs, rhs)
-            elif isinstance(statement, BitwiseAndStatementNode):
-                tmp = builder.and_(lhs, rhs)
-            elif isinstance(statement, BitwiseOrStatementNode):
-                tmp = builder.or_(lhs, rhs)
-            elif isinstance(statement, BitwiseXorStatementNode):
-                tmp = builder.xor(lhs, rhs)
-            elif isinstance(statement, ShlStatementNode):
-                tmp = builder.shl(lhs, rhs)
-            elif isinstance(statement, ShrStatementNode):
-                tmp = builder.ashr(lhs, rhs)
-            return tmp
+            return self.process_binary_operation_statement(statement, builder, variables)
         elif isinstance(statement, UnaryOperationNode):
-            operand = self.analyze_expression(statement.operand, builder, variables)
-            tmp = None
-            if isinstance(statement, NegateStatementNode):
-                tmp = builder.neg(operand)
-            elif isinstance(statement, DereferenceStatementNode):
-                if not isinstance(operand.type, ir.PointerType):
-                    try:
-                        assignment_type = getattr(statement, "preferred_type")
-                        operand = builder.inttoptr(operand, ir.PointerType(assignment_type))
-                    except AttributeError:
-                        operand = builder.inttoptr(operand, ir.PointerType(operand.type))
-                tmp = builder.load(operand)
-            return tmp
+            return self.process_unary_operation_statement(statement, builder, variables)
         elif isinstance(statement, ArrayNode):
-            arr_type = ir.ArrayType(type_mappings[statement.arr_type], len(statement.items))
-            arr = builder.alloca(arr_type)
-            new_arr = ir.Constant(arr_type, None)
-            builder.store(new_arr, arr)
-            if statement.defined:
-                for x, y in zip(statement.items, range(len(statement.items))):
-                    val = ir.Constant(type_mappings[statement.arr_type], x)
-                    first = ir.Constant(type_mappings[statement.arr_type], 0)
-                    idx = ir.Constant(type_mappings[statement.arr_type], y)
-                    elem_ptr = builder.gep(arr, [first, idx], inbounds=True)
-                    builder.store(val, elem_ptr)
-            return self.Variable(arr, new_arr, arr_type)
+            return self.process_array_statement(statement, builder)
         elif isinstance(statement, FunctionCallStatementNode):
-            address = None
-            idx = ir.Constant(ir.IntType(8), 0)
-            if statement.target.value in self.syscalls:
-                find_func = self.functions["find_function"]
-                syscall = self.syscalls[statement.target.value]
-                arr_type = ir.ArrayType(ir.IntType(8), len(syscall["module_name"]) + 1)
-                arr = builder.alloca(arr_type)
-                new_arr = ir.Constant(arr_type, bytearray(syscall["module_name"], "ascii") + b"\x00")
-                builder.store(new_arr, arr)
-                find_params = [
-                    ir.Constant(ir.IntType(32), syscall["function_hash"]),
-                    ir.Constant(ir.IntType(32), syscall["module_hash"]),
-                    builder.bitcast(arr, ir.PointerType(ir.IntType(8))),
-                ]
-                address = builder.call(find_func, find_params, cconv="ccc")
-                statement.target.value = "call_{}".format(statement.target.value)
-            func = self.functions[statement.target.value]
-            params = []
-            for x, y in zip(statement.parameters, func.args):
-                if isinstance(x, StatementNode):
-                    value = self.analyze_expression(x, builder, variables)
-                elif x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
-                    value = self.analyze_expression(x, builder, variables, as_ptr=True)
-                    value = builder.gep(value, [idx, idx])
-                else:
-                    value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
-                params.append(value)
-            if address:
-                params.append(address)
-            ret = builder.call(func, params)
-            return ret
+            return self.process_function_call_statement(statement, builder, variables)
         elif isinstance(statement, IfStatementNode):
-            test = self.analyze_expression(statement.test, builder, variables)
-            with builder.if_else(test) as (then, otherwise):
-                with then:
-                    self.process_branch_block(statement.if_body, builder, variables)
-                with otherwise:
-                    if statement.else_body:
-                        self.process_branch_block(statement.else_body, builder, variables)
+            self.process_if_statement(statement, builder, variables)
         elif isinstance(statement, WhileStatementNode):
-            self.loops += 1
-            loop = builder.append_basic_block("loop_{}".format(str(self.loops)))
-            after = builder.append_basic_block("loop_after_{}".format(str(self.loops)))
-            builder.cbranch(self.analyze_expression(statement.test, builder, variables), loop, after)
-            builder.position_at_start(loop)
-            self.process_branch_block(statement.body, builder, variables)
-            builder.cbranch(self.analyze_expression(statement.test, builder, variables), loop, after)
-            builder.position_at_start(after)
+            self.process_while_statement(statement, builder, variables)
         elif isinstance(statement, AsmStatementNode):
-            for var, reg in statement.input_mapping.items():
-                val = self.analyze_expression(var, builder, variables)
-                if isinstance(val.type, ir.PointerType):
-                    size = register_size_mapping[reg]
-                    val = builder.ptrtoint(val, ir.IntType(size))
-                builder.store_reg(val, ir.IntType(register_size_mapping[reg]), reg)
-            fty = ir.FunctionType(ir.VoidType(), [])
-            statement.assembly = statement.assembly.replace("\"", "").replace("\\n", "\n")
-            builder.asm(fty, statement.assembly.replace("\"", ""), "", [], False)
-            for reg, val in statement.output_mapping.items():
-                tmp = builder.load_reg(ir.IntType(register_size_mapping[reg]), reg)
-                ptr = self.analyze_expression(val, builder, variables, as_ptr=True)
-                builder.store(tmp, ptr)
+            self.process_asm_statement(statement, builder, variables)
         elif isinstance(statement, CastingStatementNode):
-            val = self.analyze_expression(statement.identifier, builder, variables)
-            new_type = type_mappings[statement.new_type.value.replace("\"", "")]
-            old_type = variables.locals[statement.identifier.value].type
-            if isinstance(old_type, ir.PointerType):
-                if isinstance(new_type, ir.PointerType):
-                    exit("NOT IMPLEMENTED")
-                else:
-                    value = builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
-            else:
-                if size_mappings[str(old_type)] > size_mappings[str(new_type)]:
-                    value = builder.trunc(val, new_type)
-                elif size_mappings[str(old_type)] < size_mappings[str(new_type)]:
-                    value = builder.zext(val, new_type)
-            new_ptr = builder.alloca(new_type)
-            builder.store(value, new_ptr)
-            variables.locals[statement.identifier.value].type = new_type
-            variables.locals[statement.identifier.value].ptr = new_ptr
+            self.process_casting_statement(statement, builder, variables)
         elif isinstance(statement, CommentStatementNode):
             pass
         else:

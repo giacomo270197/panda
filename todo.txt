@@ -9,3 +9,4 @@
 - Add structs
 
 # Changes
+- Refactor assembler code to remove the one huge function
