@@ -477,113 +477,126 @@ loop_5.endif:
   br i1 %".162", label %"loop_5", label %"loop_after_5"
 }
 
+define i64 @"testPointer"(i64* %".1")
+{
+.3:
+  %".4" = alloca i64*
+  store i64* %".1", i64** %".4"
+  %".6" = load i64*, i64** %".4"
+  store i64 5, i64* %".6"
+  ret i64 0
+}
+
 define i64 @"main"()
 {
 .2:
-  %".3" = alloca [12 x i8]
-  store [12 x i8] zeroinitializer, [12 x i8]* %".3"
-  %".5" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 0
-  store i8 110, i8* %".5"
-  %".7" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 1
-  store i8 111, i8* %".7"
-  %".9" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 2
-  store i8 116, i8* %".9"
-  %".11" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 3
-  store i8 101, i8* %".11"
-  %".13" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 4
-  store i8 112, i8* %".13"
-  %".15" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 5
-  store i8 97, i8* %".15"
-  %".17" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 6
-  store i8 100, i8* %".17"
-  %".19" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 7
-  store i8 46, i8* %".19"
-  %".21" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 8
-  store i8 101, i8* %".21"
-  %".23" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 9
-  store i8 120, i8* %".23"
-  %".25" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 10
-  store i8 101, i8* %".25"
-  %".27" = getelementptr inbounds [12 x i8], [12 x i8]* %".3", i8 0, i8 11
-  store i8 0, i8* %".27"
-  %".29" = alloca [28 x i32]
-  store [28 x i32] zeroinitializer, [28 x i32]* %".29"
-  %".31" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 0
-  store i32 0, i32* %".31"
-  %".33" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 1
+  %"test" = alloca i64
+  store i64 4, i64* %"test"
+  %".4" = call i64 @"testPointer"(i64* %"test")
+  %".5" = alloca [12 x i8]
+  store [12 x i8] zeroinitializer, [12 x i8]* %".5"
+  %".7" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 0
+  store i8 110, i8* %".7"
+  %".9" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 1
+  store i8 111, i8* %".9"
+  %".11" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 2
+  store i8 116, i8* %".11"
+  %".13" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 3
+  store i8 101, i8* %".13"
+  %".15" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 4
+  store i8 112, i8* %".15"
+  %".17" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 5
+  store i8 97, i8* %".17"
+  %".19" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 6
+  store i8 100, i8* %".19"
+  %".21" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 7
+  store i8 46, i8* %".21"
+  %".23" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 8
+  store i8 101, i8* %".23"
+  %".25" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 9
+  store i8 120, i8* %".25"
+  %".27" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 10
+  store i8 101, i8* %".27"
+  %".29" = getelementptr inbounds [12 x i8], [12 x i8]* %".5", i8 0, i8 11
+  store i8 0, i8* %".29"
+  %".31" = alloca [28 x i32]
+  store [28 x i32] zeroinitializer, [28 x i32]* %".31"
+  %".33" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 0
   store i32 0, i32* %".33"
-  %".35" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 2
+  %".35" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 1
   store i32 0, i32* %".35"
-  %".37" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 3
+  %".37" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 2
   store i32 0, i32* %".37"
-  %".39" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 4
+  %".39" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 3
   store i32 0, i32* %".39"
-  %".41" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 5
+  %".41" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 4
   store i32 0, i32* %".41"
-  %".43" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 6
+  %".43" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 5
   store i32 0, i32* %".43"
-  %".45" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 7
+  %".45" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 6
   store i32 0, i32* %".45"
-  %".47" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 8
+  %".47" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 7
   store i32 0, i32* %".47"
-  %".49" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 9
+  %".49" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 8
   store i32 0, i32* %".49"
-  %".51" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 10
+  %".51" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 9
   store i32 0, i32* %".51"
-  %".53" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 11
+  %".53" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 10
   store i32 0, i32* %".53"
-  %".55" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 12
+  %".55" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 11
   store i32 0, i32* %".55"
-  %".57" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 13
+  %".57" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 12
   store i32 0, i32* %".57"
-  %".59" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 14
+  %".59" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 13
   store i32 0, i32* %".59"
-  %".61" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 15
+  %".61" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 14
   store i32 0, i32* %".61"
-  %".63" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 16
+  %".63" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 15
   store i32 0, i32* %".63"
-  %".65" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 17
+  %".65" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 16
   store i32 0, i32* %".65"
-  %".67" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 18
+  %".67" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 17
   store i32 0, i32* %".67"
-  %".69" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 19
+  %".69" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 18
   store i32 0, i32* %".69"
-  %".71" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 20
+  %".71" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 19
   store i32 0, i32* %".71"
-  %".73" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 21
+  %".73" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 20
   store i32 0, i32* %".73"
-  %".75" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 22
+  %".75" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 21
   store i32 0, i32* %".75"
-  %".77" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 23
+  %".77" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 22
   store i32 0, i32* %".77"
-  %".79" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 24
+  %".79" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 23
   store i32 0, i32* %".79"
-  %".81" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 25
+  %".81" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 24
   store i32 0, i32* %".81"
-  %".83" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 26
+  %".83" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 25
   store i32 0, i32* %".83"
-  %".85" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i32 0, i32 27
+  %".85" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 26
   store i32 0, i32* %".85"
-  %".87" = getelementptr inbounds [28 x i32], [28 x i32]* %".29", i8 0, i64 0
-  store i32 104, i32* %".87"
-  %".89" = alloca [4 x i64]
-  store [4 x i64] zeroinitializer, [4 x i64]* %".89"
-  %".91" = getelementptr inbounds [4 x i64], [4 x i64]* %".89", i64 0, i64 0
-  store i64 0, i64* %".91"
-  %".93" = getelementptr inbounds [4 x i64], [4 x i64]* %".89", i64 0, i64 1
+  %".87" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i32 0, i32 27
+  store i32 0, i32* %".87"
+  %".89" = getelementptr inbounds [28 x i32], [28 x i32]* %".31", i8 0, i64 0
+  store i32 104, i32* %".89"
+  %".91" = alloca [4 x i64]
+  store [4 x i64] zeroinitializer, [4 x i64]* %".91"
+  %".93" = getelementptr inbounds [4 x i64], [4 x i64]* %".91", i64 0, i64 0
   store i64 0, i64* %".93"
-  %".95" = getelementptr inbounds [4 x i64], [4 x i64]* %".89", i64 0, i64 2
+  %".95" = getelementptr inbounds [4 x i64], [4 x i64]* %".91", i64 0, i64 1
   store i64 0, i64* %".95"
-  %".97" = getelementptr inbounds [4 x i64], [4 x i64]* %".89", i64 0, i64 3
+  %".97" = getelementptr inbounds [4 x i64], [4 x i64]* %".91", i64 0, i64 2
   store i64 0, i64* %".97"
-  %".99" = alloca [13 x i8]
-  store [13 x i8] c"kernel32.dll\00", [13 x i8]* %".99"
-  %".101" = bitcast [13 x i8]* %".99" to i8*
-  %".102" = call ccc i64 @"find_function"(i32 380894834, i32 1848363543, i8* %".101")
-  %".103" = getelementptr [12 x i8], [12 x i8]* %".3", i8 0, i8 0
-  %".104" = getelementptr [28 x i32], [28 x i32]* %".29", i8 0, i8 0
-  %".105" = getelementptr [4 x i64], [4 x i64]* %".89", i8 0, i8 0
-  %".106" = call i64 @"call_CreateProcessA"(i32 0, i8* %".103", i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32* %".104", i64* %".105", i64 %".102")
+  %".99" = getelementptr inbounds [4 x i64], [4 x i64]* %".91", i64 0, i64 3
+  store i64 0, i64* %".99"
+  %".101" = alloca [13 x i8]
+  store [13 x i8] c"kernel32.dll\00", [13 x i8]* %".101"
+  %".103" = bitcast [13 x i8]* %".101" to i8*
+  %".104" = call ccc i64 @"find_function"(i32 380894834, i32 1848363543, i8* %".103")
+  %".105" = getelementptr [12 x i8], [12 x i8]* %".5", i8 0, i8 0
+  %".106" = getelementptr [28 x i32], [28 x i32]* %".31", i8 0, i8 0
+  %".107" = getelementptr [4 x i64], [4 x i64]* %".91", i8 0, i8 0
+  %".108" = call i64 @"call_CreateProcessA"(i32 0, i8* %".105", i32 0, i32 0, i32 0, i32 0, i32 0, i32 0, i32* %".106", i64* %".107", i64 %".104")
   ret i64 0
 }
 

@@ -51,6 +51,8 @@ class Assembler:
                 ret = builder.load(variables.locals[expr.value].ptr)
                 return ret
         if isinstance(expr, StatementNode):
+            if "preferred_type" in kwargs:
+                expr.preferred_type = kwargs["preferred_type"]
             if isinstance(expr, IndexingStatementNode):
                 operand = self.analyze_expression(expr.operand, builder, variables, as_ptr=True)
                 idx = self.analyze_expression(expr.index, builder, variables)
@@ -61,9 +63,9 @@ class Assembler:
                 return tmp
             elif isinstance(expr, AddressOfStatement):
                 return variables.locals[expr.operand.value].ptr
+            elif isinstance(expr, DereferenceStatementNode):
+                return self.process_dereference_statement(expr, builder, variables, "assign_target" in kwargs)
             else:
-                if "preferred_type" in kwargs:
-                    expr.preferred_type = kwargs["preferred_type"]
                 return self.process_statement(expr, builder, variables)
 
     def process_return_statement(self, statement, builder, variables):
@@ -84,7 +86,7 @@ class Assembler:
                 variables.locals[statement.identifier.value].value = actual_type(0)
 
     def process_assignment_statement(self, statement, builder, variables):
-        identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True)
+        identifier = self.analyze_expression(statement.identifier, builder, variables, as_ptr=True, assign_target=True)
         if isinstance(identifier.type, ir.PointerType):
             actual_type = identifier.type.pointee
         else:
@@ -134,19 +136,23 @@ class Assembler:
             tmp = builder.ashr(lhs, rhs)
         return tmp
 
+    def process_dereference_statement(self, statement, builder, variables, assign_target):
+        operand = self.analyze_expression(statement.operand, builder, variables)
+        if not isinstance(operand.type, ir.PointerType):
+            try:
+                assignment_type = getattr(statement, "preferred_type")
+                operand = builder.inttoptr(operand, ir.PointerType(assignment_type))
+            except AttributeError:
+                operand = builder.inttoptr(operand, ir.PointerType(operand.type))
+        if not assign_target:
+            operand = builder.load(operand)
+        return operand
+
     def process_unary_operation_statement(self, statement, builder, variables):
         operand = self.analyze_expression(statement.operand, builder, variables)
         tmp = None
         if isinstance(statement, NegateStatementNode):
             tmp = builder.neg(operand)
-        elif isinstance(statement, DereferenceStatementNode):
-            if not isinstance(operand.type, ir.PointerType):
-                try:
-                    assignment_type = getattr(statement, "preferred_type")
-                    operand = builder.inttoptr(operand, ir.PointerType(assignment_type))
-                except AttributeError:
-                    operand = builder.inttoptr(operand, ir.PointerType(operand.type))
-            tmp = builder.load(operand)
         return tmp
 
     def process_array_statement(self, statement, builder):
