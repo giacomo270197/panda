@@ -1,5 +1,4 @@
 import re
-
 import config
 
 
@@ -19,7 +18,7 @@ class Preprocessor:
         self.source = source
         self.rules = [self.increment_shorthand, self.decrement_shorthand, self.multiplication_shorthand,
                       self.division_shorthand, self.expand_arrays, self.expand_strings, self.hex_repr, self.resolve_ip,
-                      self.create_syscalls]
+                      self.create_syscalls, self.change_int, self.change_void_ptr]
 
     def increment_shorthand(self):
         r = r'((.)*?)\+=(.*?);'
@@ -104,6 +103,20 @@ int64 fn call_{}({}) {{
                     """.format(g.groups()[0], params, push_str, pop_str)
             else:
                 break
+
+    def change_int(self):
+        r = r'(int)([^a-zA-Z0-9])'
+        if config.PLATFORM == "32":
+            self.source = re.sub(r, lambda m: "int32" + m.groups()[1], self.source)
+        elif config.PLATFORM == "64":
+            self.source = re.sub(r, lambda m: "int64" + m.groups()[1], self.source)
+
+    def change_void_ptr(self):
+        r = r'(ptr void)'
+        if config.PLATFORM == "32":
+            self.source = re.sub(r, lambda m: "ptr int32", self.source)
+        elif config.PLATFORM == "64":
+            self.source = re.sub(r, lambda m: "ptr int64", self.source)
 
     def preprocess(self):
         for rule in self.rules:

@@ -62,6 +62,7 @@ class Parser:
     def parse(self):
         self.text = self.resolve_imports(self.text)
         self.text = Preprocessor(self.text).preprocess()
+        print(self.text)
         self.parsed = self.lark_obj.parse(self.text)
 
     def display_parsed(self):

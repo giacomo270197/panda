@@ -9,6 +9,8 @@
 - Add imports
 - Add structs
 - Add void pointers
+- Direct syscalls
+- Injectable functions
 
 # Changes
 - Refactor assembler code to remove the one huge function

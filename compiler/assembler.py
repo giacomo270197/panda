@@ -54,13 +54,7 @@ class Assembler:
             if "preferred_type" in kwargs:
                 expr.preferred_type = kwargs["preferred_type"]
             if isinstance(expr, IndexingStatementNode):
-                operand = self.analyze_expression(expr.operand, builder, variables, as_ptr=True)
-                idx = self.analyze_expression(expr.index, builder, variables)
-                first = ir.Constant(ir.IntType(8), 0)
-                tmp = builder.gep(operand, [first, idx], inbounds=True)
-                if "as_ptr" not in kwargs:
-                    tmp = builder.load(tmp)
-                return tmp
+                return self.process_indexing_statement(expr, builder, variables, "as_ptr" in kwargs)
             elif isinstance(expr, AddressOfStatement):
                 return variables.locals[expr.operand.value].ptr
             elif isinstance(expr, DereferenceStatementNode):
@@ -68,10 +62,19 @@ class Assembler:
             else:
                 return self.process_statement(expr, builder, variables)
 
+    def process_indexing_statement(self, statement, builder, variables, as_ptr):
+        operand = self.analyze_expression(statement.operand, builder, variables)
+        idx = self.analyze_expression(statement.index, builder, variables)
+        tmp = builder.gep(operand, [idx], inbounds=True)
+        if not as_ptr:
+            tmp = builder.load(tmp)
+        return tmp
+
     def process_return_statement(self, statement, builder, variables):
         builder.ret(self.analyze_expression(statement.expr, builder, variables,preferred_type=builder.function.type.pointee.return_type))
 
     def process_declaration_statement(self, statement, builder, variables):
+        print(statement.identifier.value)
         if statement.type == "array":
             value = self.analyze_expression(statement.expr, builder, variables)
             variables.locals[statement.identifier.value] = value
@@ -246,10 +249,13 @@ class Assembler:
             else:
                 value = builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
         else:
-            if size_mappings[str(old_type)] > size_mappings[str(new_type)]:
-                value = builder.trunc(val, new_type)
-            elif size_mappings[str(old_type)] < size_mappings[str(new_type)]:
-                value = builder.zext(val, new_type)
+            if isinstance(new_type, ir.PointerType):
+                value = builder.inttoptr(val, new_type)
+            else:
+                if size_mappings[str(old_type)] > size_mappings[str(new_type)]:
+                    value = builder.trunc(val, new_type)
+                elif size_mappings[str(old_type)] < size_mappings[str(new_type)]:
+                    value = builder.zext(val, new_type)
         new_ptr = builder.alloca(new_type)
         builder.store(value, new_ptr)
         variables.locals[statement.identifier.value].type = new_type
