@@ -220,6 +220,15 @@ class AstTransformer(Transformer):
         function_name = items[0]
         module_name = items[1]
         return nodes.SyscallNode(function_name, module_name)
+
+    def struct_def(self, items):
+        struct_name = items[0]
+        elements = []
+        types = []
+        for x in range(1, len(items), 2):
+            elements.append(items[x])
+            types.append(items[x+1])
+        return nodes.StructNode(struct_name, elements, types)
     
     def program(self, items):
         syscalls = []

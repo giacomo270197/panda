@@ -55,7 +55,8 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
 
 syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" "(" (TYPE)? ("," TYPE)* ")" ";"
 func_def: TYPE "fn" IDENTIFIER "(" (TYPE IDENTIFIER)? ("," TYPE IDENTIFIER)*  ")" block
+struct_def: "struct" IDENTIFIER "{" (IDENTIFIER ":" TYPE)? ("," IDENTIFIER ":" TYPE)*"}" ";"
 
-program: syscall_def* func_def+
+program: syscall_def* struct_def* func_def+
 
 %ignore WS

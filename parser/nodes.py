@@ -240,6 +240,12 @@ class SyscallNode(Node):
         self.module_name = module_name
 
 
+class StructNode(Node):
+    def __int__(self, struct_name, elements, types):
+        self.struct_name = struct_name
+        self.elements = elements
+        self.types = types
+
 class ProgramNode(Node):
     def __init__(self, syscalls, functions):
         self.syscalls = syscalls
