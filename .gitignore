@@ -133,5 +133,5 @@ dmypy.json
 *.s
 *.ll
 prototypes.txt
-test.pnd
+test32.pnd
 test64.pnd
