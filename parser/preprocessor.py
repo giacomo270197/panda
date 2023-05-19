@@ -85,16 +85,13 @@ int32 fn call_{}({}) {{
     
                     """.format(g.groups()[0], params, push_str)
                 elif config.PLATFORM == "64":
+                    offset = 5 if (param_len % 2 == 0) else 4
                     params.append("int64 address")
                     params = "".join(params)
                     push_str = "mov %rsp,%rsi\\n"
-                    if param_len % 2 != 0:
-                        push_str += "push %rsi\\n"
                     pop_str = ""
                     for x in range(param_len, 0, -1):
-                        push_str += "push {}(%rsi)\\n".format(str(8 * (4 + x)))
-                        pop_str += "pop %rsi\\n"
-                    if param_len % 2 != 0:
+                        push_str += "push {}(%rsi)\\n".format(str(8 * (x+offset)))
                         pop_str += "pop %rsi\\n"
                     self.source += """
 int64 fn call_{}({}) {{

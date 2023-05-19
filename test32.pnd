@@ -1,0 +1,9 @@
+import libraries.resolve32
+import libraries.utils.strings
+
+int64 fn main() {
+    string hello = "Hello there";
+    string there = " general Kenobi";
+    ptr int8 new = strcat(hello, there);
+    return 0;
+}

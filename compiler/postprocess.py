@@ -1,5 +1,7 @@
 import re
 
+import config
+
 
 class PostProcessor:
     reg_mapping = {
@@ -10,102 +12,85 @@ class PostProcessor:
     }
 
     def __init__(self, assembly):
-        self.assembly = assembly
-        self.rules = [self.remove_memory_to_memory, self.remove_zero_operations, self.remove_functions]
+        self.assembly = assembly.split("\n")
+        self.functional_rules = [self.remove_call_functions_preambles_64]
+        self.optimization_rules = []
+        self.rules = self.functional_rules + self.optimization_rules
 
-    def remove_memory_to_memory(self):
-        for x in range(len(self.assembly)):
-            instruction = self.assembly[x]
-            # Case like mov [ebp-0x4], dword ptr.[...]
-            matches = [m.start() for m in
-                       re.finditer(r'\[ebp[+|-]0x[\w]+?\], (?:dword|byte) ptr \[([a-z]{3})\]', instruction)]
-            if matches:
-                r = r'((dword|byte) ptr \[([a-z]{3})\])'
-                m = re.search(r, instruction)
-                to_replace = m.groups()[0]
-                target = m.groups()[1]
-                register = m.groups()[2]
-                instruction = instruction.replace(to_replace, register)
-                if target == "byte" and register in list(self.reg_mapping.keys()):
-                    new_register = self.reg_mapping[register]
-                    instruction = "\n".join([
-                        "       mov {}, {} ptr[{}]".format(new_register, target, register),
-                        "       movzx {}, {}".format(register, new_register),
-                        instruction
-                    ])
-                else:
-                    instruction = "       mov {}, {} ptr[{}]".format(register, target, register) + "\n" + instruction
-                self.assembly[x] = instruction
-            # Case like mov dword ptr [...], dword ptr [...]
-            matches = [m.start() for m in
-                       re.finditer(r'(?:dword|byte) ptr \[[\S]+?\], (?:dword|byte) ptr \[([a-z]{3})\]', instruction)]
-            if matches:
-                r = r'(?:dword|byte) ptr \[[\S]+?\], ((dword|byte) ptr \[([a-z]{3})\])'
-                m = re.search(r, instruction)
-                to_replace = m.groups()[0]
-                target = m.groups()[1]
-                register = m.groups()[2]
-                instruction = instruction.replace(to_replace, register)
-                if target == "byte" and register in list(self.reg_mapping.keys()):
-                    new_register = self.reg_mapping[register]
-                    instruction = "\n".join([
-                        "       mov {}, {} ptr[{}]".format(new_register, target, register),
-                        "       movzx {}, {}".format(register, new_register),
-                        instruction
-                    ])
-                else:
-                    instruction = "       mov {}, {} ptr[{}]".format(register, target, register) + "\n" + instruction
-                self.assembly[x] = instruction
-            matches = [m.start() for m in re.finditer(r'mov ([a-z]{3}), byte ptr \[[a-z]{3}\]', instruction)]
-            if matches:
-                m = re.search(r'mov ([a-z]{3}), (byte ptr \[[a-z]{3}\])', instruction)
-                register = m.groups()[0]
-                source = m.groups()[1]
-                try:
-                    new_register = self.reg_mapping[register]
-                except KeyError:
-                    exit("Using a non general purpose register for general purpose reasons")
-                instruction = "\n".join([
-                    "       mov {}, {}".format(new_register, source),
-                    "       movzx {}, {}".format(register, new_register)
-                ])
-                self.assembly[x] = instruction
-            r = r'(mov byte ptr \[[a-z]{3}\], )([a-z]{3})'
-            self.assembly[x] = re.sub(r, lambda m: m.groups()[0] + self.reg_mapping[m.groups()[1]], instruction)
+    def lookahead_push_count(self, asm):
+        push_count = 0
+        for line in asm:
+            if "push" in line:
+                push_count += 1
+            if "ret" in line:
+                break
+        return push_count
 
-    def remove_zero_operations(self):
-        for x in range(len(self.assembly)):
-            if "add" in self.assembly[x] or "sub" in self.assembly[x]:
-                if self.assembly[x].endswith("0x0"):
-                    self.assembly[x] = ""
+    def remove_call_functions_preambles_32(self):
+        if config.PLATFORM == "64":
+            return
+        new_asm = []
+        deletion_mode = False
+        need_fixing_epilogue = False
+        epilogue_fix = 0
+        for line, idx in zip(self.assembly, range(len(self.assembly))):
+            if not deletion_mode:
+                new_asm.append(line)
+                if need_fixing_epilogue and "add" in line:
+                    new_asm[-1] = "add     esp, {}".format(str(epilogue_fix))
+                    need_fixing_epilogue = False
+                if line.startswith("call_"):
+                    deletion_mode = True
+                    need_fixing_epilogue = True
+                    push_count = self.lookahead_push_count(self.assembly[idx:])
+                    if push_count % 2 == 0:
+                        new_asm.append("sub     rsp, 40")
+                        epilogue_fix = 40
+                    else:
+                        new_asm.append("sub     rsp, 32")
+                        epilogue_fix = 32
+                    if push_count > 4:
+                        new_asm.append("mov     rax, qword ptr [rsp + {}]".format(str(8 * (push_count+1) + epilogue_fix)))
+                    else:
+                        new_asm.append("mov     rax, {}".format(["rcx", "rdx", "r8", "r9"][push_count]))
+            elif deletion_mode and "rsi, rsp" in line:
+                new_asm.append(line)
+                deletion_mode = False
+        self.assembly = new_asm
 
-    def remove_functions(self):
-        code = "\n".join(self.assembly)
-        used_funcs = {m.groups()[0] for m in re.finditer(r'call (\w+)', code)}
-        used_funcs.add("main")
-        try:
-            used_funcs.remove("dword")
-            used_funcs.remove("find_function_ret")
-        except KeyError:
-            pass
-        new_assembly = []
-        used = True
-        for x in self.assembly:
-            if "startfunc_" in x:
-                func = re.search(r'startfunc_(\w+)', x).groups()[0]
-                if func in used_funcs:
-                    used = True
-                else:
-                    used = False
-            elif "endfunc_" in x:
-                used = True
-            else:
-                if used:
-                    new_assembly.append(x)
-        self.assembly = new_assembly
+    def remove_call_functions_preambles_64(self):
+        if config.PLATFORM == "32":
+            return
+        new_asm = []
+        deletion_mode = False
+        need_fixing_epilogue = False
+        epilogue_fix = 0
+        for line, idx in zip(self.assembly, range(len(self.assembly))):
+            if not deletion_mode:
+                new_asm.append(line)
+                if need_fixing_epilogue and "add" in line:
+                    new_asm[-1] = "add     rsp, {}".format(str(epilogue_fix))
+                    need_fixing_epilogue = False
+                if line.startswith("call_"):
+                    deletion_mode = True
+                    need_fixing_epilogue = True
+                    push_count = self.lookahead_push_count(self.assembly[idx:])
+                    if push_count % 2 == 0:
+                        new_asm.append("sub     rsp, 40")
+                        epilogue_fix = 40
+                    else:
+                        new_asm.append("sub     rsp, 32")
+                        epilogue_fix = 32
+                    if push_count > 4:
+                        new_asm.append("mov     rax, qword ptr [rsp + {}]".format(str(8 * (push_count+1) + epilogue_fix)))
+                    else:
+                        new_asm.append("mov     rax, {}".format(["rcx", "rdx", "r8", "r9"][push_count]))
+            elif deletion_mode and "rsi, rsp" in line:
+                new_asm.append(line)
+                deletion_mode = False
+        self.assembly = new_asm
 
     def postprocess(self):
         for rule in self.rules:
             rule()
-        self.assembly = [x for x in self.assembly if x]
-        return self.assembly
+        return "\n".join(self.assembly)

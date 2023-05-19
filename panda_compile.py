@@ -17,8 +17,6 @@ def main():
     parser.add_argument('--platform', '-p', action='store', help="Print the parse tree")
     args = parser.parse_args()
 
-    hello
-
     if not args.source:
         exit("Please select a source file to compile")
 

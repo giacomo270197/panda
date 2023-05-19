@@ -1,8 +1,6 @@
 declare("RtlCreateHeap", "ntdll.dll")(int64, int, int, int, int, int);
 declare("RtlAllocateHeap", "ntdll.dll")(int, int64, int);
 
-import libraries.resolve64
-
 int fn strlen(ptr int8 str) {
    int cnt = 0;
    int8 char = str[cnt];

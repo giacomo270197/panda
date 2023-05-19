@@ -6,6 +6,7 @@ import keystone as ks
 import config
 
 from compiler.assembler import Assembler
+from compiler.postprocess import PostProcessor
 
 
 class Compiler:
@@ -27,7 +28,6 @@ class Compiler:
                     new_asm.append(line)
             new_asm = "\n".join(new_asm)
             new_asm = re.sub(r'_(main:)', lambda m: m.groups()[0], new_asm)
-            return new_asm
         elif config.PLATFORM == "64":
             new_asm = []
             asm = asm.split("\n")
@@ -36,8 +36,13 @@ class Compiler:
                     new_asm.append(line)
             new_asm = "\n".join(new_asm)
             new_asm = re.sub(r'#(.*)', lambda m: "", new_asm)
-            return new_asm
-        exit()
+        else:
+            exit()
+        #print(new_asm)
+        post_processor = PostProcessor(new_asm)
+        new_asm = post_processor.postprocess()
+        print(new_asm)
+        return new_asm
 
     def create_assembly(self):
         self.compiler = Assembler(self.ast)
