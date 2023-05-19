@@ -74,7 +74,6 @@ class Assembler:
         builder.ret(self.analyze_expression(statement.expr, builder, variables,preferred_type=builder.function.type.pointee.return_type))
 
     def process_declaration_statement(self, statement, builder, variables):
-        print(statement.identifier.value)
         if statement.type == "array":
             value = self.analyze_expression(statement.expr, builder, variables)
             variables.locals[statement.identifier.value] = value

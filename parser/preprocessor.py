@@ -88,12 +88,14 @@ int32 fn call_{}({}) {{
                     params.append("int64 address")
                     params = "".join(params)
                     push_str = "mov %rsp,%rsi\\n"
-                    push_str += "push %rsi\\n"
+                    if param_len % 2 != 0:
+                        push_str += "push %rsi\\n"
                     pop_str = ""
                     for x in range(param_len, 0, -1):
                         push_str += "push {}(%rsi)\\n".format(str(8 * (4 + x)))
                         pop_str += "pop %rsi\\n"
-                    pop_str += "pop %rsi\\n"
+                    if param_len % 2 != 0:
+                        pop_str += "pop %rsi\\n"
                     self.source += """
 int64 fn call_{}({}) {{
     int64 out = 0;

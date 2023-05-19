@@ -771,7 +771,6 @@ define i64 @"call_RtlCreateHeap"(i64 %".1", i64 %".2", i64 %".3", i64 %".4", i64
   call void asm sideeffect "", "{rax}"
 (i64 %".25")
   call void asm  "mov %rsp,%rsi
-push %rsi
 push 80(%rsi)
 push 72(%rsi)
 push 64(%rsi)
@@ -779,7 +778,6 @@ push 56(%rsi)
 push 48(%rsi)
 push 40(%rsi)
 call rax
-pop %rsi
 pop %rsi
 pop %rsi
 pop %rsi
