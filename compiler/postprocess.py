@@ -49,7 +49,8 @@ class PostProcessor:
                     else:
                         new_asm.append("sub     rsp, 32")
                         epilogue_fix = 32
-                    if push_count > 4:
+                    print("PUSH COUNT IS ", push_count)
+                    if push_count > 3:
                         new_asm.append("mov     rax, qword ptr [rsp + {}]".format(str(8 * (push_count+1) + epilogue_fix)))
                     else:
                         new_asm.append("mov     rax, {}".format(["rcx", "rdx", "r8", "r9"][push_count]))
@@ -81,7 +82,7 @@ class PostProcessor:
                     else:
                         new_asm.append("sub     rsp, 32")
                         epilogue_fix = 32
-                    if push_count > 4:
+                    if push_count > 3:
                         new_asm.append("mov     rax, qword ptr [rsp + {}]".format(str(8 * (push_count+1) + epilogue_fix)))
                     else:
                         new_asm.append("mov     rax, {}".format(["rcx", "rdx", "r8", "r9"][push_count]))
