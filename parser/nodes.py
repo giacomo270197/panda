@@ -39,17 +39,31 @@ class UnaryOperationNode(StatementNode):
         self.operand = operand
 
 
-class ArrayNode(StatementNode):
-    def __init__(self, arr_type, items, defined):
+class AggregateNode(StatementNode):
+    def __init__(self, agg_type, items, defined):
         self.defined = defined
-        self.arr_type = arr_type
+        self.agg_type = agg_type
         self.items = items
+
+
+class ArrayNode(AggregateNode):
+    pass
+
+
+class StructNode(AggregateNode):
+    pass
 
 
 class IndexingStatementNode(StatementNode):
     def __init__(self, operand, index):
         self.operand = operand
         self.index = index
+
+
+class AccessStatementNode(StatementNode):
+    def __init__(self, parent, child):
+        self.parent = parent
+        self.child = child
 
 
 class DeclarationStatementNode(StatementNode):
@@ -240,13 +254,15 @@ class SyscallNode(Node):
         self.module_name = module_name
 
 
-class StructNode(Node):
-    def __int__(self, struct_name, elements, types):
+class StructDefinitionNode(Node):
+    def __init__(self, struct_name, elements, types):
         self.struct_name = struct_name
         self.elements = elements
         self.types = types
 
+
 class ProgramNode(Node):
-    def __init__(self, syscalls, functions):
+    def __init__(self, syscalls, functions, structs):
         self.syscalls = syscalls
         self.func_defs = functions
+        self.structs = structs

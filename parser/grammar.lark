@@ -7,10 +7,10 @@ LITERAL: SIGNED_NUMBER | ESCAPED_STRING
 IDENTIFIER: CNAME
 INT_TYPES: "int8" | "int16" |  "int32" | "int64"
 PTR_INT_TYPES: "ptr int8" | "ptr int16" | "ptr int32" | "ptr int64"
-TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
+TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct"
 
-!expr: LITERAL | IDENTIFIER | array | ["("] statement [")"] 
-!array: ["undef"] (INT_TYPES | PTR_INT_TYPES) "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
+!expr: LITERAL | IDENTIFIER | aggregate | ["("] statement [")"]
+!aggregate: ["undef"] (INT_TYPES | PTR_INT_TYPES | IDENTIFIER) "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
 
 !declaration_stmt: TYPE IDENTIFIER [ "=" expr ] ";"
 !assign_stmt: expr "=" expr ";"
@@ -42,11 +42,12 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
 !shr_stmt: expr "shr" expr [";"]
 !negate_stmt: "!" expr [";"]
 !indexing_stmt: expr "[" expr "]" [";"]
+!access_stmt: expr "." expr
 !asm_stmt: "_asm(" ESCAPED_STRING "," ESCAPED_STRING "," ESCAPED_STRING ")" [";"]
 
 ?misc_stmts: casting_stmt | asm_stmt
 ?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
-?unary_stmts: dereference_stmt | addressof_stmt | negate_stmt | indexing_stmt
+?unary_stmts: dereference_stmt | addressof_stmt | negate_stmt | indexing_stmt | access_stmt
 ?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | bitwisexor_stmt | rol_stmt | ror_stmt | rol16_stmt | ror16_stmt| shl_stmt | shr_stmt
 ?flow_stmts: functioncall_stmt | return_stmt | if_stmt | while_stmt
 ?statement:  misc_stmts | flow_stmts | binary_stmts | unary_stmts | test_stmts
@@ -55,7 +56,7 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string"
 
 syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" "(" (TYPE)? ("," TYPE)* ")" ";"
 func_def: TYPE "fn" IDENTIFIER "(" (TYPE IDENTIFIER)? ("," TYPE IDENTIFIER)*  ")" block
-struct_def: "struct" IDENTIFIER "{" (IDENTIFIER ":" TYPE)? ("," IDENTIFIER ":" TYPE)*"}" ";"
+struct_def: "define" "struct" IDENTIFIER "{" (IDENTIFIER ":" TYPE)? ("," IDENTIFIER ":" TYPE)*"}" ";"
 
 program: syscall_def* struct_def* func_def+
 

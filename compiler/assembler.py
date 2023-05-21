@@ -11,6 +11,7 @@ class Assembler:
         self.module = None
         self.functions = {}
         self.syscalls = {}
+        self.structs = {}
         self.loops = 0
         self.ifs = 0
 
@@ -55,6 +56,8 @@ class Assembler:
                 expr.preferred_type = kwargs["preferred_type"]
             if isinstance(expr, IndexingStatementNode):
                 return self.process_indexing_statement(expr, builder, variables, "as_ptr" in kwargs)
+            if isinstance(expr, AccessStatementNode):
+                return self.process_access_statement(expr, builder, variables, "as_ptr" in kwargs)
             elif isinstance(expr, AddressOfStatement):
                 return variables.locals[expr.operand.value].ptr
             elif isinstance(expr, DereferenceStatementNode):
@@ -70,11 +73,19 @@ class Assembler:
             tmp = builder.load(tmp)
         return tmp
 
+    def process_access_statement(self, statement, builder, variables, as_ptr):
+        parent = self.analyze_expression(statement.parent, builder, variables, as_ptr=True)
+        idx = ir.IntType(32)(self.structs[parent.type.pointee.name].index(statement.child.value))
+        tmp = builder.gep(parent, [ir.IntType(32)(0), idx], inbounds=True)
+        if not as_ptr:
+            tmp = builder.load(tmp)
+        return tmp
+
     def process_return_statement(self, statement, builder, variables):
         builder.ret(self.analyze_expression(statement.expr, builder, variables,preferred_type=builder.function.type.pointee.return_type))
 
     def process_declaration_statement(self, statement, builder, variables):
-        if statement.type == "array":
+        if statement.type == "array" or statement.type == "struct":
             value = self.analyze_expression(statement.expr, builder, variables)
             variables.locals[statement.identifier.value] = value
         else:
@@ -157,19 +168,26 @@ class Assembler:
             tmp = builder.neg(operand)
         return tmp
 
-    def process_array_statement(self, statement, builder):
-        arr_type = ir.ArrayType(type_mappings[statement.arr_type], len(statement.items))
-        arr = builder.alloca(arr_type)
-        new_arr = ir.Constant(arr_type, None)
-        builder.store(new_arr, arr)
+    def process_aggregate_statement(self, statement, builder):
+        agg_type = None
+        if isinstance(statement, ArrayNode):
+            agg_type = ir.ArrayType(type_mappings[statement.agg_type.value], len(statement.items))
+        elif isinstance(statement, StructNode):
+            agg_type = self.module.context.get_identified_type(statement.agg_type.value)
+        agg = builder.alloca(agg_type)
+        new_agg = ir.Constant(agg_type, None)
+        builder.store(new_agg, agg)
         if statement.defined:
             for x, y in zip(statement.items, range(len(statement.items))):
-                val = ir.Constant(type_mappings[statement.arr_type], x)
-                first = ir.Constant(type_mappings[statement.arr_type], 0)
-                idx = ir.Constant(type_mappings[statement.arr_type], y)
-                elem_ptr = builder.gep(arr, [first, idx], inbounds=True)
+                if isinstance(statement, ArrayNode):
+                    val = ir.Constant(type_mappings[statement.agg_type.value], x)
+                else:
+                    val = ir.Constant(type_mappings[statement.agg_type.value][y], x)
+                first = ir.Constant(ir.IntType(32), 0)
+                idx = ir.Constant(ir.IntType(32), y)
+                elem_ptr = builder.gep(agg, [first, idx], inbounds=True)
                 builder.store(val, elem_ptr)
-        return self.Variable(arr, new_arr, arr_type)
+        return self.Variable(agg, new_agg, agg_type)
 
     def process_function_call_statement(self, statement, builder, variables):
         address = None
@@ -273,8 +291,8 @@ class Assembler:
             return self.process_binary_operation_statement(statement, builder, variables)
         elif isinstance(statement, UnaryOperationNode):
             return self.process_unary_operation_statement(statement, builder, variables)
-        elif isinstance(statement, ArrayNode):
-            return self.process_array_statement(statement, builder)
+        elif isinstance(statement, AggregateNode):
+            return self.process_aggregate_statement(statement, builder)
         elif isinstance(statement, FunctionCallStatementNode):
             return self.process_function_call_statement(statement, builder, variables)
         elif isinstance(statement, IfStatementNode):
@@ -344,6 +362,13 @@ class Assembler:
             ror_count += 1
         return edx
 
+    def define_structs(self, struct_def):
+        types = [type_mappings[x] for x in struct_def.types]
+        struct_type = self.module.context.get_identified_type(struct_def.struct_name.value)
+        struct_type.set_body(*types)
+        type_mappings[struct_def.struct_name.value] = types
+        self.structs[struct_def.struct_name.value] = [x.value for x in struct_def.elements]
+
     def create_assembly(self):
         self.module = ir.Module(name="Shellcode")
         for declare in self.ast.syscalls:
@@ -352,6 +377,8 @@ class Assembler:
                 "module_hash": self.compute_hash(declare.module_name.value.replace("\"", ""), True),
                 "module_name": declare.module_name.value.replace("\"", "")
             }
+        for struct_def in self.ast.structs:
+            self.define_structs(struct_def)
         for function in self.ast.func_defs:
             self.define_funcs(function)
         for function in self.ast.func_defs:

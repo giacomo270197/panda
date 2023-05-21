@@ -5,19 +5,21 @@ import parser.nodes as nodes
 
 class AstTransformer(Transformer):
 
+    new_types = []
+
     def LITERAL(self, item):
         return nodes.LiteralExprNode(item.value)
     
     def IDENTIFIER(self, item):
         return nodes.IdentifierExprNode(item.value)
     
-    def array(self, items):
+    def aggregate(self, items):
         new_items = []
         defined = True
         cnt = 0
         if items[0] == "undef":
             defined = False
-        arr_type = items[1]
+        agg_type = items[1]
         cnt += 1
         for item in items[2:]:
             if isinstance(item, str):
@@ -25,12 +27,21 @@ class AstTransformer(Transformer):
                     new_items.append(item)
             else:
                 new_items.append(item)
-        return nodes.ArrayNode(arr_type, new_items, defined)
+        if agg_type.value in self.new_types:
+            return nodes.StructNode(agg_type, new_items, defined)
+        else:
+            return nodes.ArrayNode(agg_type, new_items, defined)
 
     def indexing_stmt(self, items):
         identifier = items[0]
         index = items[2]
         return nodes.IndexingStatementNode(identifier, index)
+
+    def access_stmt(self, items):
+        parent = items[0]
+        child = items[2]
+        return nodes.AccessStatementNode(parent, child)
+
 
     def expr(self, items):
         if isinstance(items[0], nodes.ExprNode):
@@ -228,14 +239,18 @@ class AstTransformer(Transformer):
         for x in range(1, len(items), 2):
             elements.append(items[x])
             types.append(items[x+1])
-        return nodes.StructNode(struct_name, elements, types)
+        self.new_types.append(struct_name.value)
+        return nodes.StructDefinitionNode(struct_name, elements, types)
     
     def program(self, items):
         syscalls = []
         functions = []
+        structs = []
         for item in items:
             if isinstance(item, nodes.SyscallNode):
                 syscalls.append(item)
             elif isinstance(item, nodes.FunctionNode):
                 functions.append(item)
-        return nodes.ProgramNode(syscalls, functions)
+            elif isinstance(item, nodes.StructDefinitionNode):
+                structs.append(item)
+        return nodes.ProgramNode(syscalls, functions, structs)
