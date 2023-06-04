@@ -1,6 +1,7 @@
+import lark
 from llvmlite import ir
 
-from compiler.mappings import type_mappings, size_mappings, test_instructions, register_size_mapping
+from compiler.mappings import type_mappings, size_mappings, test_instructions, register_size_mapping, structs_types
 from parser.nodes import *
 import config
 
@@ -39,12 +40,16 @@ class Assembler:
             return a, b
 
     def analyze_expression(self, expr, builder, variables, **kwargs):
-        if isinstance(expr, LiteralExprNode):
+        if isinstance(expr, LiteralExprNode) or isinstance(expr, lark.Token):
             if "preferred_type" in kwargs:
                 return ir.Constant(kwargs["preferred_type"], expr.value)
-            return ir.Constant(ir.IntType(64), expr.value)
+            return ir.Constant(ir.IntType(int(config.PLATFORM)), expr.value)
         if isinstance(expr, IdentifierExprNode):
-            if "as_ptr" in kwargs:
+            if expr.value == "NULL":
+                if "preferred_type" in kwargs:
+                    return kwargs["preferred_type"](None)
+                return ir.PointerType(ir.IntType(int(config.PLATFORM)))(None)
+            if "as_ptr" in kwargs or isinstance(variables.locals[expr.value].type, ir.IdentifiedStructType):
                 return variables.locals[expr.value].ptr
             elif isinstance(variables.locals[expr.value].type, ir.ArrayType):
                 return builder.bitcast(variables.locals[expr.value].ptr, ir.PointerType(variables.locals[expr.value].type.element))
@@ -168,7 +173,7 @@ class Assembler:
             tmp = builder.neg(operand)
         return tmp
 
-    def process_aggregate_statement(self, statement, builder):
+    def process_aggregate_statement(self, statement, builder, variables):
         agg_type = None
         if isinstance(statement, ArrayNode):
             agg_type = ir.ArrayType(type_mappings[statement.agg_type.value], len(statement.items))
@@ -180,9 +185,9 @@ class Assembler:
         if statement.defined:
             for x, y in zip(statement.items, range(len(statement.items))):
                 if isinstance(statement, ArrayNode):
-                    val = ir.Constant(type_mappings[statement.agg_type.value], x)
+                    val = self.analyze_expression(x, builder, variables, preferred_type=type_mappings[statement.agg_type.value])
                 else:
-                    val = ir.Constant(type_mappings[statement.agg_type.value][y], x)
+                    val = self.analyze_expression(x, builder, variables, preferred_type=structs_types[statement.agg_type.value][y])
                 first = ir.Constant(ir.IntType(32), 0)
                 idx = ir.Constant(ir.IntType(32), y)
                 elem_ptr = builder.gep(agg, [first, idx], inbounds=True)
@@ -214,8 +219,12 @@ class Assembler:
             elif x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
                 value = self.analyze_expression(x, builder, variables, as_ptr=True)
                 value = builder.gep(value, [idx, idx])
+            elif x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.IdentifiedStructType):
+                value = self.analyze_expression(x, builder, variables, as_ptr=True)
             else:
                 value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
+                if isinstance(value.type, ir.PointerType) and value.type.pointee.intrinsic_name in self.structs.keys():
+                    value = builder.ptrtoint(value, ir.IntType(int(config.PLATFORM)))
             params.append(value)
         if address:
             params.append(address)
@@ -292,7 +301,7 @@ class Assembler:
         elif isinstance(statement, UnaryOperationNode):
             return self.process_unary_operation_statement(statement, builder, variables)
         elif isinstance(statement, AggregateNode):
-            return self.process_aggregate_statement(statement, builder)
+            return self.process_aggregate_statement(statement, builder, variables)
         elif isinstance(statement, FunctionCallStatementNode):
             return self.process_function_call_statement(statement, builder, variables)
         elif isinstance(statement, IfStatementNode):
@@ -337,7 +346,7 @@ class Assembler:
         func_identifier = function.identifier
         func_parameters = function.parameters
         new_func_type = ir.FunctionType(type_mappings[func_type],
-                                        [type_mappings[func_parameters[x]] for x in range(len(func_parameters)) if
+                                        [type_mappings[func_parameters[x].value] for x in range(len(func_parameters)) if
                                          x % 2 == 0])
         func = ir.Function(self.module, new_func_type, name=func_identifier)
         self.functions[func_identifier] = func
@@ -354,7 +363,7 @@ class Assembler:
         edx = 0x00
         ror_count = 0
         if is_dll:
-            name = name.upper()
+            name = name.lower()
         for eax in name:
             edx = edx + ord(eax)
             if ror_count < len(name) - 1:
@@ -366,7 +375,8 @@ class Assembler:
         types = [type_mappings[x] for x in struct_def.types]
         struct_type = self.module.context.get_identified_type(struct_def.struct_name.value)
         struct_type.set_body(*types)
-        type_mappings[struct_def.struct_name.value] = types
+        type_mappings[struct_def.struct_name.value] = ir.PointerType(struct_type)
+        structs_types[struct_def.struct_name.value] = types
         self.structs[struct_def.struct_name.value] = [x.value for x in struct_def.elements]
 
     def create_assembly(self):

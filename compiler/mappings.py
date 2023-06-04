@@ -20,6 +20,8 @@ type_mappings = {
     "ptr int64": ir.PointerType(ir.IntType(64))
 }
 
+structs_types = {}
+
 size_mappings = {
     "i8": 8,
     "i16": 16,

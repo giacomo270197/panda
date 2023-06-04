@@ -41,6 +41,11 @@ class Preprocessor:
         self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + m.groups()[1] + "{" + "0, " * (
                     int(m.groups()[2]) - 1) + "0}", self.source)
 
+    def expand_structs(self):
+        r = r'array\s(\w+)+?\s(int8|int16|int32|int64|ptr int8|ptr int16|ptr int32|ptr int64)\[(\d+)\]'
+        self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " = " + m.groups()[1] + "{" + "0, " * (
+                    int(m.groups()[2]) - 1) + "0}", self.source)
+
     def expand_strings(self):
         r = r'string\s+?(\w+?)\s=\s+?"(.*?)"\s*?;'
         self.source = re.sub(r, lambda m: "array " + m.groups()[0] + " =  int8{" + string_to_arr(m.groups()[1]) + "};",

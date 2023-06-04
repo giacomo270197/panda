@@ -7,7 +7,7 @@ LITERAL: SIGNED_NUMBER | ESCAPED_STRING
 IDENTIFIER: CNAME
 INT_TYPES: "int8" | "int16" |  "int32" | "int64"
 PTR_INT_TYPES: "ptr int8" | "ptr int16" | "ptr int32" | "ptr int64"
-TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct"
+TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct" | "NULL"
 
 !expr: LITERAL | IDENTIFIER | aggregate | ["("] statement [")"]
 !aggregate: ["undef"] (INT_TYPES | PTR_INT_TYPES | IDENTIFIER) "{" (SIGNED_NUMBER | IDENTIFIER) ("," (SIGNED_NUMBER | IDENTIFIER))* "}"
@@ -54,10 +54,10 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct"
 
 !block: "{" statement* "}"
 
-syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" "(" (TYPE)? ("," TYPE)* ")" ";"
-func_def: TYPE "fn" IDENTIFIER "(" (TYPE IDENTIFIER)? ("," TYPE IDENTIFIER)*  ")" block
+syscall_def: "declare" "(" ESCAPED_STRING "," ESCAPED_STRING ")" "(" (TYPE|IDENTIFIER)? ("," (TYPE|IDENTIFIER))* ")" ";"
+func_def: TYPE "fn" IDENTIFIER "(" ((TYPE|IDENTIFIER) IDENTIFIER)? ("," (TYPE|IDENTIFIER) IDENTIFIER)*  ")" block
 struct_def: "define" "struct" IDENTIFIER "{" (IDENTIFIER ":" TYPE)? ("," IDENTIFIER ":" TYPE)*"}" ";"
 
-program: syscall_def* struct_def* func_def+
+program: syscall_def* [struct_def | func_def]+
 
 %ignore WS
