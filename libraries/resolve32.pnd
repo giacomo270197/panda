@@ -1,7 +1,7 @@
-int16 fn to_lowercase(int16 char) {
-    if(char >= 0x41){
-        if(char <= 0x5a) {
-            char += 32;
+int16 fn to_uppercase(int16 char) {
+    if(char <= 0x41){
+        if(char >= 0x5a) {
+            char -= 32;
         }
     }
     return char;
@@ -25,7 +25,7 @@ int32 fn compute_module_hash(int32 name) {
     int8 cnt = 0;
     int16 char = *(name + cnt);
     while(char != 0){
-        char = to_lowercase(char);
+        char = to_uppercase(char);
         hash = (hash shr 13) || (hash shl 19);
         hash += char;
         cnt += 2;

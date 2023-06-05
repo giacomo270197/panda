@@ -151,7 +151,7 @@ class Assembler:
         elif isinstance(statement, ShlStatementNode):
             tmp = builder.shl(lhs, rhs)
         elif isinstance(statement, ShrStatementNode):
-            tmp = builder.ashr(lhs, rhs)
+            tmp = builder.lshr(lhs, rhs)
         return tmp
 
     def process_dereference_statement(self, statement, builder, variables, assign_target):
@@ -363,7 +363,7 @@ class Assembler:
         edx = 0x00
         ror_count = 0
         if is_dll:
-            name = name.lower()
+            name = name.upper()
         for eax in name:
             edx = edx + ord(eax)
             if ror_count < len(name) - 1:
