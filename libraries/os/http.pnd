@@ -1,0 +1,26 @@
+declare("InternetOpenA", "wininet.dll")(ptr int8, int32, ptr int8, ptr int8, int32);
+declare("InternetConnectA", "wininet.dll")(int, ptr int8, int32, ptr int8, ptr int8, int32, int32, ptr int32);
+declare("HttpOpenRequestA", "wininet.dll")(int, ptr int8, ptr int8, ptr int8, ptr int8, ptr int8, int32, ptr int32);
+declare("HttpSendRequestA", "wininet.dll")(int, ptr int8, int32, ptr int8, int32);
+declare("HttpQueryInfoA", "wininet.dll")(int, int32, ptr int32, ptr int32, ptr int32);
+declare("InternetReadFile", "wininet.dll")(int, ptr int8, int32, ptr int16);
+declare("RtlCreateHeap", "ntdll.dll")(int64, ptr void, int, int, ptr void);
+declare("RtlAllocateHeap", "ntdll.dll")(int, int64, int);
+
+ptr int8 fn HTTPGet(ptr int8 server, ptr int8 url) {
+    string user_agent = "Panda HTTP library";
+    int16 bytes_read = 0xffff;
+    int hInternet = InternetOpenA(user_agent, 1, NULL, NULL, 0);
+    int hConnect = InternetConnectA(hInternet, server, 80, NULL, NULL, 3, 0, NULL);
+    string method = "GET";
+    int request= HttpOpenRequestA(hConnect, method, url, NULL, NULL, NULL, 0, NULL);
+    HttpSendRequestA(request, NULL, NULL, NULL, 0);
+    int heap_handle = RtlCreateHeap(2, NULL, 0, 0, NULL);
+    int32 content_length = 0;
+    int32 size_of_int = 4;
+    HttpQueryInfoA(request, 5 || 0x20000000, &content_length, &size_of_int, NULL);
+    int buffer = RtlAllocateHeap(heap_handle, 8, (int)content_length);
+    buffer = ptr int8;
+    InternetReadFile(request, buffer, content_length -1, &bytes_read);
+    return buffer;
+}

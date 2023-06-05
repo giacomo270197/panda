@@ -34,6 +34,7 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct" | "NULL"
 !dereference_stmt.1: "*" expr
 !addressof_stmt: "&" IDENTIFIER
 !casting_stmt: IDENTIFIER "=" TYPE ";"
+!softcast_stmt: "(" TYPE ")" IDENTIFIER
 !rol_stmt: expr "rol" expr [";"]
 !ror_stmt: expr "ror" expr [";"]
 !rol16_stmt: expr "rol16" expr [";"]
@@ -45,7 +46,7 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct" | "NULL"
 !access_stmt: expr "." expr
 !asm_stmt: "_asm(" ESCAPED_STRING "," ESCAPED_STRING "," ESCAPED_STRING ")" [";"]
 
-?misc_stmts: casting_stmt | asm_stmt
+?misc_stmts: casting_stmt | asm_stmt | softcast_stmt
 ?test_stmts: equality_stmt | inequality_stmt | greater_stmt | greatereq_stmt | lower_stmt | lowereq_stmt
 ?unary_stmts: dereference_stmt | addressof_stmt | negate_stmt | indexing_stmt | access_stmt
 ?binary_stmts: declaration_stmt | assign_stmt | addition_stmt | subtraction_stmt | multiplication_stmt | division_stmt | bitwiseand_stmt | bitwiseor_stmt | bitwisexor_stmt | rol_stmt | ror_stmt | rol16_stmt | ror16_stmt| shl_stmt | shr_stmt

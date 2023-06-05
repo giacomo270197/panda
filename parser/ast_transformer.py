@@ -181,6 +181,11 @@ class AstTransformer(Transformer):
         new_type = items[2]
         return nodes.CastingStatementNode(identifier, new_type)
 
+    def softcast_stmt(self, items):
+        new_type = items[1]
+        identifier = items[3]
+        return nodes.SoftcastStatementNode(identifier, new_type)
+
     def asm_stmt(self, items):
         inputs = items[1].replace(" ", "").replace("\"", "")
         assembly = items[3]

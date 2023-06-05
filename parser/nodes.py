@@ -195,6 +195,12 @@ class CastingStatementNode(StatementNode):
         self.new_type = new_type
 
 
+class SoftcastStatementNode(StatementNode):
+    def __init__(self, identifier, new_type):
+        self.identifier = identifier
+        self.new_type = new_type
+
+
 class AsmStatementNode(StatementNode):
     def __init__(self, input_mapping, assembly, output_mapping):
         self.input_mapping = {}

@@ -27,17 +27,29 @@ class Assembler:
             self.parameters = {}
             self.locals = {}
 
-    def zext_to_highest(self, a, b, builder):
+    def adjust_size(self, a, b, builder, preferred_type=None):
         size1 = size_mappings[str(a.type)]
         size2 = size_mappings[str(b.type)]
-        if size1 == size2:
-            return a, b
-        elif size1 > size2:
-            b = builder.zext(b, a.type)
+        if preferred_type:
+            preferred_size = size_mappings[str(preferred_type)]
+            if size1 < preferred_size:
+                a = builder.zext(a, preferred_type)
+            if size1 > preferred_size:
+                a = builder.trunc(a, preferred_type)
+            if size2 < preferred_size:
+                b = builder.zext(b, preferred_type)
+            if size2 > preferred_size:
+                b = builder.trunc(b, preferred_type)
             return a, b
         else:
-            a = builder.zext(a, b.type)
-            return a, b
+            if size1 == size2:
+                return a, b
+            elif size1 > size2:
+                b = builder.zext(b, a.type)
+                return a, b
+            else:
+                a = builder.zext(a, b.type)
+                return a, b
 
     def analyze_expression(self, expr, builder, variables, **kwargs):
         if isinstance(expr, LiteralExprNode) or isinstance(expr, lark.Token):
@@ -67,7 +79,11 @@ class Assembler:
                 return variables.locals[expr.operand.value].ptr
             elif isinstance(expr, DereferenceStatementNode):
                 return self.process_dereference_statement(expr, builder, variables, "assign_target" in kwargs)
+            elif isinstance(expr, SoftcastStatementNode):
+                return self.process_casting_statement(expr, builder, variables, soft=True)
             else:
+                if "preferred_type" in kwargs:
+                    return self.process_statement(expr, builder, variables, preferred_type=kwargs["preferred_type"])
                 return self.process_statement(expr, builder, variables)
 
     def process_indexing_statement(self, statement, builder, variables, as_ptr):
@@ -125,14 +141,17 @@ class Assembler:
         rhs = self.analyze_expression(statement.right_hand, builder, variables)
         return builder.icmp_unsigned(sign, lhs, rhs)
 
-    def process_binary_operation_statement(self, statement, builder, variables):
+    def process_binary_operation_statement(self, statement, builder, variables, **kwargs):
         lhs = self.analyze_expression(statement.left_hand, builder, variables)
         rhs = self.analyze_expression(statement.right_hand, builder, variables)
         if isinstance(lhs.type, ir.PointerType):
             lhs = builder.ptrtoint(lhs, lhs.type.pointee)
         if isinstance(rhs.type, ir.PointerType):
             rhs = builder.ptrtoint(rhs, rhs.type.pointee)
-        lhs, rhs = self.zext_to_highest(lhs, rhs, builder)
+        preferred_type = None
+        if "preferred_type" in kwargs:
+            preferred_type = kwargs["preferred_type"]
+        lhs, rhs = self.adjust_size(lhs, rhs, builder, preferred_type=preferred_type)
         tmp = None
         if isinstance(statement, AdditionStatementNode):
             tmp = builder.add(lhs, rhs)
@@ -215,7 +234,7 @@ class Assembler:
         params = []
         for x, y in zip(statement.parameters, func.args):
             if isinstance(x, StatementNode):
-                value = self.analyze_expression(x, builder, variables)
+                value = self.analyze_expression(x, builder, variables, preferred_type=y.type)
             elif x.value in variables.locals and isinstance(variables.locals[x.value].type, ir.ArrayType):
                 value = self.analyze_expression(x, builder, variables, as_ptr=True)
                 value = builder.gep(value, [idx, idx])
@@ -265,13 +284,14 @@ class Assembler:
             ptr = self.analyze_expression(val, builder, variables, as_ptr=True)
             builder.store(tmp, ptr)
 
-    def process_casting_statement(self, statement, builder, variables):
+    def process_casting_statement(self, statement, builder, variables, soft=False):
         val = self.analyze_expression(statement.identifier, builder, variables)
         new_type = type_mappings[statement.new_type.value.replace("\"", "")]
         old_type = variables.locals[statement.identifier.value].type
+        value = None
         if isinstance(old_type, ir.PointerType):
             if isinstance(new_type, ir.PointerType):
-                exit("NOT IMPLEMENTED")
+                value = builder.bitcast(val, new_type)
             else:
                 value = builder.ptrtoint(val, variables.locals[statement.identifier.value].type)
         else:
@@ -282,12 +302,15 @@ class Assembler:
                     value = builder.trunc(val, new_type)
                 elif size_mappings[str(old_type)] < size_mappings[str(new_type)]:
                     value = builder.zext(val, new_type)
-        new_ptr = builder.alloca(new_type)
-        builder.store(value, new_ptr)
-        variables.locals[statement.identifier.value].type = new_type
-        variables.locals[statement.identifier.value].ptr = new_ptr
+        if not soft:
+            new_ptr = builder.alloca(new_type)
+            builder.store(value, new_ptr)
+            variables.locals[statement.identifier.value].type = new_type
+            variables.locals[statement.identifier.value].ptr = new_ptr
+        else:
+            return value
 
-    def process_statement(self, statement, builder, variables):
+    def process_statement(self, statement, builder, variables, **kwargs):
         if isinstance(statement, ReturnStatementNode):
             self.process_return_statement(statement, builder, variables)
         elif isinstance(statement, DeclarationStatementNode):
@@ -297,7 +320,10 @@ class Assembler:
         elif isinstance(statement, ComparisonStatementNode):
             return self.process_comparison_statement(statement, builder, variables)
         elif isinstance(statement, BinaryOperationNode):
-            return self.process_binary_operation_statement(statement, builder, variables)
+            if "preferred_type" in kwargs:
+                return self.process_binary_operation_statement(statement, builder, variables, preferred_type=kwargs["preferred_type"])
+            else:
+                return self.process_binary_operation_statement(statement, builder, variables)
         elif isinstance(statement, UnaryOperationNode):
             return self.process_unary_operation_statement(statement, builder, variables)
         elif isinstance(statement, AggregateNode):
