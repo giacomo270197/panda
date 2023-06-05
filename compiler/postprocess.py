@@ -39,7 +39,7 @@ class PostProcessor:
                 if need_fixing_epilogue and "add" in line:
                     new_asm[-1] = "add     rsp, {}".format(str(epilogue_fix))
                     need_fixing_epilogue = False
-                if line.startswith("call_"):
+                if line.startswith("_call_"):
                     deletion_mode = True
                     need_fixing_epilogue = True
                     push_count = self.lookahead_push_count(self.assembly[idx:])

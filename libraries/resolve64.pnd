@@ -1,4 +1,4 @@
-int16 fn to_uppercase(int16 char) {
+int16 fn _to_uppercase(int16 char) {
     if(char <= 0x41){
         if(char >= 0x5a) {
             char -= 32;
@@ -7,7 +7,7 @@ int16 fn to_uppercase(int16 char) {
     return char;
 }
 
-int32 fn compute_function_hash(int64 name) {
+int32 fn _compute_function_hash(int64 name) {
     int32 hash = 0;
     int8 cnt = 0;
     int8 char = *(name + cnt);
@@ -20,7 +20,7 @@ int32 fn compute_function_hash(int64 name) {
     return hash;
 }
 
-int64 fn find_actual_dll_name(int64 path) {
+int64 fn _find_actual_dll_name(int64 path) {
     int64 cnt = 0;
     int64 last_backslash = 0;
     int8 current_char = *(path + cnt);
@@ -34,13 +34,13 @@ int64 fn find_actual_dll_name(int64 path) {
     return last_backslash + 2;
 }
 
-int32 fn compute_module_hash(int64 name) {
-    int64 actual_name = find_actual_dll_name(name);
+int32 fn _compute_module_hash(int64 name) {
+    int64 actual_name = _find_actual_dll_name(name);
     int32 hash = 0;
     int8 cnt = 0;
     int16 char = *(actual_name + cnt);
     while(char != 0){
-        char = to_uppercase(char);
+        char = _to_uppercase(char);
         hash = (hash shr 13) || (hash shl 19);
         hash += char;
         cnt += 2;
@@ -49,7 +49,7 @@ int32 fn compute_module_hash(int64 name) {
     return hash;
 }
 
-int64 fn find_module_base(int32 hash) {
+int64 fn _find_module_base(int32 hash) {
     int64 pointer = 0;
     _asm("pointer:rax", "mov %gs:0x30, %rax", "rax:pointer");
     pointer = *(pointer + 0x60);
@@ -63,7 +63,7 @@ int64 fn find_module_base(int32 hash) {
         if(first_char == 0) {
             return 0;
         }
-        int32 computed_hash = compute_module_hash(name);
+        int32 computed_hash = _compute_module_hash(name);
         if(computed_hash == hash) {
            return *(table_entry + 0x30);
         }
@@ -72,10 +72,10 @@ int64 fn find_module_base(int32 hash) {
     return 0;
 }
 
-int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_name){
-    int64 base_address = find_module_base(module_hash);
+int64 fn _find_function(int32 function_hash, int32 module_hash, ptr int8 module_name){
+    int64 base_address = _find_module_base(module_hash);
     if(base_address == 0) {
-        int64 load_library = find_function(0xec0e4e8e, 0x6e2bca17, module_name);
+        int64 load_library = _find_function(0xec0e4e8e, 0x6e2bca17, module_name);
         _asm("load_library:rax,module_name:rcx", "call rax", "rax:base_address");
     }
     int32 pe_signature = *(base_address + 0x3c);
@@ -92,7 +92,7 @@ int64 fn find_function(int32 function_hash, int32 module_hash, ptr int8 module_n
     while(number_of_names > 0) {
         int32 symbol_name_offset = *(address_of_names + (number_of_names * 4));
         int64 symbol_name = base_address + symbol_name_offset;
-        int32 computed = compute_function_hash(symbol_name);
+        int32 computed = _compute_function_hash(symbol_name);
         if(computed == function_hash) {
             int32 address_of_name_ordinal = *(export_table_directory + 0x24);
             address_of_name_ordinal = int64;

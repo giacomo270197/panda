@@ -82,7 +82,7 @@ class Preprocessor:
                         push_str += "push {}(%ebp)\\n".format(str(4 + (4 * x)))
                     self.source += """
                     
-int32 fn call_{}({}) {{
+int32 fn _call_{}({}) {{
     int32 out = 0;
     _asm("address:eax", "{}call eax", "eax:out");
     return out;
@@ -99,7 +99,7 @@ int32 fn call_{}({}) {{
                         push_str += "push {}(%rsi)\\n".format(str(8 * (x+offset)))
                         pop_str += "pop %rsi\\n"
                     self.source += """
-int64 fn call_{}({}) {{
+int64 fn _call_{}({}) {{
     int64 out = 0;
     _asm("address:rax", "{}call rax\\n{}", "rax:out");
     return out;

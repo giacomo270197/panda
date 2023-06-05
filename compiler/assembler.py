@@ -198,7 +198,7 @@ class Assembler:
         address = None
         idx = ir.Constant(ir.IntType(8), 0)
         if statement.target.value in self.syscalls:
-            find_func = self.functions["find_function"]
+            find_func = self.functions["_find_function"]
             syscall = self.syscalls[statement.target.value]
             arr_type = ir.ArrayType(ir.IntType(8), len(syscall["module_name"]) + 1)
             arr = builder.alloca(arr_type)
@@ -210,7 +210,7 @@ class Assembler:
                 builder.bitcast(arr, ir.PointerType(ir.IntType(8))),
             ]
             address = builder.call(find_func, find_params, cconv="ccc")
-            statement.target.value = "call_{}".format(statement.target.value)
+            statement.target.value = "_call_{}".format(statement.target.value)
         func = self.functions[statement.target.value]
         params = []
         for x, y in zip(statement.parameters, func.args):
