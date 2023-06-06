@@ -1,0 +1,8 @@
+int32 fn memcpy(ptr int8 a, ptr int8 b, int length){
+    int cnt = 0;
+    while(cnt < length) {
+        b[cnt] = a[cnt];
+        cnt += 1;
+    }
+    return 0;
+}

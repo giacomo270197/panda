@@ -8,14 +8,7 @@ declare("RtlAllocateHeap", "ntdll.dll")(int, int, int);
 declare("RtlReAllocateHeap", "ntdll.dll")(int, int, ptr int8, int);
 declare("RtlCreateHeap", "ntdll.dll")(int64, ptr int, int, int, ptr int, ptr int);
 
-int32 fn memcpy(ptr int8 a, ptr int8 b, int length){
-    int cnt = 0;
-    while(cnt < length) {
-        b[cnt] = a[cnt];
-        cnt += 1;
-    }
-    return 0;
-}
+import libraries.utils.memory
 
 ptr int8 fn HTTPGet(ptr int8 server, ptr int8 url) {
     string user_agent = "Panda HTTP library";
