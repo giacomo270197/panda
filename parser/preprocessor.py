@@ -75,9 +75,10 @@ class Preprocessor:
                 params = [x + " " + chr(65 + y) + "," for x, y in zip(params, range(len(params)))]
                 param_len = len(params)
                 if config.PLATFORM == "32":
+                    param_len += len([x for x in params if "int64" in x])
                     params.append("int32 address")
                     params = "".join(params)
-                    push_str = ""
+                    push_str = "mov {}(%ebp), %eax\\n".format(str(8 + (4 * param_len)))
                     for x in range(param_len, 0, -1):
                         push_str += "push {}(%ebp)\\n".format(str(4 + (4 * x)))
                     self.source += """

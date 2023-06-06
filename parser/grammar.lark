@@ -34,7 +34,7 @@ TYPE: INT_TYPES | PTR_INT_TYPES | "array" | "string" | "struct" | "NULL"
 !dereference_stmt.1: "*" expr
 !addressof_stmt: "&" IDENTIFIER
 !casting_stmt: IDENTIFIER "=" TYPE ";"
-!softcast_stmt: "(" TYPE ")" IDENTIFIER
+!softcast_stmt: "(" TYPE ")" expr
 !rol_stmt: expr "rol" expr [";"]
 !ror_stmt: expr "ror" expr [";"]
 !rol16_stmt: expr "rol16" expr [";"]

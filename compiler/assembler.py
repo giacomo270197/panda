@@ -287,8 +287,10 @@ class Assembler:
     def process_casting_statement(self, statement, builder, variables, soft=False):
         val = self.analyze_expression(statement.identifier, builder, variables)
         new_type = type_mappings[statement.new_type.value.replace("\"", "")]
-        old_type = variables.locals[statement.identifier.value].type
+        old_type = val.type
         value = None
+        if old_type == new_type:
+            return val
         if isinstance(old_type, ir.PointerType):
             if isinstance(new_type, ir.PointerType):
                 value = builder.bitcast(val, new_type)

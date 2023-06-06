@@ -40,6 +40,7 @@ class Compiler:
             exit()
         post_processor = PostProcessor(new_asm)
         new_asm = post_processor.postprocess()
+        print(new_asm)
         return new_asm
 
     def create_assembly(self):

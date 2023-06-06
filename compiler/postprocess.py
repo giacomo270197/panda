@@ -13,7 +13,7 @@ class PostProcessor:
 
     def __init__(self, assembly):
         self.assembly = assembly.split("\n")
-        self.functional_rules = [self.remove_call_functions_preambles_64]
+        self.functional_rules = [self.remove_call_functions_preambles_64, self.add_preamble_32]
         self.optimization_rules = []
         self.rules = self.functional_rules + self.optimization_rules
 
@@ -56,6 +56,26 @@ class PostProcessor:
             elif deletion_mode and "rsi, rsp" in line:
                 new_asm.append(line)
                 deletion_mode = False
+        self.assembly = new_asm
+
+    def add_preamble_32(self):
+        if config.PLATFORM == "64":
+            return
+        new_asm = []
+        fixing_mode = False
+        for line, idx in zip(self.assembly, range(len(self.assembly))):
+            new_asm.append(line)
+            if line.startswith("__call_"):
+                if "push" not in self.assembly[idx + 1] or "ebp" not in self.assembly[idx + 1]:
+                    fixing_mode = True
+                    new_asm.append("push ebp")
+                    new_asm.append("mov ebp, esp")
+            if "ret" in line and fixing_mode:
+                new_asm = new_asm[:-1]
+                new_asm.append("mov esp, ebp")
+                new_asm.append("pop ebp")
+                new_asm.append("ret")
+                fixing_mode = False
         self.assembly = new_asm
 
     def postprocess(self):
